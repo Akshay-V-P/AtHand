@@ -1,0 +1,17 @@
+client/node_modules/
+server/node_modules/
+
+client/.env
+server/.env
+.env
+
+client/dist/
+server/dist/
+
+*.log
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
