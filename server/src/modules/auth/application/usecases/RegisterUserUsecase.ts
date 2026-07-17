@@ -19,6 +19,7 @@ export class RegisterUserUsecase{
         if (user) throw new Error("User already exist")
         const hashedPassword = await this.passwordService.hash(dto.password)
         const newUser = new User(
+            undefined,
             dto.name,
             dto.email,
             dto.phone,

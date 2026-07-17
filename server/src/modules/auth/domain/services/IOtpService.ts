@@ -1,5 +1,8 @@
+import { OtpVerificationEnum } from "../enum/OtpVerificationEnum";
+
 export interface IOtpService{
     generate(email: string): Promise<string>;
-    verify(email: string, enteredOtp: string): Promise<boolean>;
+    find(email: string): Promise<boolean>;
+    verify(email: string, enteredOtp: string): Promise<OtpVerificationEnum>;
     delete(email:string): Promise<void>
 }
