@@ -25,6 +25,7 @@ export class RegisterUserUsecase{
             dto.phone,
             hashedPassword,
             UserRole.USER,
+            "ACTIVE",
             false
         )
         await this.userRepository.create(newUser)

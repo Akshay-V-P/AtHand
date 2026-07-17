@@ -5,7 +5,9 @@ export class User{
         public readonly email: string,
         public readonly phone:string,
         public readonly password:string,
-        public readonly role: string,
-        public readonly isVerified:boolean
+        public readonly role: "USER" | "PROVIDER" | "ADMIN",
+        public readonly status: "ACTIVE" | "BLOCKED",
+        public readonly isVerified: boolean,
+        public readonly googleId?: string
     ){}
 }
