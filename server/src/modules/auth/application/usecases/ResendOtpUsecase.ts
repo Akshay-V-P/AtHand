@@ -14,7 +14,9 @@ export class ResendOtpUsecase{
         const user = await this.userRepository.findByEmail(dto.email)
         if (!user) throw new Error("User not found")
         if (user.isVerified) throw new Error("User already verified")
-        let newOtp = await this.otpService.generate(dto.email)
+        const otp = await this.otpService.find(dto.email)
+        if(otp) throw new Error("OTP exists")
+        const newOtp = await this.otpService.generate(dto.email)
         await this.emailService.sendOTP(dto.email, newOtp)
     }
 }
