@@ -1,8 +1,16 @@
 import React from 'react'
+import AppRoutes from '../routes/AppRoutes'
+import {Toaster} from "react-hot-toast"
 
 const App = () => {
   return (
-    <div>App</div>
+    <>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+      />
+      <AppRoutes/>
+    </>
   )
 }
 

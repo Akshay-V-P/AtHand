@@ -8,6 +8,7 @@ export function createAuthRoutes(authController: AuthController, authMiddleware:
     router.post('/verify-otp', authController.verifyOtp)
     router.post('/resend-otp', authController.resendOtp)
     router.post('/login', authController.login)
-    router.post('/logout',authMiddleware.execute,  authController.logout)
+    router.post('/logout', authMiddleware.execute, authController.logout)
+    router.post('/refresh', authController.refresh)
     return router
 }

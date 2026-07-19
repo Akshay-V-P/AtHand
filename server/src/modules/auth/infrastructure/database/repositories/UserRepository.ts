@@ -26,9 +26,15 @@ export class UserRepository implements IUserRepository{
     }
 
     async update(id: string, updateData: UserUpdateDto): Promise<User | null> {
-        console.log(updateData)
+        
         const user = await UserModel.findByIdAndUpdate(id, updateData, { returnDocument: "after" })
         if(!user) return null
+        return UserMapper.toDomain(user)
+    }
+
+    async findById(id: string): Promise<User | null> {
+        const user = await UserModel.findById({ _id: id })
+        if (!user) return null
         return UserMapper.toDomain(user)
     }
 }

@@ -7,7 +7,9 @@ export class LogoutUserUseCase{
         private readonly redisRefreshTokenRepository:IRefreshTokenRepository
     ) { }
     
-    async execute(id:string, sessionId:string): Promise<void>{
+    async execute(id: string, sessionId: string): Promise<void>{
+        const token = await this.redisRefreshTokenRepository.find(id, sessionId)
+        if(!token) throw new Error("User already logged out")
         await this.redisRefreshTokenRepository.delete(id, sessionId)
     }
 }

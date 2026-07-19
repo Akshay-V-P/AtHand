@@ -8,6 +8,7 @@ import { ResendOtpDto } from "../../application/dto/ResendOtpDto";
 import { LoginUserUsecase } from "../../application/usecases/LoginUserUsecase";
 import { LoginDto } from "../../application/dto/LoginDto";
 import { LogoutUserUseCase } from "../../application/usecases/LogoutUserUseCase";
+import { RefreshTokenUsecase } from "../../application/usecases/RefreshTokenUsecase";
 
 export class AuthController {
     constructor(
@@ -15,13 +16,18 @@ export class AuthController {
         private readonly verifyOtpUseCase: VerifyOtpUsecase,
         private readonly resendOtpUseCase: ResendOtpUsecase,
         private readonly loginUserUseCase: LoginUserUsecase,
-        private readonly logoutUserUserCase: LogoutUserUseCase
+        private readonly logoutUserUserCase: LogoutUserUseCase,
+        private readonly refreshTokenUseCase:RefreshTokenUsecase
     ) { }
     
     signup = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
         try {
             const dto:RegisterDto = req.body
-            await this.registerUseCase.execute(dto)
+            const registerd = await this.registerUseCase.execute(dto)
+            if (!registerd) {
+                res.status(200).json({ success: true, message: "User already exists. Please verify email" })
+                return
+            }
             res.status(201).json({ success: true, message:"OTP send successfully"})
         } catch (error) {
             next(error)
@@ -78,6 +84,25 @@ export class AuthController {
                 secure:false
             })
             res.status(200).json({success:true, message:"Logout success"})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
+        try {
+            const authHeader = req.cookies.refreshToken
+            if (!authHeader?.startsWith("Bearer ")) {
+                res.status(401).json({ success: false, message: "Unauthorized" })
+                return
+            }
+            const refreshToken = authHeader?.split(" ")[1]
+            if (!refreshToken) {
+                res.status(401).json({ success: false, message: "Unauthorized" })
+                return
+            }
+            const newAccessToken = await this.refreshTokenUseCase.execute(refreshToken)
+            res.status(200).json({success:true, message:"New access token", data:newAccessToken})
         } catch (error) {
             next(error)
         }
