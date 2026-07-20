@@ -14,7 +14,7 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const baseStyle =
-    "px-6 py-2.5 rounded-xl font-medium transition-colors duration-200 text-sm";
+    "transform transition duration-300 ease px-6 py-2.5 rounded-xl font-medium transition-colors duration-200 text-sm hover:-translate-y-[2px] hover:shadow-lg";
 
   const variants = {
     primary:

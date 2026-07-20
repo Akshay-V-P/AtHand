@@ -130,7 +130,7 @@ export class EmailService implements IEmailService{
                 line-height:28px;
                 ">
                 This code expires in
-                <strong>5 minutes</strong>.
+                <strong>1 minutes</strong>.
                 </p>
 
                 <p style="

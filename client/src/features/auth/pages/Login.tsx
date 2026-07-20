@@ -2,8 +2,29 @@ import React from 'react'
 import { Divider } from '../../../components/common/Divider'
 import { Button } from '../../../components/common/Button'
 import { InputField } from '../../../components/common/InputField'
+import { useForm } from 'react-hook-form'
+import { loginSchema, type LoginFormData } from '../validation/loginSchema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { authService } from '../services/authService'
+import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode:"onSubmit"
+  })
+  const navigate = useNavigate()
+
+  const onSubmit = async (data:LoginFormData) => {
+    try {
+      await authService.login(data)
+      navigate("/")
+    } catch (error: any) {
+      console.log(error.response)
+      toast.error(error.response?.data.message || "Something went wrong")
+    }
+  }
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-8">
       
@@ -41,11 +62,11 @@ const Login = () => {
               <p className="text-gray-500 mt-1">Your trusted service network is waiting.</p>
             </div>
 
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-              <InputField type="email" placeholder="Email" />
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
+              <InputField type="email" placeholder="Email" {...register('email')} label={ errors.email?.message} />
               
               <div>
-                <InputField type="password" placeholder="Password" />
+                <InputField type="password" placeholder="Password" {...register('password')} label={ errors.password?.message} />
                 <div className="flex justify-end mt-1.5">
                   <a href="/forgot-password" className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors">
                     Forgot Password
@@ -54,7 +75,7 @@ const Login = () => {
               </div>
 
               <div className="flex justify-center pt-2">
-                <Button type="submit">Login to account</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting? "Logging in...": "Login to account" }</Button>
               </div>
             </form>
 

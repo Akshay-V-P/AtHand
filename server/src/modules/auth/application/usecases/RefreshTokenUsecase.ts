@@ -1,3 +1,5 @@
+import { NotFoundError } from "../../../../shared/errors/NotFoundError";
+import { UnauthorizedError } from "../../../../shared/errors/UnauthorizedError";
 import { UserStatus } from "../../domain/enum/UserStatus";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
@@ -12,12 +14,12 @@ export class RefreshTokenUsecase{
     
     async execute(refreshToken:string): Promise<string>{
         const matchToken = this.jwtService.verifyRefreshToken(refreshToken)
-        if (!matchToken) throw new Error("Invalid token")
+        if (!matchToken) throw new UnauthorizedError("Invalid token")
         const tokenExist = await this.refreshTokenRepository.find(matchToken.id, matchToken.sessionId)
-        if (!tokenExist) throw new Error("Session expired. login needed")
+        if (!tokenExist) throw new UnauthorizedError("Session expired, Please login")
         const user = await this.userRepository.findById(matchToken.id)
-        if (!user) throw new Error("User not found")
-        if (user.status === UserStatus.BLOCKED) throw new Error("User is blocked by admin");
+        if (!user) throw new NotFoundError("User not found")
+        if (user.status === UserStatus.BLOCKED) throw new UnauthorizedError("User blocked");
         const payload:JwtPayload = {
             id: matchToken.id,
             sessionId: matchToken.sessionId,

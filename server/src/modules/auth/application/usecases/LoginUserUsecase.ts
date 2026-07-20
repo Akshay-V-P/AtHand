@@ -1,3 +1,6 @@
+import { BadRequestError } from "../../../../shared/errors/BadRequestError";
+import { NotFoundError } from "../../../../shared/errors/NotFoundError";
+import { UnauthorizedError } from "../../../../shared/errors/UnauthorizedError";
 import { UserStatus } from "../../domain/enum/UserStatus";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
@@ -16,10 +19,11 @@ export class LoginUserUsecase{
     
     async execute(dto: LoginDto): Promise<LoginResponseDto>{
         const user = await this.userRepository.findByEmail(dto.email)
-        if (!user) throw new Error("User not exist, register user")
-        if (user.status === UserStatus.BLOCKED) throw new Error("User is blocked")
-        const matchPassword = this.passwordService.compare(dto.password, user.password)
-        if (!matchPassword) throw new Error("Invalid password")
+        if (!user) throw new NotFoundError("User not found, Please regiser user")
+        if (user.status === UserStatus.BLOCKED) throw new UnauthorizedError("User blocked")
+        const matchPassword = await this.passwordService.compare(dto.password, user.password)
+        console.log(matchPassword)
+        if (!matchPassword) throw new BadRequestError("Incorrect Password")
         const sessionId = crypto.randomUUID()
         const payload = {
             id: user.id!,

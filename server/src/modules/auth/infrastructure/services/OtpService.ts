@@ -9,7 +9,7 @@ export class OtpService implements IOtpService{
         const min = Math.pow(10, 5)
 
         const otp = randomInt(100000, 1000000).toString()
-        await redisClient.set(`otp:${email}`, otp, {EX:300})
+        await redisClient.set(`otp:${email}`, otp, {EX:60})
         return otp
     }
 
@@ -28,5 +28,11 @@ export class OtpService implements IOtpService{
 
     async delete(email: string): Promise<void> {
         await redisClient.del(`otp:${email}`)
+    }
+
+    async getRemainingTime(email: string): Promise<number> {
+        const ttl = await redisClient.ttl(`otp:${email}`)
+        if (ttl === -2) return 0
+        return ttl
     }
 }

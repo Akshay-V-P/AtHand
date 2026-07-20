@@ -1,5 +1,7 @@
 import { LoginUserUsecase } from "./application/usecases/LoginUserUsecase";
 import { LogoutUserUseCase } from "./application/usecases/LogoutUserUseCase";
+import { OtpStatusUsecase } from "./application/usecases/OtpStatusUsecase";
+import { RefreshTokenUsecase } from "./application/usecases/RefreshTokenUsecase";
 import { RegisterUserUsecase } from "./application/usecases/RegisterUserUsecase";
 import { ResendOtpUsecase } from "./application/usecases/ResendOtpUsecase";
 import { VerifyOtpUsecase } from "./application/usecases/VerifyOtpUsecase";
@@ -11,6 +13,7 @@ import { OtpService } from "./infrastructure/services/OtpService";
 import { PasswordService } from "./infrastructure/services/PasswordService";
 import { AuthController } from "./presentation/controllers/AuthController";
 import { AuthMiddleware } from "./presentation/middlewares/AuthMiddleware";
+import { RegistrationMiddleware } from "./presentation/middlewares/RegistrationMiddleware";
 import { createAuthRoutes } from "./presentation/routes/auth.routes";
 
 const userRepository = new UserRepository()
@@ -21,14 +24,17 @@ const emailService = new EmailService()
 const otpService = new OtpService()
 const jwtService = new JwtService()
 
-const registerUserUsecase = new RegisterUserUsecase(userRepository, passwordService, otpService, emailService)
+const registerUserUsecase = new RegisterUserUsecase(userRepository, passwordService, otpService, emailService, jwtService)
 const verifyOtpUsecase = new VerifyOtpUsecase(userRepository, otpService)
 const resendOtpUsecase = new ResendOtpUsecase(userRepository, otpService, emailService)
 const loginUserUsecase = new LoginUserUsecase(userRepository, passwordService, jwtService, redisRefreshTokenRepo)
 const logoutUserUsecase = new LogoutUserUseCase(redisRefreshTokenRepo)
+const refreshTokenUsercase = new RefreshTokenUsecase(jwtService, redisRefreshTokenRepo, userRepository)
+const otpStatusUseCase = new OtpStatusUsecase(otpService)
 
-const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase)
+const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase)
 
 export const authMiddleware = new AuthMiddleware(jwtService)
+export const registrationMiddleware = new RegistrationMiddleware(jwtService)
 
-export const authRoute = createAuthRoutes(authController, authMiddleware)
+export const authRoute = createAuthRoutes(authController, authMiddleware, registrationMiddleware)

@@ -9,6 +9,8 @@ import { LoginUserUsecase } from "../../application/usecases/LoginUserUsecase";
 import { LoginDto } from "../../application/dto/LoginDto";
 import { LogoutUserUseCase } from "../../application/usecases/LogoutUserUseCase";
 import { RefreshTokenUsecase } from "../../application/usecases/RefreshTokenUsecase";
+import { OtpStatusUsecase } from "../../application/usecases/OtpStatusUsecase";
+import { RegTokenPayload } from "../../domain/services/ITokenService";
 
 export class AuthController {
     constructor(
@@ -17,14 +19,22 @@ export class AuthController {
         private readonly resendOtpUseCase: ResendOtpUsecase,
         private readonly loginUserUseCase: LoginUserUsecase,
         private readonly logoutUserUserCase: LogoutUserUseCase,
-        private readonly refreshTokenUseCase:RefreshTokenUsecase
+        private readonly refreshTokenUseCase: RefreshTokenUsecase,
+        private readonly otpStatusUseCase:OtpStatusUsecase
     ) { }
     
     signup = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
         try {
             const dto:RegisterDto = req.body
-            const registerd = await this.registerUseCase.execute(dto)
-            if (!registerd) {
+            const registered = await this.registerUseCase.execute(dto)
+            console.log(registered)
+            res.cookie('registrationToken', registered.registrationToken, {
+                httpOnly: true,
+                secure:false,
+                sameSite: 'lax',
+                maxAge:15*60*60*1000
+            })
+            if (!registered.newRegister) {
                 res.status(200).json({ success: true, message: "User already exists. Please verify email" })
                 return
             }
@@ -36,7 +46,14 @@ export class AuthController {
 
     verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
         try {
-            const dto:OtpVerifyDto = req.body
+            if (!req.registration) {
+                res.status(401).json({ success: false, message: "Session expired" })
+                return
+            }
+            const dto: OtpVerifyDto = {
+                email: req.registration.email,
+                otp:req.body.otp
+            }
             await this.verifyOtpUseCase.execute(dto)
             res.status(200).json({success:true, message:"OTP verified successfully"})
         } catch (error) {
@@ -46,9 +63,14 @@ export class AuthController {
 
     resendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const dto: ResendOtpDto = req.body
+            if (!req.registration) {
+                res.status(401).json({ success: false, message: "Session expired" })
+                return
+            }
+            const dto: ResendOtpDto = req.registration
             await this.resendOtpUseCase.execute(dto)
-            res.status(200).json({success:true, message:"OTP resended"})
+            const data = await this.otpStatusUseCase.execute(req.registration.email)
+            res.status(200).json({success:true, message:"OTP resended", data})
         } catch (error) {
             next(error)
         }
@@ -103,6 +125,20 @@ export class AuthController {
             }
             const newAccessToken = await this.refreshTokenUseCase.execute(refreshToken)
             res.status(200).json({success:true, message:"New access token", data:newAccessToken})
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    otpStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.registration) {
+                res.status(401).json({ success: false, message: "Unauthorized" })
+                return
+            }
+            const data = await this.otpStatusUseCase.execute(req.registration?.email)
+            
+            res.status(200).json({success:true, message:"Otp status", data})
         } catch (error) {
             next(error)
         }

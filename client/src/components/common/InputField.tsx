@@ -12,9 +12,9 @@ export const InputField = ({
   ...props
 }: InputFieldProps) => {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 w-full">
       {label && (
-        <label className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-medium text-red-700">
           {label}
         </label>
       )}

@@ -20,15 +20,19 @@ const Register = () => {
 
   const onSubmit = async (data: RegisterFormData) => {
 
-    const responseData = await authService.register(data)
-    if(responseData.status === 200) toast(responseData.data.message, {icon:"❗"})
-    if (responseData.data.success) {
-      navigate('/verify-otp')
-      return
+    try {
+      const responseData = await authService.register(data)
+      if(responseData.status === 200) toast(responseData.data.message, {icon:"❗"})
+      if (responseData.data.success) {
+        navigate('/verify-otp')
+        return
+      }
+    } catch (error: any) {
+      if (error.response.status === 400) {
+        navigate("/login")
+      }
+      toast.error(error.response.data.message || "Something went wrong")
     }
-
-    
-
   };
 
 
@@ -71,7 +75,7 @@ const Register = () => {
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
               <InputField placeholder="Full name" type='text' {...register("name")} error={errors.name?.message} />
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-between">
+              <div className="flex flex-col sm:flex-row gap-2 justify-between">
                 <InputField type="email" placeholder="Email" className="flex-1" {...register("email")} error={errors.email?.message} />
                 <InputField type="tel" placeholder="Phone" className="flex-1" {...register("phone")} error={errors.phone?.message} />
               </div>
@@ -98,7 +102,7 @@ const Register = () => {
                 </svg>
               </button>
 
-              <a href="/login" className="text-gray-900 font-semibold underline decoration-2 underline-offset-4 hover:text-black transition-colors">
+              <a onClick={(e) => { e.preventDefault(); navigate("/login") }} className="text-gray-900 font-semibold underline decoration-2 underline-offset-4 hover:text-black transition-colors cursor-pointer">
                 Already have an account
               </a>
             </div>
