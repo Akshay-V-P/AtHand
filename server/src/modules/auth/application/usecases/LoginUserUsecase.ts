@@ -8,8 +8,9 @@ import { IPasswordService } from "../../domain/services/IPasswordService";
 import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginDto } from "../dto/LoginDto";
 import { LoginResponseDto } from "../dto/LoginResponseDto";
+import { ILoginUserUsecase } from "../interfaces/ILoginUserUsecase";
 
-export class LoginUserUsecase{
+export class LoginUserUsecase implements ILoginUserUsecase{
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly passwordService: IPasswordService,

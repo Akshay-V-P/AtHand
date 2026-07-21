@@ -2,8 +2,9 @@ import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { ITokenService } from "../../domain/services/ITokenService";
+import { ILogoutUserUsecase } from "../interfaces/ILogoutUserUsecase";
 
-export class LogoutUserUseCase{
+export class LogoutUserUseCase implements ILogoutUserUsecase{
     constructor(
         private readonly redisRefreshTokenRepository:IRefreshTokenRepository
     ) { }

@@ -1,33 +1,34 @@
 import { NextFunction, Request, Response } from "express";
-import { RegisterUserUsecase } from "../../application/usecases/RegisterUserUsecase";
-import { VerifyOtpUsecase } from "../../application/usecases/VerifyOtpUsecase";
 import { RegisterDto } from "../../application/dto/RegisterDto";
 import { OtpVerifyDto } from "../../application/dto/OtpVerifyDto";
-import { ResendOtpUsecase } from "../../application/usecases/ResendOtpUsecase";
 import { ResendOtpDto } from "../../application/dto/ResendOtpDto";
-import { LoginUserUsecase } from "../../application/usecases/LoginUserUsecase";
 import { LoginDto } from "../../application/dto/LoginDto";
-import { LogoutUserUseCase } from "../../application/usecases/LogoutUserUseCase";
-import { RefreshTokenUsecase } from "../../application/usecases/RefreshTokenUsecase";
-import { OtpStatusUsecase } from "../../application/usecases/OtpStatusUsecase";
-import { RegTokenPayload } from "../../domain/services/ITokenService";
+import { ILoginUserUsecase } from "../../application/interfaces/ILoginUserUsecase";
+import { IRegisterUserUsecase } from "../../application/interfaces/IRegisterUserUsecase";
+import { IVerifyOtpUsecase } from "../../application/interfaces/IVerifyOtpUsecase";
+import { IOtpStatusUsecase } from "../../application/interfaces/IOtpStatusUsecase";
+import { ILogoutUserUsecase } from "../../application/interfaces/ILogoutUserUsecase";
+import { IResendOtpUsecase } from "../../application/interfaces/IResendOtpUsecase";
+import { HttpStatus } from "../../../../shared/enums/HttpStatus";
+import { ResponseHandler } from "../../../../shared/presentation/ResponseHandler";
+import { AUTH_MESSAGES } from "../constants/authMessage";
 
 export class AuthController {
     constructor(
-        private readonly registerUseCase: RegisterUserUsecase,
-        private readonly verifyOtpUseCase: VerifyOtpUsecase,
-        private readonly resendOtpUseCase: ResendOtpUsecase,
-        private readonly loginUserUseCase: LoginUserUsecase,
-        private readonly logoutUserUserCase: LogoutUserUseCase,
-        private readonly refreshTokenUseCase: RefreshTokenUsecase,
-        private readonly otpStatusUseCase:OtpStatusUsecase
+        private readonly registerUseCase: IRegisterUserUsecase,
+        private readonly verifyOtpUseCase: IVerifyOtpUsecase,
+        private readonly resendOtpUseCase: IResendOtpUsecase,
+        private readonly loginUserUseCase: ILoginUserUsecase,
+        private readonly logoutUserUserCase: ILogoutUserUsecase,
+        private readonly refreshTokenUseCase: IRegisterUserUsecase,
+        private readonly otpStatusUseCase:IOtpStatusUsecase
     ) { }
     
     signup = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
         try {
             const dto:RegisterDto = req.body
             const registered = await this.registerUseCase.execute(dto)
-            console.log(registered)
+            
             res.cookie('registrationToken', registered.registrationToken, {
                 httpOnly: true,
                 secure:false,
@@ -35,10 +36,10 @@ export class AuthController {
                 maxAge:15*60*60*1000
             })
             if (!registered.newRegister) {
-                res.status(200).json({ success: true, message: "User already exists. Please verify email" })
+                ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.USER_ALREADY_EXISTS_VERIFY)
                 return
             }
-            res.status(201).json({ success: true, message:"OTP send successfully"})
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.OTP_SENT)
         } catch (error) {
             next(error)
         }
@@ -47,7 +48,7 @@ export class AuthController {
     verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
         try {
             if (!req.registration) {
-                res.status(401).json({ success: false, message: "Session expired" })
+                ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, AUTH_MESSAGES.SESSION_EXPIRED)
                 return
             }
             const dto: OtpVerifyDto = {
@@ -55,7 +56,7 @@ export class AuthController {
                 otp:req.body.otp
             }
             await this.verifyOtpUseCase.execute(dto)
-            res.status(200).json({success:true, message:"OTP verified successfully"})
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.OTP_VERIFIED)
         } catch (error) {
             next(error)
         }
@@ -64,13 +65,13 @@ export class AuthController {
     resendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.registration) {
-                res.status(401).json({ success: false, message: "Session expired" })
+                ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, AUTH_MESSAGES.SESSION_EXPIRED)
                 return
             }
             const dto: ResendOtpDto = req.registration
             await this.resendOtpUseCase.execute(dto)
             const data = await this.otpStatusUseCase.execute(req.registration.email)
-            res.status(200).json({success:true, message:"OTP resended", data})
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.OTP_RESENT, data)
         } catch (error) {
             next(error)
         }
@@ -87,7 +88,7 @@ export class AuthController {
                 sameSite: "lax",
                 maxAge:7*24*60*60*1000
             })
-            res.status(200).json({success:true, message:"Login succesfull", data:responseData})
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.LOGIN_SUCCESS, responseData)
         } catch (error) {
             next(error)
         }
@@ -96,7 +97,7 @@ export class AuthController {
     logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.user) {
-                res.status(401).json({ success: false, message: "Unauthorized" })
+                ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED)
                 return
             }
             await this.logoutUserUserCase.execute(req.user.id, req.user.sessionId)
@@ -105,7 +106,7 @@ export class AuthController {
                 sameSite: "lax",
                 secure:false
             })
-            res.status(200).json({success:true, message:"Logout success"})
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.LOGOUT_SUCCESS)
         } catch (error) {
             next(error)
         }
@@ -115,16 +116,16 @@ export class AuthController {
         try {
             const authHeader = req.cookies.refreshToken
             if (!authHeader?.startsWith("Bearer ")) {
-                res.status(401).json({ success: false, message: "Unauthorized" })
+                ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED)
                 return
             }
             const refreshToken = authHeader?.split(" ")[1]
             if (!refreshToken) {
-                res.status(401).json({ success: false, message: "Unauthorized" })
+                ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED)
                 return
             }
             const newAccessToken = await this.refreshTokenUseCase.execute(refreshToken)
-            res.status(200).json({success:true, message:"New access token", data:newAccessToken})
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.ACCESS_TOKEN_REFRESHED, newAccessToken)
         } catch (error) {
             next(error)
         }
@@ -133,12 +134,12 @@ export class AuthController {
     otpStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.registration) {
-                res.status(401).json({ success: false, message: "Unauthorized" })
+                ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED)
                 return
             }
             const data = await this.otpStatusUseCase.execute(req.registration?.email)
             
-            res.status(200).json({success:true, message:"Otp status", data})
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.OTP_STATUS)
         } catch (error) {
             next(error)
         }

@@ -3,7 +3,7 @@ import cors from "cors"
 
 import { authRoute } from "./modules/auth/container"
 import cookieParser from "cookie-parser"
-import { errorHandler } from "./shared/middleware/ErrorMiddleware"
+import { errorHandler } from "./shared/middleware/errorMiddleware"
 
 const app = express()
 

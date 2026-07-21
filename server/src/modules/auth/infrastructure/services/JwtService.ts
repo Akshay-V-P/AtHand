@@ -5,19 +5,19 @@ import jwt from "jsonwebtoken"
 export class JwtService implements ITokenService{
     generateAccessToken(payload: JwtPayload): string {
         return jwt.sign(payload, process.env.JWT_ACCESS_SECRET!, {
-            expiresIn:process.env.JWT_ACCESS_EXPIRES as jwt.SignOptions['expiresIn']
+            expiresIn:process.env.JWT_ACCESS_EXPIRES as jwt.SignOptions['expiresIn'] || "15m"
         })
     }
 
     generateRefreshToken(payload: JwtPayload): string {
         return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
-            expiresIn: process.env.JWT_REFRESH_EXPIRES as jwt.SignOptions['expiresIn']
+            expiresIn: process.env.JWT_REFRESH_EXPIRES as jwt.SignOptions['expiresIn'] || "7d"
         })
     }
 
     generateRegistrationToken(payload: RegTokenPayload): string {
         return jwt.sign(payload, process.env.JWT_REGISTRATION_SECRET!, {
-            expiresIn:process.env.JWT_REGISTRATION_EXPIRES as jwt.SignOptions['expiresIn']
+            expiresIn:process.env.JWT_REGISTRATION_EXPIRES as jwt.SignOptions['expiresIn'] || "15m"
         })
     }
 

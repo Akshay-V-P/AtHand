@@ -5,8 +5,9 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IEmailService } from "../../domain/services/IEmailService";
 import { IOtpService } from "../../domain/services/IOtpService";
 import { ResendOtpDto } from "../dto/ResendOtpDto";
+import { IResendOtpUsecase } from "../interfaces/IResendOtpUsecase";
 
-export class ResendOtpUsecase{
+export class ResendOtpUsecase implements IResendOtpUsecase{
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly otpService: IOtpService,
