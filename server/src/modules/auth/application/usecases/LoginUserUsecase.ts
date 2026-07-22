@@ -40,7 +40,7 @@ export class LoginUserUsecase implements ILoginUserUsecase{
             accessToken,
             refreshToken,
             user: {
-                _id: user.id!,
+                id: user.id!,
                 name: user.name,
                 email: user.email,
                 role:user.role

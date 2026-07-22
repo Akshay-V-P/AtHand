@@ -12,6 +12,7 @@ export function createAuthRoutes(authController: AuthController, authMiddleware:
     router.post(AUTH_ROUTE.RESEND, registrationMiddleware.execute, authController.resendOtp)
     router.post(AUTH_ROUTE.LOGIN, authController.login)
     router.post(AUTH_ROUTE.LOGOUT, authMiddleware.execute, authController.logout)
-    router.post(AUTH_ROUTE.REFRESH, authController.refresh)
+    router.post(AUTH_ROUTE.REFRESH, authMiddleware.execute, authController.refresh)
+    router.post(AUTH_ROUTE.ME, authMiddleware.execute, authController.me)
     return router
 }

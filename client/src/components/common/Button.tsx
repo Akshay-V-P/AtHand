@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
-type ButtonVariant = "primary" | "outline";
+type ButtonVariant = "primary" | "outline" | "ghost";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -22,6 +22,8 @@ export const Button = ({
 
     outline:
       "bg-transparent text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed",
+    ghost:
+      "text-gray-600 hover:text-gray-900",
   };
 
   return (

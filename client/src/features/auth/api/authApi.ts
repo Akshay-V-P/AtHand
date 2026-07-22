@@ -13,5 +13,7 @@ export const authApi = {
     verifyOtp: (data:VerifyOtpDto) =>
         api.post("/auth/verify-otp", data),
     resendOtp: () =>
-        api.post("/auth/resend-otp")
+        api.post("/auth/resend-otp"),
+    refresh: () =>
+        api.post("/auth/me")
 }

@@ -27,5 +27,10 @@ export const authService = {
     async resendOtp() {
         const response = await authApi.resendOtp()
         return response
+    },
+
+    async refresh() {
+        const response = await authApi.refresh()
+        return response
     }
 }

@@ -99,7 +99,7 @@ const VerifyOtp = () => {
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
       
       {/* Centered Card Container (Smaller width for OTP page) */}
-      <div className="w-full max-w-md bg-gradient-to-b from-[#d4f0ff] via-[#e4f6fb] to-[#f6fbe3] rounded-[2.5rem] p-10 md:p-12 shadow-sm flex flex-col">
+      <div className="w-full max-w-md bg-gradient-to-b from-[#BFE7FF] via-[#e4f6fb] to-[#FEFFE8] rounded-[2.5rem] p-10 md:p-12 shadow-sm flex flex-col">
         
         {/* Logo */}
         <div className="text-3xl font-extrabold text-gray-900 tracking-tight mb-10">

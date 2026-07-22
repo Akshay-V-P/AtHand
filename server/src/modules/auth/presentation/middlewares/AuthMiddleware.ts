@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ITokenService } from "../../domain/services/ITokenService";
+import { ResponseHandler } from "../../../../shared/presentation/ResponseHandler";
+import { HttpStatus } from "../../../../shared/enums/HttpStatus";
 
 export class AuthMiddleware{
     constructor(
@@ -7,14 +9,12 @@ export class AuthMiddleware{
     ) { }
     
     execute = (req: Request, res: Response, next: NextFunction):void => {
-        const authHeader = req.headers.authorization
+        const token = req.cookies.accessToken
 
-        if (!authHeader?.startsWith("Bearer ")) {
-            res.status(401).json({ success: false, message: "Unauthorized" })
+        if (!token) {
+            ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, "Invalid token")
             return
         }
-
-        const token = authHeader.split(" ")[1]
 
         try {
             const payload = this.tokenService.verifyAccessToken(token)

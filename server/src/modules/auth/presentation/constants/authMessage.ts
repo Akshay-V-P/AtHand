@@ -12,4 +12,7 @@ export const AUTH_MESSAGES = {
 
   UNAUTHORIZED: "Unauthorized",
   SESSION_EXPIRED: "Session expired",
+  SESSION_EXISTS: "Session exists",
+  USER_NOT_FOUND: "User not found",
+  STATE_REFRESHED:"State refreshed"
 } as const;

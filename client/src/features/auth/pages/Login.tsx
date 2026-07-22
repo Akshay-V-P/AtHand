@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Divider } from '../../../components/common/Divider'
 import { Button } from '../../../components/common/Button'
 import { InputField } from '../../../components/common/InputField'
@@ -8,6 +8,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { authService } from '../services/authService'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '../hooks/storeHook'
+import { loginSuccess } from '../store/authSlice'
+import { useSelector } from 'react-redux'
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
@@ -15,11 +18,17 @@ const Login = () => {
     mode:"onSubmit"
   })
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const user = useAppSelector((state) => state.auth.user)
+  
+  useEffect(() => {
+    if(user) navigate("/")
+  },[user, navigate])
 
   const onSubmit = async (data:LoginFormData) => {
     try {
-      await authService.login(data)
-      navigate("/")
+      const res = await authService.login(data)
+      dispatch(loginSuccess(res.data.user))
     } catch (error: any) {
       console.log(error.response)
       toast.error(error.response?.data.message || "Something went wrong")
@@ -29,7 +38,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-white p-4 sm:p-8">
       
       {/* Main Card Container (Reusing the same gradient and structure) */}
-      <div className="w-full max-w-[1100px] bg-gradient-to-br from-[#d4f0ff] via-[#e4f6fb] to-[#f6fbe3] rounded-[2.5rem] p-10 md:p-16 lg:p-20 shadow-sm flex flex-col md:flex-row gap-12 md:gap-8">
+      <div className="w-full max-w-[1100px] bg-gradient-to-b from-[#BFE7FF] via-[#e4f6fb] to-[#FEFFE8] rounded-[2.5rem] p-10 md:p-16 lg:p-20 shadow-sm flex flex-col md:flex-row gap-12 md:gap-8">
         
         {/* Left Section: Branding & Copy */}
         <div className="flex-1 flex flex-col justify-between">

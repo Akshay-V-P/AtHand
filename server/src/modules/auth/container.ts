@@ -1,3 +1,4 @@
+import { GetProfileUsecase } from "./application/usecases/GetProfileUsecase";
 import { LoginUserUsecase } from "./application/usecases/LoginUserUsecase";
 import { LogoutUserUseCase } from "./application/usecases/LogoutUserUseCase";
 import { OtpStatusUsecase } from "./application/usecases/OtpStatusUsecase";
@@ -31,8 +32,9 @@ const loginUserUsecase = new LoginUserUsecase(userRepository, passwordService, j
 const logoutUserUsecase = new LogoutUserUseCase(redisRefreshTokenRepo)
 const refreshTokenUsercase = new RefreshTokenUsecase(jwtService, redisRefreshTokenRepo, userRepository)
 const otpStatusUseCase = new OtpStatusUsecase(otpService)
+const getProfileUseCase = new GetProfileUsecase(userRepository)
 
-const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase)
+const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase, getProfileUseCase)
 
 export const authMiddleware = new AuthMiddleware(jwtService)
 export const registrationMiddleware = new RegistrationMiddleware(jwtService)

@@ -1,6 +1,7 @@
 import React from 'react'
 import AppRoutes from '../routes/AppRoutes'
 import {Toaster} from "react-hot-toast"
+import AuthInitializer from '../features/auth/AuthInitializer'
 
 const App = () => {
   return (
@@ -9,7 +10,9 @@ const App = () => {
         position="top-center"
         reverseOrder={false}
       />
-      <AppRoutes/>
+      <AuthInitializer>
+        <AppRoutes/>
+      </AuthInitializer>
     </>
   )
 }
