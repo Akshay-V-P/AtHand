@@ -1,6 +1,12 @@
 client/node_modules/
 server/node_modules/
 
+client/.scannerwork
+client/sonar-project.properties
+
+server/.scannerwork
+server/sonar-project.properties
+
 client/.env
 server/.env
 .env
@@ -15,3 +21,5 @@ server/dist/
 
 .DS_Store
 Thumbs.db
+
+server/src/modules/providerApplication

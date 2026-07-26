@@ -18,7 +18,9 @@ export class RegistrationMiddleware{
             req.registration = payload
             next()
         } catch (error) {
-            res.status(401).json({success:false, message:"Invalid token"})
+            res.status(401).json({ success: false, message: "Invalid token" })
+            console.log(error)
+            return
         }
     }
 }

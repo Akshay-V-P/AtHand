@@ -13,8 +13,10 @@ import { HttpStatus } from "../../../../shared/enums/HttpStatus";
 import { ResponseHandler } from "../../../../shared/presentation/ResponseHandler";
 import { AUTH_MESSAGES } from "../constants/authMessage";
 import { IGetProfileUsecase } from "../../application/interfaces/IGetProfileUsecase";
-import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IRefreshTokenUsecase } from "../../application/interfaces/IRefreshTokenUsecase";
+import { IForgotPasswordUsecase } from "../../application/interfaces/IForgotPasswordUsecase";
+import { IUpdatePasswordUsecase } from "../../application/interfaces/IUpdatePasswordUsecase";
+import { IVerifyResetTokenUsecase } from "../../application/interfaces/IVerifyResetTokenUsecase";
 
 export class AuthController {
     constructor(
@@ -25,7 +27,10 @@ export class AuthController {
         private readonly logoutUserUserCase: ILogoutUserUsecase,
         private readonly refreshTokenUseCase: IRefreshTokenUsecase,
         private readonly otpStatusUseCase: IOtpStatusUsecase,
-        private readonly getProfileUseCase: IGetProfileUsecase
+        private readonly getProfileUseCase: IGetProfileUsecase,
+        private readonly forgotPasswordUsecase: IForgotPasswordUsecase,
+        private readonly updatePasswordUsecase: IUpdatePasswordUsecase,
+        private readonly verifyResetTokenUsecase:IVerifyResetTokenUsecase,
     ) { }
     
     signup = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
@@ -164,7 +169,7 @@ export class AuthController {
                 ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED)
                 return
             }
-            const data = await this.otpStatusUseCase.execute(req.registration?.email)
+            await this.otpStatusUseCase.execute(req.registration?.email)
             
             ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.OTP_STATUS)
         } catch (error) {
@@ -180,6 +185,53 @@ export class AuthController {
                 return
             }
             ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.STATE_REFRESHED, user)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.body.email) {
+                ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.PROVIDE_EMAIL)
+                return
+            }
+            await this.forgotPasswordUsecase.execute(req.body.email)
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.LINK_SENT)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    verifyResetToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { token } = req.body
+            if (!token) {
+                ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.INVALID_TOKEN)
+                return
+            }
+            await this.verifyResetTokenUsecase.execute(token)
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.SESSION_EXISTS)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    updatePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const token = typeof req.params.token === "string" ? req.params.token : undefined;
+            const { newPassword } = req.body
+            
+            if (!token) {
+                ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.INVALID_LINK)
+                return
+            }
+            if (!newPassword || newPassword.trim().length < 8) {
+                ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.NEWPASSWORD_REQUIRED)
+                return
+            }
+            await this.updatePasswordUsecase.execute(token, newPassword)
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.PASSWORD_UPDATED)
         } catch (error) {
             next(error)
         }

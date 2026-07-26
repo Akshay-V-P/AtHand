@@ -14,5 +14,11 @@ export const AUTH_MESSAGES = {
   SESSION_EXPIRED: "Session expired",
   SESSION_EXISTS: "Session exists",
   USER_NOT_FOUND: "User not found",
-  STATE_REFRESHED:"State refreshed"
+  STATE_REFRESHED: "State refreshed",
+  PROVIDE_EMAIL: "Please provide email to continue",
+  LINK_SENT: "Password reset link has been sent",
+  INVALID_LINK: "Invalid reset link",
+  NEWPASSWORD_REQUIRED: "New password required",
+  PASSWORD_UPDATED: "Password updated please login",
+  INVALID_TOKEN:"Invalid Token"
 } as const;

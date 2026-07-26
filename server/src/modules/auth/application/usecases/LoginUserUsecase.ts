@@ -23,7 +23,6 @@ export class LoginUserUsecase implements ILoginUserUsecase{
         if (!user) throw new NotFoundError("User not found, Please regiser user")
         if (user.status === UserStatus.BLOCKED) throw new UnauthorizedError("User blocked")
         const matchPassword = await this.passwordService.compare(dto.password, user.password)
-        console.log(matchPassword)
         if (!matchPassword) throw new BadRequestError("Incorrect Password")
         const sessionId = crypto.randomUUID()
         const payload = {

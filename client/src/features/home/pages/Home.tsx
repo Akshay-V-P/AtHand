@@ -1,40 +1,21 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Button } from '../../../components/common/Button'
 import CategoryCard from '../../../components/home/CategoryCard'
 import ServiceCard from '../../../components/home/ServiceCard'
 import FaqItem from '../../../components/home/FaqItem'
 import ReviewCard from '../../../components/home/ReviewCard'
+import Navbar from '../../../components/common/Navbar'
+import { useAppSelector } from '../../auth/hooks/storeHook'
 
 const Home = () => {
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+  
+  
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-blue-100">
       
       {/* 1. NAVBAR */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
-        <div className="text-2xl font-extrabold text-gray-900 tracking-tight">
-          At<span className="text-red-500">.</span>Hand
-        </div>
-        
-        <div className="hidden md:flex items-center gap-8">
-          <a href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">Services</a>
-          <a href="#" className="text-sm font-medium text-gray-600 hover:text-gray-900">Become a Provider</a>
-        </div>
-
-        <div className="hidden lg:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <input type="text" placeholder="Search services..." className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-gray-200" />
-            <span className="absolute left-4 top-2 text-gray-400 text-sm"><span className="material-symbols-outlined">
-                        search
-                      </span>
-                      </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" className="hidden sm:block">Sign up</Button>
-          <Button>Login</Button>
-        </div>
-      </nav>
+      <Navbar isAuthenticated={isAuthenticated}/>
 
       {/* 2. HERO SECTION */}
       <section className="max-w-7xl mx-auto px-4 mt-4">

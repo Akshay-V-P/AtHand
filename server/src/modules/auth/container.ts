@@ -1,3 +1,4 @@
+import { ForgotPasswordUsecase } from "./application/usecases/ForgotPasswordUsecase";
 import { GetProfileUsecase } from "./application/usecases/GetProfileUsecase";
 import { LoginUserUsecase } from "./application/usecases/LoginUserUsecase";
 import { LogoutUserUseCase } from "./application/usecases/LogoutUserUseCase";
@@ -5,9 +6,13 @@ import { OtpStatusUsecase } from "./application/usecases/OtpStatusUsecase";
 import { RefreshTokenUsecase } from "./application/usecases/RefreshTokenUsecase";
 import { RegisterUserUsecase } from "./application/usecases/RegisterUserUsecase";
 import { ResendOtpUsecase } from "./application/usecases/ResendOtpUsecase";
+import { UpdatePasswordUsecase } from "./application/usecases/UpdatePasswordUsecase";
 import { VerifyOtpUsecase } from "./application/usecases/VerifyOtpUsecase";
+import { VerifyResetTokenUsecase } from "./application/usecases/VerifyResetTokenUsecase";
+import { PasswordResetTokenRepository } from "./infrastructure/database/repositories/PasswordResetTokenRepository";
 import { RedisRefreshTokenRepository } from "./infrastructure/database/repositories/RedisRefreshTokenRepository";
 import { UserRepository } from "./infrastructure/database/repositories/UserRepository";
+import { CryptoService } from "./infrastructure/services/CryptoService";
 import { EmailService } from "./infrastructure/services/EmailService";
 import { JwtService } from "./infrastructure/services/JwtService";
 import { OtpService } from "./infrastructure/services/OtpService";
@@ -19,11 +24,13 @@ import { createAuthRoutes } from "./presentation/routes/auth.routes";
 
 const userRepository = new UserRepository()
 const redisRefreshTokenRepo = new RedisRefreshTokenRepository()
+const passwordResetTokenRepo = new PasswordResetTokenRepository()
 
 const passwordService = new PasswordService()
 const emailService = new EmailService()
 const otpService = new OtpService()
 const jwtService = new JwtService()
+const cryptoService = new CryptoService()
 
 const registerUserUsecase = new RegisterUserUsecase(userRepository, passwordService, otpService, emailService, jwtService)
 const verifyOtpUsecase = new VerifyOtpUsecase(userRepository, otpService)
@@ -33,8 +40,11 @@ const logoutUserUsecase = new LogoutUserUseCase(redisRefreshTokenRepo)
 const refreshTokenUsercase = new RefreshTokenUsecase(jwtService, redisRefreshTokenRepo, userRepository)
 const otpStatusUseCase = new OtpStatusUsecase(otpService)
 const getProfileUseCase = new GetProfileUsecase(userRepository)
+const forgotPasswordUsecase = new ForgotPasswordUsecase(userRepository, emailService, cryptoService, passwordResetTokenRepo)
+const updatePasswordUsecase = new UpdatePasswordUsecase(userRepository, passwordService, passwordResetTokenRepo, cryptoService)
+const verifyResetTokenUsecase = new VerifyResetTokenUsecase(cryptoService,passwordResetTokenRepo)
 
-const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase, getProfileUseCase)
+const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase, getProfileUseCase, forgotPasswordUsecase, updatePasswordUsecase, verifyResetTokenUsecase)
 
 export const authMiddleware = new AuthMiddleware(jwtService)
 export const registrationMiddleware = new RegistrationMiddleware(jwtService)

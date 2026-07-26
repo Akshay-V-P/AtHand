@@ -14,5 +14,8 @@ export function createAuthRoutes(authController: AuthController, authMiddleware:
     router.post(AUTH_ROUTE.LOGOUT, authMiddleware.execute, authController.logout)
     router.post(AUTH_ROUTE.REFRESH, authMiddleware.execute, authController.refresh)
     router.post(AUTH_ROUTE.ME, authMiddleware.execute, authController.me)
+    router.post(AUTH_ROUTE.FORGOT_PASSWORD, authController.forgotPassword)
+    router.post(AUTH_ROUTE.UPDATE_PASSWORD, authController.updatePassword)
+    router.post(AUTH_ROUTE.VERIFY_RESET_TOKEN, authController.verifyResetToken)
     return router
 }

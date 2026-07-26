@@ -6,5 +6,8 @@ export const AUTH_ROUTE = {
     RESEND: "/resend-otp",
     LOGOUT: "/logout",
     REFRESH: "/refresh",
-    ME:"/me",
+    ME: "/me",
+    FORGOT_PASSWORD: "/forgot-password",
+    UPDATE_PASSWORD: "/update-password/:token",
+    VERIFY_RESET_TOKEN: "/verify-reset-token",
 } as const

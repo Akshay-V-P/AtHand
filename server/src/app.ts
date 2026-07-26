@@ -7,6 +7,8 @@ import { errorHandler } from "./shared/middleware/errorMiddleware"
 
 const app = express()
 
+app.disable('x-powered-by')
+
 app.use(cors({
     origin: process.env.CLIENT_ORIGIN,
     credentials:true

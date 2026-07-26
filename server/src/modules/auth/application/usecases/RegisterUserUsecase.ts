@@ -6,7 +6,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IEmailService } from "../../domain/services/IEmailService";
 import { IOtpService } from "../../domain/services/IOtpService";
 import { IPasswordService } from "../../domain/services/IPasswordService";
-import { ITokenService, JwtPayload, RegTokenPayload } from "../../domain/services/ITokenService";
+import { ITokenService, RegTokenPayload } from "../../domain/services/ITokenService";
 import { RegisterDto } from "../dto/RegisterDto";
 import { RegisterResponseDto } from "../dto/RegisterResponseDto";
 import { IRegisterUserUsecase } from "../interfaces/IRegisterUserUsecase";
@@ -22,7 +22,7 @@ export class RegisterUserUsecase implements IRegisterUserUsecase{
     
     async execute(dto: RegisterDto): Promise<RegisterResponseDto>{
         const user = await this.userRepository.findByEmail(dto.email)
-        if(user && user.isVerified) throw new BadRequestError("User already exist")
+        if(user && user?.isVerified) throw new BadRequestError("User already exist")
         let newRegister = false
         let newUser
         if (!user) {

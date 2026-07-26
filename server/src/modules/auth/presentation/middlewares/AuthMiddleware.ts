@@ -22,6 +22,7 @@ export class AuthMiddleware{
             next()
         } catch (error) {
             res.status(401).json({ success: false, message: "invalid token" })
+            console.log(error)
             return
         }
     }
