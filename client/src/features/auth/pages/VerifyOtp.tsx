@@ -70,7 +70,7 @@ const VerifyOtp = () => {
   useEffect(() => {
     authService
       .otpStatus()
-      .then(response => setData(response.data))
+      .then(response => { setData(response.data);console.log("Res data:", response.data) })
       .catch(error => console.error(error));
     
   }, [])

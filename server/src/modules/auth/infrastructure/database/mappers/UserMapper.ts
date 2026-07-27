@@ -6,11 +6,13 @@ export class UserMapper{
             user._id.toString(),
             user.name,
             user.email,
-            user.phone,
-            user.password,
             user.role,
             user.status,
-            user.isVerified
+            user.isVerified,
+            user.phone,
+            user.password,
+            user.googleId,
+            user.profilePhotoUrl,
         )
     }
 }

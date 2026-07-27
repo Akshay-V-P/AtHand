@@ -5,6 +5,7 @@ interface User{
     name: string;
     email: string;
     role: string;
+    googleId: string;
 }
 
 interface AuthState {
@@ -22,7 +23,6 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         loginSuccess(state, action: PayloadAction<User>) {
-            console.log("Dispatch is working: ", action.payload)
             state.user = action.payload;
             state.isAuthenticated = true;
         },

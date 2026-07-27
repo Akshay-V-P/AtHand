@@ -8,14 +8,13 @@ import Navbar from '../../../components/common/Navbar'
 import { useAppSelector } from '../../auth/hooks/storeHook'
 
 const Home = () => {
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth)
   
   
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-blue-100">
       
       {/* 1. NAVBAR */}
-      <Navbar isAuthenticated={isAuthenticated}/>
+      <Navbar />
 
       {/* 2. HERO SECTION */}
       <section className="max-w-7xl mx-auto px-4 mt-4">

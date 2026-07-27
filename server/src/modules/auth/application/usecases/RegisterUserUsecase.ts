@@ -31,11 +31,11 @@ export class RegisterUserUsecase implements IRegisterUserUsecase{
                 undefined,
                 dto.name,
                 dto.email,
-                dto.phone,
-                hashedPassword,
                 UserRole.USER,
                 "ACTIVE",
-                false
+                false,
+                dto.phone,
+                hashedPassword,
             )
             await this.userRepository.create(newUser)
             newRegister = true

@@ -8,6 +8,8 @@ export const AUTH_ROUTE = {
     REFRESH: "/refresh",
     ME: "/me",
     FORGOT_PASSWORD: "/forgot-password",
-    UPDATE_PASSWORD: "/update-password/:token",
+    UPDATE_PASSWORD: "/update-password",
     VERIFY_RESET_TOKEN: "/verify-reset-token",
+    GOOGLE: "/google",
+    VERIFY_PASSWORD:"/verify-password"
 } as const

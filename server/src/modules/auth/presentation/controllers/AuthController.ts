@@ -17,6 +17,8 @@ import { IRefreshTokenUsecase } from "../../application/interfaces/IRefreshToken
 import { IForgotPasswordUsecase } from "../../application/interfaces/IForgotPasswordUsecase";
 import { IUpdatePasswordUsecase } from "../../application/interfaces/IUpdatePasswordUsecase";
 import { IVerifyResetTokenUsecase } from "../../application/interfaces/IVerifyResetTokenUsecase";
+import { ISignInWithGoogleUsecase } from "../../application/interfaces/ISignInWithGoogleUsecase";
+import { IVerifyPasswordUsecase } from "../../application/interfaces/IVerifyPasswordUsecase";
 
 export class AuthController {
     constructor(
@@ -30,7 +32,9 @@ export class AuthController {
         private readonly getProfileUseCase: IGetProfileUsecase,
         private readonly forgotPasswordUsecase: IForgotPasswordUsecase,
         private readonly updatePasswordUsecase: IUpdatePasswordUsecase,
-        private readonly verifyResetTokenUsecase:IVerifyResetTokenUsecase,
+        private readonly verifyResetTokenUsecase: IVerifyResetTokenUsecase,
+        private readonly signInWithGoogleUsecase: ISignInWithGoogleUsecase,
+        private readonly verifyPasswordUsecase:IVerifyPasswordUsecase,
     ) { }
     
     signup = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
@@ -192,7 +196,7 @@ export class AuthController {
 
     forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            if (!req.body.email) {
+            if (!req.body?.email) {
                 ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.PROVIDE_EMAIL)
                 return
             }
@@ -206,6 +210,7 @@ export class AuthController {
     verifyResetToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { token } = req.body
+            console.log(token)
             if (!token) {
                 ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.INVALID_TOKEN)
                 return
@@ -219,19 +224,60 @@ export class AuthController {
 
     updatePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const token = typeof req.params.token === "string" ? req.params.token : undefined;
-            const { newPassword } = req.body
+            
+            const { password, token } = req.body
             
             if (!token) {
                 ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.INVALID_LINK)
                 return
             }
-            if (!newPassword || newPassword.trim().length < 8) {
+            if (!password || password.trim().length < 8) {
                 ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.NEWPASSWORD_REQUIRED)
                 return
             }
-            await this.updatePasswordUsecase.execute(token, newPassword)
+            await this.updatePasswordUsecase.execute(token, password)
             ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.PASSWORD_UPDATED)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    google = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { token } = req.body
+            if (!token) {
+                ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.INVALID_TOKEN)
+                return
+            }
+            const data = await this.signInWithGoogleUsecase.execute(token)
+            const {refreshToken, accessToken,  ...responseData} = data
+            res.cookie("refreshToken", refreshToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: "lax",
+                maxAge:7*24*60*60*1000
+            })
+            res.cookie("accessToken", accessToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: "lax",
+                maxAge:15*60*1000
+            })
+            console.log(responseData)
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.LOGIN_SUCCESS, responseData)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    verifyPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.body?.email || !req.body?.password) {
+                ResponseHandler.error(res, HttpStatus.BAD_REQUEST, AUTH_MESSAGES.PROVIDE_EMAIL)
+                return
+            }
+            await this.verifyPasswordUsecase.execute(req.body.email, req.body.password)
+            ResponseHandler.success(res, HttpStatus.OK, AUTH_MESSAGES.LINK_SENT)
         } catch (error) {
             next(error)
         }

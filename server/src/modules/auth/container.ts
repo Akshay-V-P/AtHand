@@ -6,14 +6,17 @@ import { OtpStatusUsecase } from "./application/usecases/OtpStatusUsecase";
 import { RefreshTokenUsecase } from "./application/usecases/RefreshTokenUsecase";
 import { RegisterUserUsecase } from "./application/usecases/RegisterUserUsecase";
 import { ResendOtpUsecase } from "./application/usecases/ResendOtpUsecase";
+import { SignInWithGoogleUsecase } from "./application/usecases/SignInWithGoogleUsecase";
 import { UpdatePasswordUsecase } from "./application/usecases/UpdatePasswordUsecase";
 import { VerifyOtpUsecase } from "./application/usecases/VerifyOtpUsecase";
+import { VerifyPasswordUsecase } from "./application/usecases/VerifyPasswordUsecase";
 import { VerifyResetTokenUsecase } from "./application/usecases/VerifyResetTokenUsecase";
 import { PasswordResetTokenRepository } from "./infrastructure/database/repositories/PasswordResetTokenRepository";
 import { RedisRefreshTokenRepository } from "./infrastructure/database/repositories/RedisRefreshTokenRepository";
 import { UserRepository } from "./infrastructure/database/repositories/UserRepository";
 import { CryptoService } from "./infrastructure/services/CryptoService";
 import { EmailService } from "./infrastructure/services/EmailService";
+import { GoogleAuthService } from "./infrastructure/services/GoogleAuthService";
 import { JwtService } from "./infrastructure/services/JwtService";
 import { OtpService } from "./infrastructure/services/OtpService";
 import { PasswordService } from "./infrastructure/services/PasswordService";
@@ -31,6 +34,7 @@ const emailService = new EmailService()
 const otpService = new OtpService()
 const jwtService = new JwtService()
 const cryptoService = new CryptoService()
+const authService = new GoogleAuthService()
 
 const registerUserUsecase = new RegisterUserUsecase(userRepository, passwordService, otpService, emailService, jwtService)
 const verifyOtpUsecase = new VerifyOtpUsecase(userRepository, otpService)
@@ -42,9 +46,11 @@ const otpStatusUseCase = new OtpStatusUsecase(otpService)
 const getProfileUseCase = new GetProfileUsecase(userRepository)
 const forgotPasswordUsecase = new ForgotPasswordUsecase(userRepository, emailService, cryptoService, passwordResetTokenRepo)
 const updatePasswordUsecase = new UpdatePasswordUsecase(userRepository, passwordService, passwordResetTokenRepo, cryptoService)
-const verifyResetTokenUsecase = new VerifyResetTokenUsecase(cryptoService,passwordResetTokenRepo)
+const verifyResetTokenUsecase = new VerifyResetTokenUsecase(cryptoService, passwordResetTokenRepo)
+const signInWithGoogle = new SignInWithGoogleUsecase(authService, userRepository, jwtService, redisRefreshTokenRepo)
+const verifyPasswordUsecase = new VerifyPasswordUsecase(userRepository, emailService, cryptoService, passwordResetTokenRepo, passwordService)
 
-const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase, getProfileUseCase, forgotPasswordUsecase, updatePasswordUsecase, verifyResetTokenUsecase)
+const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase, getProfileUseCase, forgotPasswordUsecase, updatePasswordUsecase, verifyResetTokenUsecase, signInWithGoogle, verifyPasswordUsecase)
 
 export const authMiddleware = new AuthMiddleware(jwtService)
 export const registrationMiddleware = new RegistrationMiddleware(jwtService)

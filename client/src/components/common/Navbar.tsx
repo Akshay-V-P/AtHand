@@ -1,12 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./Button";
+import { useActionState } from "react";
+import { useAppSelector } from "../../features/auth/hooks/storeHook";
 
-interface NavbarProps{
-    isAuthenticated: boolean;
-}
 
-const Navbar = ({ isAuthenticated }: NavbarProps) => {
+
+const Navbar = () => {
     const navigate = useNavigate()
+    const {user, isAuthenticated} = useAppSelector((state)=>state.auth)
     return (
         <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
             <div className="text-2xl font-extrabold text-gray-900 tracking-tight">
@@ -54,7 +55,7 @@ const Navbar = ({ isAuthenticated }: NavbarProps) => {
                         <span className="material-symbols-outlined pt-1 cursor-pointer">
                             chat_bubble
                         </span>
-                        <Link to={"/profile"}>
+                        <Link to={"/account"}>
                             <div className="bg-black rounded-full w-8 h-8 flex items-center justify-center cursor-pointer">
                                 <span className="material-symbols-outlined text-white">
                                     account_circle

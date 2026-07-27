@@ -5,6 +5,7 @@ export interface LoginResponseDto{
         id: string,
         name: string,
         email: string,
-        role:string
+        role: string,
+        googleId:string
     }
 }

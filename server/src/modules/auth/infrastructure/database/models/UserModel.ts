@@ -34,6 +34,11 @@ const UserModel = new mongoose.Schema({
         default: "ACTIVE",
         required:true
     },
+
+    profilePhotoUrl: {
+        type: String
+    },
+
     isVerified: {
         type: Boolean,
         default: false,

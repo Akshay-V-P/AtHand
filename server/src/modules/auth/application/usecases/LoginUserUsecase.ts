@@ -22,7 +22,7 @@ export class LoginUserUsecase implements ILoginUserUsecase{
         const user = await this.userRepository.findByEmail(dto.email)
         if (!user) throw new NotFoundError("User not found, Please regiser user")
         if (user.status === UserStatus.BLOCKED) throw new UnauthorizedError("User blocked")
-        const matchPassword = await this.passwordService.compare(dto.password, user.password)
+        const matchPassword = await this.passwordService.compare(dto.password, user.password!)
         if (!matchPassword) throw new BadRequestError("Incorrect Password")
         const sessionId = crypto.randomUUID()
         const payload = {
@@ -42,7 +42,8 @@ export class LoginUserUsecase implements ILoginUserUsecase{
                 id: user.id!,
                 name: user.name,
                 email: user.email,
-                role:user.role
+                role: user.role,
+                googleId:user.googleId!
             }
         }
     }

@@ -19,7 +19,8 @@ export class UserRepository implements IUserRepository{
             password: user.password,
             role: user.role,
             status:user.status,
-            isVerified:user.isVerified
+            isVerified: user.isVerified,
+            googleId:user.googleId
         })
         await newUser.save()
         return UserMapper.toDomain(newUser)
