@@ -4,9 +4,9 @@ import { UserStatus } from "../../domain/enum/UserStatus";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { ITokenService, JwtPayload } from "../../domain/services/ITokenService";
-import { IRefreshTokenUsecase } from "../interfaces/IRefreshTokenUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class RefreshTokenUsecase implements IRefreshTokenUsecase{
+export class RefreshTokenUsecase implements IUsecase<string, string>{
     constructor(
         private readonly jwtService: ITokenService,
         private readonly refreshTokenRepository: IRefreshTokenRepository,

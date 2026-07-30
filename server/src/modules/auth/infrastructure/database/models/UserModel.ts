@@ -1,6 +1,6 @@
-import  mongoose  from "mongoose";
+import  mongoose, { HydratedDocument, InferSchemaType }  from "mongoose";
 
-const UserModel = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     name: {
         type: String,
         required:true
@@ -46,4 +46,6 @@ const UserModel = new mongoose.Schema({
     }
 })
 
-export default mongoose.model("User", UserModel)
+export type UserSchemaType = InferSchemaType<typeof UserSchema>
+
+export default mongoose.model<UserSchemaType>("User", UserSchema)

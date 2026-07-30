@@ -1,15 +1,14 @@
 import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
-import { User } from "../../domain/entities/User";
 import { UserRole } from "../../domain/enum/UserRole";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { AuthServiceResponse, IAuthService } from "../../domain/services/IAuthService";
+import { IAuthService } from "../../domain/services/IAuthService";
 import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginResponseDto } from "../dto/LoginResponseDto";
-import { ISignInWithGoogleUsecase } from "../interfaces/ISignInWithGoogleUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class SignInWithGoogleUsecase implements ISignInWithGoogleUsecase{
+export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDto>{
     constructor(
         private readonly authService: IAuthService,
         private readonly userRepository: IUserRepository,
@@ -20,9 +19,7 @@ export class SignInWithGoogleUsecase implements ISignInWithGoogleUsecase{
     async execute(token:string): Promise<LoginResponseDto> {
         const googleUser = await this.authService.verifyToken(token)
         if (!googleUser) throw new BadRequestError("User not authenticated")
-        console.log(googleUser)
         let user = await this.userRepository.findByEmail(googleUser.email)
-        
         if (!user) {
             user = await this.userRepository.create({
                 id:undefined,
@@ -48,7 +45,6 @@ export class SignInWithGoogleUsecase implements ISignInWithGoogleUsecase{
         const refreshToken = this.tokenService.generateRefreshToken(payload)
 
         await this.refreshTokenService.save(user.id, sessionId, refreshToken)
-        console.log(user)
 
         return {
             accessToken,
@@ -58,7 +54,8 @@ export class SignInWithGoogleUsecase implements ISignInWithGoogleUsecase{
                 name:user.name,
                 email: user.email,
                 role: user.role,
-                googleId:user.googleId!
+                googleId: user.googleId!,
+                profilePhotoUrl:user.profilePhotoUrl!
             }
         }
 

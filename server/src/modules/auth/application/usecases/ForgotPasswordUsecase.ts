@@ -5,9 +5,9 @@ import { IPasswordResetTokenRepository } from "../../domain/repositories/IPasswo
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { ICryptoService } from "../../domain/services/ICryptoService";
 import { IEmailService } from "../../domain/services/IEmailService";
-import { IForgotPasswordUsecase } from "../interfaces/IForgotPasswordUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class ForgotPasswordUsecase implements IForgotPasswordUsecase{
+export class ForgotPasswordUsecase implements IUsecase<string, void>{
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly emailService: IEmailService,

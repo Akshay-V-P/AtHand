@@ -7,7 +7,7 @@ interface SideBarItemProps extends ButtonHTMLAttributes<HTMLButtonElement>{
 }
 
 const SidebarItem = ({ label, isActive, isLogout, ...props }:SideBarItemProps) => {
-    const baseStyle = "w-full text-left px-5 py-3 rounded-2xl font-medium transition-all text-sm border";
+    const baseStyle = "w-full text-left px-5 py-3 rounded-2xl font-medium transition-all text-sm border cursor-pointer";
   if (isActive) {
     return (
       <button className={`${baseStyle} bg-[#2A2A2A] text-white border-transparent shadow-md`} {...props}>
@@ -21,6 +21,7 @@ const SidebarItem = ({ label, isActive, isLogout, ...props }:SideBarItemProps) =
       {label}
     </button>
   );
+
 }
 
 export default SidebarItem

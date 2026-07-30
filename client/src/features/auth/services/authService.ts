@@ -19,7 +19,7 @@ export const authService = {
 
     async otpStatus() {
         const response = await authApi.otpStatus()
-        return response.data.data
+        return response
     },
 
     async verifyOtp(data:VerifyOtpDto) {

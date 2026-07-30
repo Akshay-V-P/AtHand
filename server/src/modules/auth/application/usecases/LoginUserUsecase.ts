@@ -8,9 +8,9 @@ import { IPasswordService } from "../../domain/services/IPasswordService";
 import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginDto } from "../dto/LoginDto";
 import { LoginResponseDto } from "../dto/LoginResponseDto";
-import { ILoginUserUsecase } from "../interfaces/ILoginUserUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class LoginUserUsecase implements ILoginUserUsecase{
+export class LoginUserUsecase implements IUsecase<LoginDto, LoginResponseDto>{
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly passwordService: IPasswordService,
@@ -22,6 +22,9 @@ export class LoginUserUsecase implements ILoginUserUsecase{
         const user = await this.userRepository.findByEmail(dto.email)
         if (!user) throw new NotFoundError("User not found, Please regiser user")
         if (user.status === UserStatus.BLOCKED) throw new UnauthorizedError("User blocked")
+        
+        if (!user.isVerified) throw new UnauthorizedError("Account verification required") // checking is verified
+        
         const matchPassword = await this.passwordService.compare(dto.password, user.password!)
         if (!matchPassword) throw new BadRequestError("Incorrect Password")
         const sessionId = crypto.randomUUID()
@@ -43,7 +46,8 @@ export class LoginUserUsecase implements ILoginUserUsecase{
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                googleId:user.googleId!
+                googleId: user.googleId!,
+                profilePhotoUrl:user.profilePhotoUrl!
             }
         }
     }

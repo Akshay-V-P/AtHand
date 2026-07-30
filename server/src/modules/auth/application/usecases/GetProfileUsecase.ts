@@ -1,9 +1,9 @@
 import { UserMapper } from "../../domain/mappers/UserMapper";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { GetProfileDto } from "../dto/GetProfileDto";
-import { IGetProfileUsecase } from "../interfaces/IGetProfileUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class GetProfileUsecase implements IGetProfileUsecase{
+export class GetProfileUsecase implements IUsecase<string, GetProfileDto|null>{
     constructor(
         private readonly userRepository:IUserRepository
     ) { }

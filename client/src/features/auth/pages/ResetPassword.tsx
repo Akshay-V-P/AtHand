@@ -13,6 +13,8 @@ import { authService } from "../services/authService";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { UpdatePasswordDto } from "../dtos/UpdatePasswordDto";
 import { useTogglePassword } from "../hooks/useTogglePassword";
+import { useAppDispatch } from "../hooks/storeHook";
+import { logout } from "../store/authSlice";
 
 const ResetPassword = () => {
     const [searchParams] = useSearchParams();
@@ -20,6 +22,7 @@ const ResetPassword = () => {
     const [token, setToken] = useState("");
     const navigate = useNavigate();
     const [inputType, toggelVisibility, isVisible] = useTogglePassword();
+    const dispatch = useAppDispatch()
 
     const {
         register,
@@ -37,6 +40,8 @@ const ResetPassword = () => {
                 token,
             };
             await authService.updatePassword(payload);
+            toast.success("Password updated, Please login")
+            dispatch(logout())
             navigate("/login");
         } catch (error: any) {
             console.log(error);

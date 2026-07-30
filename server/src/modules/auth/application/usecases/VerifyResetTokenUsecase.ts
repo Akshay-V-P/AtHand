@@ -1,9 +1,9 @@
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
 import { IPasswordResetTokenRepository } from "../../domain/repositories/IPasswordResetTokenRepository";
 import { ICryptoService } from "../../domain/services/ICryptoService";
-import { IVerifyResetTokenUsecase } from "../interfaces/IVerifyResetTokenUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class VerifyResetTokenUsecase implements IVerifyResetTokenUsecase{
+export class VerifyResetTokenUsecase implements IUsecase<string, void>{
     constructor(
         private readonly cryptoService: ICryptoService,
         private readonly passwordResetTokenRepo: IPasswordResetTokenRepository

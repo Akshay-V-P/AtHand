@@ -6,17 +6,18 @@ import { IPasswordResetTokenRepository } from "../../domain/repositories/IPasswo
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { ICryptoService } from "../../domain/services/ICryptoService";
 import { IPasswordService } from "../../domain/services/IPasswordService";
-import { IUpdatePasswordUsecase } from "../interfaces/IUpdatePasswordUsecase";
+import { UpdatePasswordDto } from "../dto/UpdatePasswordDto";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class UpdatePasswordUsecase implements IUpdatePasswordUsecase{
+export class UpdatePasswordUsecase implements IUsecase<UpdatePasswordDto, void>{
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly passwordService: IPasswordService,
         private readonly resetTokenService: IPasswordResetTokenRepository,
         private readonly cryptoService:ICryptoService
     ){}
-    async execute(token: string, newPassword: string): Promise<void> {
-        const hashToken = this.cryptoService.hash(token)
+    async execute(data:UpdatePasswordDto): Promise<void> {
+        const hashToken = this.cryptoService.hash(data.token)
         const tokenValue = await this.resetTokenService.find(hashToken)
         if (!tokenValue) throw new BadRequestError("Link expired")
         
@@ -24,7 +25,7 @@ export class UpdatePasswordUsecase implements IUpdatePasswordUsecase{
         if (!user) throw new NotFoundError("User not found")
         if (user.status === UserStatus.BLOCKED) throw new UnauthorizedError("User is blocked")
         
-        const hashedPassword = await this.passwordService.hash(newPassword)
+        const hashedPassword = await this.passwordService.hash(data.newPassword)
         await this.userRepository.update(user.id!, {password:hashedPassword})
     }
 }

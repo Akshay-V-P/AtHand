@@ -1,23 +1,27 @@
 import { Router } from "express";
-import { AuthController } from "../controllers/AuthController";
 import { AuthMiddleware } from "../middlewares/AuthMiddleware";
 import { RegistrationMiddleware } from "../middlewares/RegistrationMiddleware";
 import { AUTH_ROUTE } from "../constants/routeConstants";
+import { AuthController } from "../../container";
 
 export function createAuthRoutes(authController: AuthController, authMiddleware:AuthMiddleware, registrationMiddleware:RegistrationMiddleware): Router{
     const router = Router()
-    router.post(AUTH_ROUTE.SIGNUP, authController.signup)
-    router.post(AUTH_ROUTE.VERIFY, registrationMiddleware.execute, authController.verifyOtp)
-    router.get(AUTH_ROUTE.OTPSTATUS, registrationMiddleware.execute, authController.otpStatus)
-    router.post(AUTH_ROUTE.RESEND, registrationMiddleware.execute, authController.resendOtp)
-    router.post(AUTH_ROUTE.LOGIN, authController.login)
-    router.post(AUTH_ROUTE.LOGOUT, authMiddleware.execute, authController.logout)
-    router.post(AUTH_ROUTE.REFRESH, authMiddleware.execute, authController.refresh)
-    router.post(AUTH_ROUTE.ME, authMiddleware.execute, authController.me)
-    router.post(AUTH_ROUTE.FORGOT_PASSWORD, authController.forgotPassword)
-    router.post(AUTH_ROUTE.UPDATE_PASSWORD, authController.updatePassword)
-    router.post(AUTH_ROUTE.VERIFY_RESET_TOKEN, authController.verifyResetToken)
-    router.post(AUTH_ROUTE.GOOGLE, authController.google)
-    router.post(AUTH_ROUTE.VERIFY_PASSWORD, authMiddleware.execute, authController.verifyPassword)
+
+    console.log(typeof authController.signupController.signup)
+
+    router.post(AUTH_ROUTE.SIGNUP, authController.signupController.signup)
+    router.post(AUTH_ROUTE.VERIFY, registrationMiddleware.execute, authController.verifyOtpController.verifyOtp)
+    router.get(AUTH_ROUTE.OTPSTATUS, registrationMiddleware.execute, authController.otpStatusController.otpStatus)
+    router.post(AUTH_ROUTE.RESEND, registrationMiddleware.execute, authController.resentOtpController.resendOtp)
+    router.post(AUTH_ROUTE.LOGIN, authController.loginController.login)
+    router.post(AUTH_ROUTE.LOGOUT, authMiddleware.execute, authController.logoutController.logout)
+    router.post(AUTH_ROUTE.REFRESH, authMiddleware.execute, authController.refreshController.refresh)
+    router.post(AUTH_ROUTE.ME, authMiddleware.execute, authController.meController.me)
+    router.post(AUTH_ROUTE.FORGOT_PASSWORD, authController.forgotPasswordController.forgotPassword)
+    router.post(AUTH_ROUTE.UPDATE_PASSWORD, authController.updatePasswordController.updatePassword)
+    router.post(AUTH_ROUTE.VERIFY_RESET_TOKEN, authController.resetTokenController.verifyResetToken)
+    router.post(AUTH_ROUTE.GOOGLE, authController.googleController.google)
+    router.post(AUTH_ROUTE.VERIFY_PASSWORD, authMiddleware.execute, authController.verifyPasswordController.verifyPassword)
+
     return router
 }

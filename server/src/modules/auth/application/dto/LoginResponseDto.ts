@@ -6,6 +6,7 @@ export interface LoginResponseDto{
         name: string,
         email: string,
         role: string,
-        googleId:string
+        googleId: string,
+        profilePhotoUrl:string
     }
 }

@@ -4,9 +4,9 @@ import { OtpVerificationEnum } from "../../domain/enum/OtpVerificationEnum";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IOtpService } from "../../domain/services/IOtpService";
 import { OtpVerifyDto } from "../dto/OtpVerifyDto";
-import { IVerifyOtpUsecase } from "../interfaces/IVerifyOtpUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class VerifyOtpUsecase implements IVerifyOtpUsecase{
+export class VerifyOtpUsecase implements IUsecase<OtpVerifyDto, void>{
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly otpService: IOtpService

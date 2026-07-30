@@ -10,7 +10,6 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         authService.refresh()
             .then(response => {
-                console.log(response)
                 dispatch(loginSuccess(response.data.data))
             })
             .catch(error => console.log(error));

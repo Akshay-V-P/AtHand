@@ -9,9 +9,9 @@ import { IPasswordService } from "../../domain/services/IPasswordService";
 import { ITokenService, RegTokenPayload } from "../../domain/services/ITokenService";
 import { RegisterDto } from "../dto/RegisterDto";
 import { RegisterResponseDto } from "../dto/RegisterResponseDto";
-import { IRegisterUserUsecase } from "../interfaces/IRegisterUserUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class RegisterUserUsecase implements IRegisterUserUsecase{
+export class RegisterUserUsecase implements IUsecase<RegisterDto, RegisterResponseDto>{
     constructor(
         private readonly userRepository: IUserRepository,
         private readonly passwordService: IPasswordService,

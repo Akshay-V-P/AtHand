@@ -54,7 +54,6 @@ const VerifyOtp = () => {
         remainingTime:response.data.data.remainingTime
       })
     } catch (error: any) {
-      console.log(error.response)
       if (error.response?.status === 401) {
         toast.error("Session expired")
         navigate('/signup')
@@ -70,7 +69,7 @@ const VerifyOtp = () => {
   useEffect(() => {
     authService
       .otpStatus()
-      .then(response => { setData(response.data);console.log("Res data:", response.data) })
+      .then(response => setData(response.data.data))
       .catch(error => console.error(error));
     
   }, [])

@@ -20,7 +20,19 @@ import { GoogleAuthService } from "./infrastructure/services/GoogleAuthService";
 import { JwtService } from "./infrastructure/services/JwtService";
 import { OtpService } from "./infrastructure/services/OtpService";
 import { PasswordService } from "./infrastructure/services/PasswordService";
-import { AuthController } from "./presentation/controllers/AuthController";
+import { GoogleController } from "./presentation/controllers/googleControllers/GoogleController";
+import { LoginController } from "./presentation/controllers/loginControllers/LoginController";
+import { LogoutController } from "./presentation/controllers/logoutControllers/LogoutController";
+import { Me } from "./presentation/controllers/meControllers/Me";
+import { OtpStatusController } from "./presentation/controllers/otpControllers/OtpStatusController";
+import { ResentOtpController } from "./presentation/controllers/otpControllers/ResentOtpController";
+import { VerifyOtpController } from "./presentation/controllers/otpControllers/VerifyOtpController";
+import { ForgotPasswordController } from "./presentation/controllers/passwordControllers/ForgotPasswordController";
+import { UpdatePasswordController } from "./presentation/controllers/passwordControllers/UpdatePasswordController";
+import { VerifyPasswordController } from "./presentation/controllers/passwordControllers/VerifyPasswordController";
+import { SignupController } from "./presentation/controllers/signupControllers/SignupController";
+import { RefreshController } from "./presentation/controllers/tokenControllers/RefreshController";
+import { ResetTokenController } from "./presentation/controllers/tokenControllers/ResetTokenController";
 import { AuthMiddleware } from "./presentation/middlewares/AuthMiddleware";
 import { RegistrationMiddleware } from "./presentation/middlewares/RegistrationMiddleware";
 import { createAuthRoutes } from "./presentation/routes/auth.routes";
@@ -50,8 +62,37 @@ const verifyResetTokenUsecase = new VerifyResetTokenUsecase(cryptoService, passw
 const signInWithGoogle = new SignInWithGoogleUsecase(authService, userRepository, jwtService, redisRefreshTokenRepo)
 const verifyPasswordUsecase = new VerifyPasswordUsecase(userRepository, emailService, cryptoService, passwordResetTokenRepo, passwordService)
 
-const authController = new AuthController(registerUserUsecase, verifyOtpUsecase, resendOtpUsecase, loginUserUsecase, logoutUserUsecase, refreshTokenUsercase, otpStatusUseCase, getProfileUseCase, forgotPasswordUsecase, updatePasswordUsecase, verifyResetTokenUsecase, signInWithGoogle, verifyPasswordUsecase)
+const signupController = new SignupController(registerUserUsecase)
+const loginController = new LoginController(loginUserUsecase)
+const verifyOtpController = new VerifyOtpController(verifyOtpUsecase)
+const resentOtpController = new ResentOtpController(resendOtpUsecase, otpStatusUseCase)
+const otpStatusController = new OtpStatusController(otpStatusUseCase)
+const logoutController = new LogoutController(logoutUserUsecase)
+const forgotPasswordController = new ForgotPasswordController(forgotPasswordUsecase)
+const updatePasswordController = new UpdatePasswordController(updatePasswordUsecase)
+const verifyPasswordController = new VerifyPasswordController(verifyPasswordUsecase)
+const refreshController = new RefreshController(refreshTokenUsercase)
+const resetTokenController = new ResetTokenController(verifyResetTokenUsecase)
+const meController = new Me(getProfileUseCase)
+const googleController = new GoogleController(signInWithGoogle)
 
+const authController = {
+    loginController,
+    signupController,
+    verifyOtpController,
+    resentOtpController,
+    otpStatusController,
+    logoutController,
+    forgotPasswordController,
+    updatePasswordController,
+    verifyPasswordController,
+    refreshController,
+    resetTokenController,
+    meController,
+    googleController,
+}
+
+export type AuthController = typeof authController
 export const authMiddleware = new AuthMiddleware(jwtService)
 export const registrationMiddleware = new RegistrationMiddleware(jwtService)
 

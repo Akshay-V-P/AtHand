@@ -1,7 +1,7 @@
 import { IOtpService } from "../../domain/services/IOtpService";
-import { IOtpStatusUsecase } from "../interfaces/IOtpStatusUsecase";
+import { IUsecase } from "../interfaces/IUsecase";
 
-export class OtpStatusUsecase implements IOtpStatusUsecase{
+export class OtpStatusUsecase implements IUsecase<string, object>{
     constructor(
         private readonly otpSevice:IOtpService
     ) { }

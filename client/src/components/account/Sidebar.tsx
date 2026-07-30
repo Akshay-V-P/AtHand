@@ -1,16 +1,17 @@
-import React from 'react'
+import React, { useState } from 'react'
 import SidebarItem from './SidebarItem'
 import toast from 'react-hot-toast'
-import { accountServices } from '../../features/profile/services/accountServices'
 import { useAppDispatch } from '../../features/auth/hooks/storeHook'
 import { logout } from '../../features/auth/store/authSlice'
+import { accountServices } from '../../features/customer/account/services/accountServices'
+import { Modal } from '../common/Modal'
 
 const Sidebar = () => {
 
   const dispatch = useAppDispatch()
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const logoutHandler = async () => {
-    console.log("Logout working")
     try {
       await accountServices.logout()
       dispatch(logout())
@@ -36,10 +37,33 @@ const Sidebar = () => {
 
               {/* Logout (Pushed to bottom) */}
               <div className="mt-auto pt-16">
-                <SidebarItem label="Log out" isLogout={true} onClick={logoutHandler}/>
+                <SidebarItem label="Log out" isLogout={true} onClick={()=>setIsModalOpen(true)}/>
               </div>
               
-            </div>
+      </div>
+      <Modal isOpen={isModalOpen} onClose={()=>setIsModalOpen(false)} title='Logout'>
+        <p className="text-gray-600 font-medium text-[1.05rem] leading-relaxed mb-8">
+          Are you sure you want to logout?
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-end">
+          <button 
+            onClick={() => setIsModalOpen(false)}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            No
+          </button>
+          <button 
+            onClick={() => {
+              logoutHandler()
+              setIsModalOpen(false);
+            }}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-medium text-sm bg-[#e30000] hover:bg-[#9f0000] text-white shadow-md transition-colors cursor-pointer"
+          >
+            Logout
+          </button>
+        </div>
+      </Modal>
           </aside>
   )
 }
