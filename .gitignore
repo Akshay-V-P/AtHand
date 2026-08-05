@@ -21,5 +21,3 @@ server/dist/
 
 .DS_Store
 Thumbs.db
-
-server/src/modules/providerApplication

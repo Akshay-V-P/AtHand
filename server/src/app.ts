@@ -3,7 +3,8 @@ import cors from "cors"
 
 import { authRoute } from "./modules/auth/container"
 import cookieParser from "cookie-parser"
-import { errorHandler } from "./shared/middleware/errorMiddleware"
+import { errorHandler } from "./shared/middleware/ErrorMiddleware"
+import { provAppRoutes } from "./modules/providerApplication/container"
 
 const app = express()
 
@@ -20,6 +21,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/auth', authRoute)
+app.use('/api/provider-application', provAppRoutes)
 
 app.use(errorHandler)
 

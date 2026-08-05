@@ -7,7 +7,6 @@ import { AuthController } from "../../container";
 export function createAuthRoutes(authController: AuthController, authMiddleware:AuthMiddleware, registrationMiddleware:RegistrationMiddleware): Router{
     const router = Router()
 
-    console.log(typeof authController.signupController.signup)
 
     router.post(AUTH_ROUTE.SIGNUP, authController.signupController.signup)
     router.post(AUTH_ROUTE.VERIFY, registrationMiddleware.execute, authController.verifyOtpController.verifyOtp)

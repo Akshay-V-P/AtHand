@@ -18,6 +18,7 @@ export const Modal = ({ isOpen, onClose, title, children }:ModalProps) => {
       <div 
         className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity cursor-pointer"
         onClick={onClose}
+        role='button'
       ></div>
 
       {/* Modal Card */}
