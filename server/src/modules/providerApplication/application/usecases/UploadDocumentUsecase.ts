@@ -17,10 +17,6 @@ export class UploadDocumentUsecase implements IUsecase<DocumentUploadDTO, void>{
     ) { }
     
     async execute(data: DocumentUploadDTO): Promise<void> {
-        if (!data.documentType || !data.documentUrl || !data.providerId) {
-            throw new BadRequestError("Document details required")
-        }
-        if (!DocumentType[data.documentType]) throw new BadRequestError("Invalid document type")
             
         const provider = await this.providerRepo.findById(data.providerId)
         

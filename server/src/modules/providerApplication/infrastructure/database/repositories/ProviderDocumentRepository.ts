@@ -42,7 +42,7 @@ export class ProviderDocumentRepository extends BaseRepository<DocumentSchemaTyp
     }
 
     async findByDocumentType(providerId: string, documentType: DocumentType): Promise<ProviderDocument | null> {
-        const document = await DocumentModel.find({ providerId, documentType })
+        const document = await DocumentModel.findOne({ providerId, documentType })
         if (!document) return null
         return DocumentMapper.toDomain(document)
     }

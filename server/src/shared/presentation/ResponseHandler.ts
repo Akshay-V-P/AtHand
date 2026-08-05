@@ -5,7 +5,7 @@ export class ResponseHandler{
         return res.status(status).json({success:true, message, ...(data !== undefined && {data})})
     }
 
-    static error(res: Response, status: number, message: string) {
-        return res.status(status).json({success:false, message})
+    static error(res: Response, status: number, message: string, errors?:any) {
+        return res.status(status).json({success:false, message, ...(errors !== undefined && {errors})})
     }
 }
