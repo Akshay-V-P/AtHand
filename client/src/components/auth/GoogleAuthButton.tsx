@@ -3,7 +3,7 @@ import { authService } from '../../features/auth/services/authService';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {GoogleLogin} from "@react-oauth/google"
-import { useAppDispatch } from '../../features/auth/hooks/storeHook';
+import { useAppDispatch } from '../../hooks/storeHook';
 import { loginSuccess } from '../../features/auth/store/authSlice';
 
 const GoogleAuthButton = () => {

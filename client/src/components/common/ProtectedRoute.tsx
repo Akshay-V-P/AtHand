@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAppSelector } from '../../features/auth/hooks/storeHook'
+import { useAppSelector } from '../../hooks/storeHook'
 import { Navigate, Outlet } from 'react-router-dom'
 
 const ProtectedRoute = () => {

@@ -2,17 +2,20 @@ import { type InputHTMLAttributes } from "react";
 
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  inputLabel?: string;
   error?: string;
 }
 
 export const InputField = ({
   label,
+  inputLabel,
   error,
   className = "",
   ...props
 }: InputFieldProps) => {
   return (
     <div className="space-y-1 w-full">
+      <p className="my-2">{inputLabel}</p>
       {label && (
         <label className="text-sm font-medium text-red-700">
           {label}

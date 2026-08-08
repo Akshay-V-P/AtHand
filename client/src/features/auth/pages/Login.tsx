@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { authService } from "../services/authService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../hooks/storeHook";
+import { useAppDispatch, useAppSelector } from "../../../hooks/storeHook";
 import { loginSuccess } from "../store/authSlice";
 import { Form } from "../../../components/common/Form";
 import GoogleAuthButton from "../../../components/auth/GoogleAuthButton";

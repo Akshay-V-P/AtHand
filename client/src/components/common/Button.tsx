@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
-type ButtonVariant = "primary" | "outline" | "ghost";
+type ButtonVariant = "primary" | "outline" | "ghost" | "blue";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -23,7 +23,9 @@ export const Button = ({
     outline:
       "bg-transparent text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed",
     ghost:
-      "text-gray-600 hover:text-gray-900",
+      "text-gray-600 hover:text-gray-900 cursor-pointer",
+    blue:
+      "bg-[#545CEB] hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-sm transition-colors focus:ring-4 focus:ring-blue-200 cursor-pointer",
   };
 
   return (

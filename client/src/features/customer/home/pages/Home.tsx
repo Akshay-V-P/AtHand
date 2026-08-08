@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react'
-import Navbar from '../../../../components/common/Navbar'
+
 import { Button } from '../../../../components/common/Button'
-import CategoryCard from '../../../../components/home/CategoryCard'
-import ServiceCard from '../../../../components/home/ServiceCard'
-import FaqItem from '../../../../components/home/FaqItem'
-import ReviewCard from '../../../../components/home/ReviewCard'
+import CategoryCard from '../../../../components/user/home/CategoryCard'
+import ServiceCard from '../../../../components/user/home/ServiceCard'
+import FaqItem from '../../../../components/user/home/FaqItem'
+import ReviewCard from '../../../../components/user/home/ReviewCard'
 
 
 const Home = () => {

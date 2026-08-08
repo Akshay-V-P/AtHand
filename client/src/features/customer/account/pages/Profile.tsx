@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 
 import { useNavigate } from 'react-router-dom'
-import { useAppSelector } from '../../../auth/hooks/storeHook'
+import { useAppSelector } from '../../../../hooks/storeHook'
 import { Button } from '../../../../components/common/Button'
 
 const Profile = () => {

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useAppDispatch } from './hooks/storeHook'
+import { useAppDispatch } from '../../hooks/storeHook'
 import { authService } from './services/authService'
 import { loginSuccess } from './store/authSlice'
 

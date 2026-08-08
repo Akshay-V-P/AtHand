@@ -88,6 +88,8 @@ const ProviderSchema = new mongoose.Schema({
         default:0
     }
 
+}, {
+    timestamps:true
 })
 
 ProviderSchema.index({

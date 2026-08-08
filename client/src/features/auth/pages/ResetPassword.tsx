@@ -13,7 +13,7 @@ import { authService } from "../services/authService";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { UpdatePasswordDto } from "../dtos/UpdatePasswordDto";
 import { useTogglePassword } from "../hooks/useTogglePassword";
-import { useAppDispatch } from "../hooks/storeHook";
+import { useAppDispatch } from "../../../hooks/storeHook";
 import { logout } from "../store/authSlice";
 
 const ResetPassword = () => {

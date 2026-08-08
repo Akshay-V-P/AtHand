@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./Button";
 import { useActionState } from "react";
-import { useAppSelector } from "../../features/auth/hooks/storeHook";
+import { useAppSelector } from "../../hooks/storeHook";
 
 
 

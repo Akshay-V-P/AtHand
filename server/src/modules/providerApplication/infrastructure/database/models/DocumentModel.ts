@@ -22,6 +22,8 @@ const DocumentSchema = new mongoose.Schema({
         default: "PENDING",
         required:true
     }
+}, {
+    timestamps:true
 })
 
 export type DocumentSchemaType = InferSchemaType<typeof DocumentSchema>

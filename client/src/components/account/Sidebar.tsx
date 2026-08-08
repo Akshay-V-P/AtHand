@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import SidebarItem from './SidebarItem'
 import toast from 'react-hot-toast'
-import { useAppDispatch } from '../../features/auth/hooks/storeHook'
+import { useAppDispatch } from '../../hooks/storeHook'
 import { logout } from '../../features/auth/store/authSlice'
 import { accountServices } from '../../features/customer/account/services/accountServices'
 import { Modal } from '../common/Modal'
