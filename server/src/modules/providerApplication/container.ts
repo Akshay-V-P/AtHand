@@ -11,6 +11,7 @@ import { UploadDraftController } from "./presentation/controllers/draftControlle
 import { createProviderApplicationRoute } from "./presentation/routes/providerApplication.routes"
 import { createProviderSchema } from "./presentation/validators/createProvider.schema"
 import { uploadDocumentSchema } from "./presentation/validators/uploadDocument.schema"
+import { updateProviderDraftSchema } from "./presentation/validators/uploadProviderDraft.schema"
 
 const providerRepository = new ProviderRepository()
 const documentRepository = new ProviderDocumentRepository()
@@ -34,7 +35,8 @@ const provAppControllers = {
 
 const providerMiddlewares = {
     validateuploadDocument: validate(uploadDocumentSchema),
-    validateCreateProvider: validate(createProviderSchema)
+    validateCreateProvider: validate(createProviderSchema),
+    validateUploadProviderDraft: validate(updateProviderDraftSchema)
 }
 
 export type ProvAppController = typeof provAppControllers

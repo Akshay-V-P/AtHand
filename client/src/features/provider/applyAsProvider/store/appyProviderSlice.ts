@@ -41,7 +41,7 @@ interface ProviderApplicationState{
     businessDetails: BusinessDetails | null;
     locationDetails: LocationDetails | null;
     serviceDetails: ServiceDetails | null;
-    documentDetails: Document[];
+    documents: Document[];
     stepCount: number;
 }
 
@@ -49,7 +49,7 @@ const initialState: ProviderApplicationState = {
     businessDetails: null,
     locationDetails: null,
     serviceDetails: null,
-    documentDetails: [],
+    documents: [],
     stepCount:0
 }
 
@@ -69,15 +69,15 @@ const providerApplicationSlice = createSlice({
             state.stepCount = 2
         }, 
         addDocument: (state,action:PayloadAction<Document>) => {
-            state.documentDetails.push(action.payload)
+            state.documents.push(action.payload)
         },
         removeDocument: (state, action:PayloadAction<string>) => {
-            state.documentDetails = state.documentDetails.filter((doc)=> doc.documentType !== action.payload)
+            state.documents = state.documents.filter((doc)=> doc.documentType !== action.payload)
         },
         clearProviderApplication: (state)=> {
             state.businessDetails = null
             state.locationDetails = null
-            state.documentDetails = []
+            state.documents = []
             state.serviceDetails = null
             state.stepCount = 0
         }

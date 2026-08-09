@@ -12,11 +12,13 @@ interface User{
 interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
+    isLoading:boolean
 }
 
 const initialState: AuthState = {
     user: null,
-    isAuthenticated:false
+    isAuthenticated: false,
+    isLoading: true
 }
 
 const authSlice = createSlice({
@@ -30,10 +32,13 @@ const authSlice = createSlice({
         logout(state) {
             state.user = null;
             state.isAuthenticated = false
+        },
+        setIsLoading(state, action:PayloadAction<boolean>) {
+            state.isLoading = action.payload
         }
     }
 })
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginSuccess, logout, setIsLoading } = authSlice.actions;
 
 export default authSlice.reducer;

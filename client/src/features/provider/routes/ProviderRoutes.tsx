@@ -1,13 +1,17 @@
 import type { RouteObject } from "react-router-dom";
 import ProviderLayout from "../layout/ProviderLayout";
 import ApplyProviderRoutes from "../applyAsProvider/routes/ApplyProviderRoutes";
+import ProtectedRoute from "../../../components/common/ProtectedRoute";
 
 const ProviderRoutes: RouteObject[] = [
     {
-        element: <ProviderLayout />,
-        children: [
-            ...ApplyProviderRoutes,
-        ]
+        element: <ProtectedRoute />,
+        children: [{
+            element: <ProviderLayout />,
+            children: [
+                ...ApplyProviderRoutes,
+            ]
+        }]
     }
 ]
 

@@ -1,22 +1,27 @@
 import React, { useState } from "react";
 import { InputField } from "../../../../components/common/InputField";
-import InfoCard from "../../../../components/provider/InfoCard";
+import InfoCard from "../../../../components/provider/applyProvider/InfoCard";
 import { Locate, Shield, Zap } from "lucide-react";
 import { Form } from "../../../../components/common/Form";
-import ProgressBar from "../../../../components/provider/ProgressBar";
+import ProgressBar from "../../../../components/provider/applyProvider/ProgressBar";
 import { Button } from "../../../../components/common/Button";
 import { getUserLocation, reverseGeocode } from "../services/locationService";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
 import { setLocationDetails } from "../store/appyProviderSlice";
-import LocationPicker from "../../../../components/provider/LocationPicker";
+import LocationPicker from "../../../../components/provider/applyProvider/LocationPicker";
 import { useForm } from "react-hook-form";
 import { businessDetailsSchema, type BusinessDetailsFormData } from "../validation/businessDetailsSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import { apiService } from "../services/apiService";
+import type { BusinessDetailsDTO } from "../dtos/BusinessDetailsDTO";
+import { useNavigate } from "react-router-dom";
 
 const CreateAccount = () => {
     const location = useAppSelector((state) => state.providerApplication.locationDetails)
+    const navigate = useNavigate()
     const dispatch = useAppDispatch()
+    const user = useAppSelector((state)=>state.auth.user)
     const [latitude, setLatitude] = useState<number | null>(null)
     const [longitude, setLongitude] = useState<number | null>(null)
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<BusinessDetailsFormData>({
@@ -25,9 +30,10 @@ const CreateAccount = () => {
 
     const onSubmit = async (data: BusinessDetailsFormData) => {
         try {
+            const userId = user?.id
             const businessDetails = {
                 businessName: data.businessName,
-                contactPeroson: data.contactPerson,
+                contactPerson: data.contactPerson,
                 phone: data.phone,
                 email:data.email
             }
@@ -44,7 +50,8 @@ const CreateAccount = () => {
                     coordinates:[longitude, latitude]
                 }
             }
-            
+            const draft = await apiService.updateDraft({userId, businessDetails, locationDetails } as BusinessDetailsDTO)
+            navigate("/apply-provider/service")
         } catch (error:any) {
             console.log(error.message)
             toast.error(error.message || "Somthing went wrong")
@@ -70,7 +77,7 @@ const CreateAccount = () => {
         <main className="flex-1 overflow-y-auto bg-white p-8 lg:p-12">
             <div className="max-w-5xl mx-auto">
                 {/* Progress Bar Section */}
-                <ProgressBar progress={1} />
+                <ProgressBar progress={0} />
 
                 {/* Header */}
                 <div className="mb-10">
@@ -139,7 +146,6 @@ const CreateAccount = () => {
 
                                         setLatitude(latitude)
                                         setLongitude(longitude)
-
                                         dispatch(setLocationDetails(location));
                                     }}
                                     positionDetails={{latitude, longitude}}

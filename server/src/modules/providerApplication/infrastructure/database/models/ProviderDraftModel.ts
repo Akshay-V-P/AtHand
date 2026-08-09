@@ -28,7 +28,7 @@ const ProviderDraftSchema = new mongoose.Schema({
         serviceCategory: { type: mongoose.Types.ObjectId},
         serviceRadius: { type: Number},
     },
-    documentDetails: {
+    documents: {
         type:[String]
     }
 }, {

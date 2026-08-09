@@ -12,17 +12,9 @@ export class UploadBusinessDetailsDraftUsecase implements IUsecase<BusinessDetai
     
     async execute(data: BusinessDetailsDraftDto): Promise<ProviderDraft | null> {
         let providerDraft = await this.providerDraftRepo.findByUserId(data.userId)
-        const [longitude, latitude] = data.locationDetails.coordinates.coordinates
-        if (
-            latitude < -90 ||
-            latitude > 90 ||
-            longitude < -180 ||
-            longitude > 180
-        ) {
-            throw new BadRequestError("Invalid location coordinates")
-        }
+
+        
         if (!providerDraft) {
-            if (!data.businessDetails.businessName) throw new BadRequestError("Please provide all business details")
             const newProviderDraft = new ProviderDraft(
                 data.userId,
                 data.businessDetails,
@@ -30,8 +22,7 @@ export class UploadBusinessDetailsDraftUsecase implements IUsecase<BusinessDetai
                 data.serviceDetails,
                 data.documents,
             )
-            providerDraft = await this.providerDraftRepo.create(newProviderDraft)
-            return providerDraft
+            return this.providerDraftRepo.create(newProviderDraft)
         }
 
         return this.providerDraftRepo.update(data.userId, data)

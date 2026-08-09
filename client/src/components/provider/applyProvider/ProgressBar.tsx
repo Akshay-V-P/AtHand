@@ -8,7 +8,7 @@ const ProgressBar = ({progress}:{progress:number}) => {
         <span className="text-gray-700">{ progress? `${progress}% Complete` : "0% Complete"}</span>
               </div>
               <div className="w-full bg-blue-50 rounded-full h-2.5">
-                <div className="bg-[#545CEB] h-2.5 rounded-full" style={{ width: progress || '1%' }}></div>
+                <div className="bg-[#545CEB] h-2.5 rounded-full" style={{ width: `${progress}%` || '1%' }}></div>
               </div>
             </div>
   )

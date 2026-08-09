@@ -1,11 +1,11 @@
 import React from 'react'
-import SideBar from '../../../../components/provider/SideBar'
+import SideBar from '../../../../components/provider/applyProvider/SideBar'
 import { Outlet } from 'react-router-dom'
 
 const ApplyAsProviderLayout = () => {
   return (
-    <div className="md:flex overflow-hidden">
-        {/* Left Sidebar */}
+    <div className="md:flex overflow-hidden max-h-dvh">
+        
           <SideBar />
           <Outlet/>
         

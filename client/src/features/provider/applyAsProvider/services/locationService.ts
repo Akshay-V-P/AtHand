@@ -31,10 +31,14 @@ export const reverseGeocode = async(latitude: number, longitude: number)=>{
     
     const data = await response.json()
 
+    console.log(data)
        
        return {
             address: {
                street:
+                    data.address.shop ??
+                    data.address.leisure ??
+                    data.address.amenity ??
                     data.address.neighbourhood ??
                     data.address.road ??
                     data.address.pedestrian ??
@@ -42,6 +46,7 @@ export const reverseGeocode = async(latitude: number, longitude: number)=>{
                    "",
                 
                city:
+                   data.address.suburb ??
                    data.address.town ??
                    data.address.city ??
                    data.address.village ??

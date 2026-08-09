@@ -1,17 +1,22 @@
 import type { RouteObject } from "react-router-dom";
 import ApplyAsProviderLayout from "../layouts/ApplyAsProviderLayout";
-import CreateAccount from "../pages/CreateAccount";
+import BusinessDetails from "../pages/BusinessDetails";
+import ServiceDetails from "../pages/ServiceDetails"
 
 const ApplyProviderRoutes: RouteObject[] = [
     {
         element: <ApplyAsProviderLayout />,
         children: [
             {
-                element: <CreateAccount />,
-                path:"/apply-provider"
-            }
-        ]
-    }
-] 
+                element: <BusinessDetails />,
+                path: "/apply-provider/business",
+            },
+            {
+                path: "/apply-provider/service",
+                element:<ServiceDetails/>
+            },
+        ],
+    },
+];
 
-export default ApplyProviderRoutes
+export default ApplyProviderRoutes;
