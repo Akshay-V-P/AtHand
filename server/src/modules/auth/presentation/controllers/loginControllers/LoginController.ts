@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import { LoginDto } from "../../../application/dto/LoginDto"
 import { LoginResponseDto } from "../../../application/dto/LoginResponseDto"
-import { IUsecase } from "../../../application/interfaces/IUsecase"
+import { IUsecase } from "../../../../../shared/application/interfaces/IUsecase"
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler"
 import { HttpStatus } from "../../../../../shared/enums/HttpStatus"
 import { AUTH_MESSAGES } from "../../constants/authMessage"

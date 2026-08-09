@@ -8,7 +8,7 @@ import { ICryptoService } from "../../domain/services/ICryptoService";
 import { IEmailService } from "../../domain/services/IEmailService";
 import { IPasswordService } from "../../domain/services/IPasswordService";
 import { VerifyPasswordDto } from "../dto/VerifyPasswordDto";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 
 export class VerifyPasswordUsecase implements IUsecase<VerifyPasswordDto, void>{

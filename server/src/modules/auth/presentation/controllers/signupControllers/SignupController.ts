@@ -3,7 +3,7 @@ import { HttpStatus } from "../../../../../shared/enums/HttpStatus";
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler";
 import { RegisterDto } from "../../../application/dto/RegisterDto";
 import { RegisterResponseDto } from "../../../application/dto/RegisterResponseDto";
-import { IUsecase } from "../../../application/interfaces/IUsecase";
+import { IUsecase } from "../../../../../shared/application/interfaces/IUsecase";
 import { AUTH_MESSAGES } from "../../constants/authMessage";
 
 export class SignupController{

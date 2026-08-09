@@ -6,7 +6,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IAuthService } from "../../domain/services/IAuthService";
 import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginResponseDto } from "../dto/LoginResponseDto";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDto>{
     constructor(

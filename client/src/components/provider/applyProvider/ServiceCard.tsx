@@ -2,14 +2,13 @@ import type { LucideIcon } from "lucide-react";
 import type { HTMLAttributes } from "react";
 
 interface ServiceCardProps extends HTMLAttributes<HTMLDivElement>{
-    icon: LucideIcon;
     title: string;
     description: string;
     isSelected: boolean;
     onClick: () => void;
 }
 
-function ServiceCard({ icon: Icon, title, description, isSelected, onClick, ...props }:ServiceCardProps) {
+function ServiceCard({ title, description, isSelected, onClick, ...props }:ServiceCardProps) {
   return (
     <div 
       onClick={onClick}
@@ -20,9 +19,7 @@ function ServiceCard({ icon: Icon, title, description, isSelected, onClick, ...p
               }`}
           {...props}
     >
-      <div className="w-12 h-12 rounded-lg bg-blue-50 text-[#545CEB] flex items-center justify-center">
-        <Icon className="h-6 w-6" />
-      </div>
+      
       <div>
         <h3 className="font-bold text-gray-900 mb-1.5">{title}</h3>
         <p className="text-sm text-gray-600 leading-relaxed">

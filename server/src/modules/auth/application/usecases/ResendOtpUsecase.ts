@@ -5,7 +5,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IEmailService } from "../../domain/services/IEmailService";
 import { IOtpService } from "../../domain/services/IOtpService";
 import { ResendOtpDto } from "../dto/ResendOtpDto";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class ResendOtpUsecase implements IUsecase<ResendOtpDto, void>{
     constructor(

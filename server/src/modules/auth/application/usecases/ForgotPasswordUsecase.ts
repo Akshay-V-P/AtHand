@@ -5,7 +5,7 @@ import { IPasswordResetTokenRepository } from "../../domain/repositories/IPasswo
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { ICryptoService } from "../../domain/services/ICryptoService";
 import { IEmailService } from "../../domain/services/IEmailService";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class ForgotPasswordUsecase implements IUsecase<string, void>{
     constructor(

@@ -1,7 +1,7 @@
 import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { LogoutDto } from "../dto/LogoutDto";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class LogoutUserUseCase implements IUsecase<LogoutDto, void>{
     constructor(

@@ -1,7 +1,7 @@
 import { UserMapper } from "../../domain/mappers/UserMapper";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { GetProfileDto } from "../dto/GetProfileDto";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class GetProfileUsecase implements IUsecase<string, GetProfileDto|null>{
     constructor(

@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { IUsecase } from "../../../application/interfaces/IUsecase";
 import { CreateProviderDto } from "../../../application/dtos/CreateProviderDto";
 import { Provider } from "../../../domain/entities/Provider";
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler";
 import { HttpStatus } from "../../../../../shared/enums/HttpStatus";
 import { PROV_APP_MESSAGES } from "../../constants/responseMessages";
+import { IUsecase } from "../../../../../shared/application/interfaces/IUsecase";
 
 export class CreateProviderController {
     constructor(

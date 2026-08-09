@@ -20,4 +20,8 @@ export abstract class BaseRepository<T> {
     protected async updateDocument(id: string, updateData: UpdateQuery<T>): Promise<T | null>{
         return await this.model.findByIdAndUpdate(id, updateData, {new:true})
     }
+
+    protected async findAllDocuments(): Promise<T[] | null>{
+        return await this.model.find()
+    }
 }

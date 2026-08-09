@@ -1,12 +1,12 @@
 export interface BusinessDetailsDTO{
     userId: string;
-    businessDetails: {
+    businessDetails?: {
         businessName: string;
         contactPerson: string;
         phone: string;
         email: string;
     },
-    locationDetails: {
+    locationDetails?: {
         address: {
             street: string;
             city: string;
@@ -18,5 +18,10 @@ export interface BusinessDetailsDTO{
             type: "Point",
             coordinates:[number, number]
         }
-    }
+    },
+    serviceDetails?: {
+        serviceCategory: string,
+        serviceRadius:number
+    },
+    documents?:[string]
 }

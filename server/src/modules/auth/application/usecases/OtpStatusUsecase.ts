@@ -1,5 +1,5 @@
 import { IOtpService } from "../../domain/services/IOtpService";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class OtpStatusUsecase implements IUsecase<string, object>{
     constructor(

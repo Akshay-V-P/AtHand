@@ -4,7 +4,7 @@ import { UserStatus } from "../../domain/enum/UserStatus";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { ITokenService, JwtPayload } from "../../domain/services/ITokenService";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class RefreshTokenUsecase implements IUsecase<string, string>{
     constructor(

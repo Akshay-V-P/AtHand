@@ -5,5 +5,9 @@ export const apiService = {
     async updateDraft(data:BusinessDetailsDTO) {
         const draft = await providerApplicationApi.updateDraft(data)
         return draft
+    },
+    async getCategories() {
+        const categories = await providerApplicationApi.getCategories()
+        return categories
     }
 }

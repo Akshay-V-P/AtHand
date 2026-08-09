@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { DocumentUploadDTO } from "../../../application/dtos/DocumentUploadDto";
-import { IUsecase } from "../../../application/interfaces/IUsecase";
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler";
 import { HttpStatus } from "../../../../../shared/enums/HttpStatus";
 import { PROV_APP_MESSAGES } from "../../constants/responseMessages";
 import { DocumentType } from "../../../domain/entities/ProviderDocument";
+import { IUsecase } from "../../../../../shared/application/interfaces/IUsecase";
 
 export class UploadDocumentController{
     constructor(

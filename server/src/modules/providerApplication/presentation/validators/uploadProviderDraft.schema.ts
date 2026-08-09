@@ -73,7 +73,7 @@ const locationDetailsSchema = z.object({
 
 
 const serviceDetailsSchema = z.object({
-    serviceCategoryId: z
+    serviceCategory: z
         .string()
         .min(1, "Service category is required"),
 
@@ -102,7 +102,7 @@ export const updateProviderDraftSchema = z.object({
         ),
     businessDetails: businessDetailsSchema.optional(),
     locationDetails: locationDetailsSchema.optional(),
-    serviceDetailsSchema: serviceDetailsSchema.optional(),
+    serviceDetails: serviceDetailsSchema.optional(),
     documents:documentsSchema.optional(),
 })
 

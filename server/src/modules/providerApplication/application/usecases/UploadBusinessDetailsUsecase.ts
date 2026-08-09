@@ -1,9 +1,9 @@
 
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { ProviderDraft } from "../../domain/entities/ProviderDraft";
 import { IProviderDraftRepository } from "../../domain/repositories/IProviderDraftRepository";
 import { BusinessDetailsDraftDto } from "../dtos/BusinessDraftDto";
-import { IUsecase } from "../interfaces/IUsecase";
 
 export class UploadBusinessDetailsDraftUsecase implements IUsecase<BusinessDetailsDraftDto, ProviderDraft | null>{
     constructor(

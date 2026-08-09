@@ -7,5 +7,7 @@ export const providerApplicationApi = {
     uploadDocument: () =>
         api.post("/provider-application/upload-document"),
     updateDraft: (data:BusinessDetailsDTO) =>
-        api.patch("/provider-application/update-provider-draft", data)
+        api.patch("/provider-application/update-provider-draft", data),
+    getCategories: () =>
+        api.get("/category/get")
 }

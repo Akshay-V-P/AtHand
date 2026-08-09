@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { BusinessDetailsDraftDto } from "../../../application/dtos/BusinessDraftDto";
-import { IUsecase } from "../../../application/interfaces/IUsecase";
 import { ProviderDraft } from "../../../domain/entities/ProviderDraft";
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler";
 import { HttpStatus } from "../../../../../shared/enums/HttpStatus";
 import { PROV_APP_MESSAGES } from "../../constants/responseMessages";
+import { IUsecase } from "../../../../../shared/application/interfaces/IUsecase";
 
 export class UploadDraftController{
     constructor(

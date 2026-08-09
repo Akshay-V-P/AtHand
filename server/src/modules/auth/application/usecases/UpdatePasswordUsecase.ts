@@ -7,7 +7,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { ICryptoService } from "../../domain/services/ICryptoService";
 import { IPasswordService } from "../../domain/services/IPasswordService";
 import { UpdatePasswordDto } from "../dto/UpdatePasswordDto";
-import { IUsecase } from "../interfaces/IUsecase";
+import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
 export class UpdatePasswordUsecase implements IUsecase<UpdatePasswordDto, void>{
     constructor(
