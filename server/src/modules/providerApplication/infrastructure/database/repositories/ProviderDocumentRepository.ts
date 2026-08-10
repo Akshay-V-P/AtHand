@@ -30,7 +30,8 @@ export class ProviderDocumentRepository extends BaseRepository<DocumentSchemaTyp
     }
 
     async update(id: string, updateData: ProviderDocumentUpdateDTO): Promise<ProviderDocument | null> {
-        const updatedDocument = await this.updateDocument(id, updateData)
+        const updatedDocument = await DocumentModel.findOneAndUpdate({providerId:id}, updateData, {returnDocument:'after'})
+        console.log(updatedDocument)
         if (!updatedDocument) return null
         return DocumentMapper.toDomain(updatedDocument)
     }

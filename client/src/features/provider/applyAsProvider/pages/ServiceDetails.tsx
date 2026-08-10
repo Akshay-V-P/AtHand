@@ -7,7 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { providerApplicationApi } from "../api/providerApplicationApi";
 import { InputField } from "../../../../components/common/InputField";
 import toast from "react-hot-toast";
-import { useAppSelector } from "../../../../hooks/storeHook";
+import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
+import { apiService } from "../services/apiService";
+import { setProvider } from "../store/providerSlice";
 
 interface Category {
     id: string;
@@ -20,11 +22,13 @@ interface Category {
 }
 
 export default function ServiceSelection() {
+  const serviceDetails = useAppSelector((state)=>state.providerApplication.serviceDetails)
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [services, setServices] = useState<Category[]>([])
   const [serviceRadius, setServiceRadius] = useState(5)
   const user = useAppSelector((state)=>state.auth.user)
-    const navigate = useNavigate()
+  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
 
   const toggleService = (id:string) => {
     setSelectedServices(prev => 
@@ -33,6 +37,11 @@ export default function ServiceSelection() {
         : [...prev, id]
     );
   };
+
+  useEffect(() => {
+    setSelectedServices([serviceDetails?.serviceCategory!])
+    setServiceRadius(serviceDetails?.serviceRadius!)
+  },[serviceDetails])
 
   useEffect(() => {
     providerApplicationApi.getCategories()
@@ -63,9 +72,10 @@ export default function ServiceSelection() {
         userId,
         serviceDetails
       }
-      console.log(payload)
 
-      await providerApplicationApi.updateDraft(payload)
+      await apiService.updateDraft(payload)
+      const response = await apiService.createProvider(userId)
+      dispatch(setProvider(response.data.data))
       navigate("/apply-provider/documents")
     } catch (error:any) {
       console.error(error)
@@ -115,7 +125,7 @@ export default function ServiceSelection() {
       </div> */}
 
       <div className="flex max-w-34 relative">
-        <InputField type="number" placeholder="Service Radius" onChange={(e)=>setServiceRadius(Number(e.target.value.trim()))} defaultValue={5} inputLabel="Service Radius" className="max-w-20 outline-2 outline-gray-200" max={30} min={1}/>
+        <InputField type="number" placeholder="Service Radius" onChange={(e)=>setServiceRadius(Number(e.target.value.trim()))} value={serviceRadius} inputLabel="Service Radius" className="max-w-20 outline-2 outline-gray-200" max={30} min={1}/>
       <p className="text-center pt-14 absolute bottom-0 left-22">Km</p>
       </div>
 

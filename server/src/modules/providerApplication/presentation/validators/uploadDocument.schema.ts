@@ -6,5 +6,5 @@ export const uploadDocumentSchema = z.object({
     documentType: z.enum(DocumentType, {
         error:"Invalid document type"
     }),
-    documentUrl: z.url("Invalid document url")
+    documentKey: z.string("Invalid document url")
 })

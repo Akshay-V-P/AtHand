@@ -84,14 +84,41 @@ const serviceDetailsSchema = z.object({
 
 });
 
-const documentsSchema = z
-    .array(
-            z.string().regex(
-                /^[0-9a-fA-F]{24}$/,
-                "Invalid document ID"
-            )
-        )
-        .min(1, "At least one document is required");
+const documentSchema = z.object({
+    providerId: z
+        .string()
+        .trim()
+        .regex(
+            /^[0-9a-fA-F]{24}$/,
+            "Invalid provider ID"
+        ),
+
+    documentType: z.enum([
+        "TECHNICAL CERTIFICATE",
+        "BUSINESS LICENSE",
+        "GOVERNMENT ID FRONT",
+        "GOVERNMENT ID BACK"
+    ], {
+        error: "Invalid document type",
+    }),
+
+    documentKey: z
+        .string()
+        .trim()
+        .min(1, "Document key is required"),
+
+    remarks: z
+        .string()
+        .optional(),
+
+    verificationStatus: z.enum([
+        "VERIFIED",
+        "PENDING",
+        "REJECTED",
+    ]).default("PENDING"),
+});
+
+const documentsSchema = z.array(documentSchema);
 
 
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InputField } from "../../../../components/common/InputField";
 import InfoCard from "../../../../components/provider/applyProvider/InfoCard";
 import { Locate, Shield, Zap } from "lucide-react";
@@ -19,14 +19,51 @@ import { useNavigate } from "react-router-dom";
 
 const CreateAccount = () => {
     const location = useAppSelector((state) => state.providerApplication.locationDetails)
+    const providerDraft = useAppSelector((state) => state.providerApplication)
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const user = useAppSelector((state)=>state.auth.user)
     const [latitude, setLatitude] = useState<number | null>(null)
     const [longitude, setLongitude] = useState<number | null>(null)
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<BusinessDetailsFormData>({
-        resolver:zodResolver(businessDetailsSchema)
+    const { register, handleSubmit,reset, formState: { errors, isSubmitting } } = useForm<BusinessDetailsFormData>({
+        resolver: zodResolver(businessDetailsSchema),
     })
+
+    
+    
+    useEffect(() => {
+        reset({
+            businessName:
+                providerDraft.businessDetails?.businessName ?? "",
+
+            contactPerson:
+                providerDraft.businessDetails?.contactPerson ?? "",
+
+            phone:
+                providerDraft.businessDetails?.phone ?? "",
+
+            email:
+                providerDraft.businessDetails?.email ?? "",
+
+            street:
+                providerDraft.locationDetails?.address.street ?? "",
+
+            city:
+                providerDraft.locationDetails?.address.city ?? "",
+
+            district:
+                providerDraft.locationDetails?.address.district ?? "",
+
+            state:
+                providerDraft.locationDetails?.address.state ?? "",
+
+            pincode:
+                providerDraft.locationDetails?.address.pincode ?? "",
+        })
+
+        setLatitude(providerDraft.locationDetails?.coordinates.coordinates[1]!)
+        setLongitude(providerDraft.locationDetails?.coordinates.coordinates[0]!)
+    },[providerDraft, reset])
 
     const onSubmit = async (data: BusinessDetailsFormData) => {
         try {
@@ -50,11 +87,12 @@ const CreateAccount = () => {
                     coordinates:[longitude, latitude]
                 }
             }
+            console.log({userId, businessDetails, locationDetails})
             const draft = await apiService.updateDraft({userId, businessDetails, locationDetails } as BusinessDetailsDTO)
             navigate("/apply-provider/service")
         } catch (error:any) {
             console.log(error.message)
-            toast.error(error.message || "Somthing went wrong")
+            toast.error(error.response.data.message || "Somthing went wrong")
         }
     }
 
@@ -99,6 +137,7 @@ const CreateAccount = () => {
                                 <h2 className="text-xl font-bold">Business Details</h2>
                                 <InputField
                                     inputLabel="Business Name"
+                                    defaultValue={providerDraft.businessDetails?.businessName}
                                     placeholder="e.g. Honest Repairs"
                                     label={errors.businessName?.message}
                                     {...register('businessName')}
@@ -148,14 +187,13 @@ const CreateAccount = () => {
                                         setLongitude(longitude)
                                         dispatch(setLocationDetails(location));
                                     }}
-                                    positionDetails={{latitude, longitude}}
+                                    positionDetails={{latitude:providerDraft.locationDetails?.coordinates.coordinates[1] || latitude, longitude:providerDraft.locationDetails?.coordinates.coordinates[0] || longitude}}
                                     />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
                                     <InputField
                                         inputLabel="Street"
                                         type="text"
                                         placeholder="eg. Kaloor"
-                                        defaultValue={location?.address.street}
                                         label={errors.street?.message}
                                         {...register('street')}
                                     />
@@ -163,7 +201,6 @@ const CreateAccount = () => {
                                         inputLabel="City"
                                         type="text"
                                         placeholder="eg. Kochi"
-                                        defaultValue={location?.address.city}
                                         label={errors.city?.message}
                                         {...register('city')}
                                     />
@@ -171,7 +208,6 @@ const CreateAccount = () => {
                                         inputLabel="District"
                                         type="text"
                                         placeholder="eg. Ernamkulam"
-                                        defaultValue={location?.address.district}
                                         label={errors.district?.message}
                                         {...register('district')}
                                     />
@@ -179,7 +215,6 @@ const CreateAccount = () => {
                                         inputLabel="State"
                                         type="text"
                                         placeholder="eg. Kerala"
-                                        defaultValue={location?.address.state}
                                         label={errors.state?.message}
                                         {...register('state')}
                                     />
@@ -187,7 +222,6 @@ const CreateAccount = () => {
                                         inputLabel="Pincode"
                                         type="text"
                                         placeholder="eg. 628604"
-                                        defaultValue={location?.address.pincode}
                                         label={errors.pincode?.message}
                                         {...register('pincode')}
                                     />

@@ -21,7 +21,7 @@ const Navbar = () => {
                 >
                     Services
                 </a>
-                <Link to={"/apply-provider"}>
+                <Link to={"/apply-provider/business"}>
                     
                     <p
                     className="text-sm font-medium text-gray-600 hover:text-gray-900"

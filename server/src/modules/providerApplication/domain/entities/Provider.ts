@@ -29,12 +29,12 @@ export class Provider{
         public readonly serviceCategory: string,
         public readonly location: Location,
         public readonly serviceRadius: number,
+        public readonly status: ProviderStatus,
         public readonly experience?: number,
         public readonly averageRating?: number,
-        public readonly status?: ProviderStatus,
         public readonly totalReview?: number,
         public readonly completedJobs?:number,
-        public readonly id?: ObjectId,
+        public readonly id?: string,
 
     ){}
 }

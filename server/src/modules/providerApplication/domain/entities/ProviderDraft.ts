@@ -24,6 +24,12 @@ export interface IServiceDetails{
     serviceRadius: number;
 }
 
+export interface IDocuments{
+    providerId: string;
+    documentKey: string;
+    documentType: string;
+}
+
 
 
 
@@ -33,6 +39,6 @@ export class ProviderDraft{
         public readonly businessDetails?: IBusinessDetails,
         public readonly locationDetails?: ILocationDetails,
         public readonly serviceDetails?: IServiceDetails,
-        public readonly documents?:string[],
+        public readonly documents?:IDocuments[],
     ){}
 }

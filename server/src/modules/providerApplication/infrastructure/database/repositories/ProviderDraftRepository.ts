@@ -21,6 +21,7 @@ export class ProviderDraftRepository extends BaseRepository<ProviderDraftSchemaT
     }
 
     async update(userId: string, updateData: Partial<ProviderDraft>): Promise<ProviderDraft | null> {
+        console.log(updateData)
         const updatedProviderDraft = await ProviderDraftModel.findOneAndUpdate({ userId }, updateData, { returnDocument:'after'})
         if (!updatedProviderDraft) return null
         return ProviderDraftMapper.toDomain(updatedProviderDraft)

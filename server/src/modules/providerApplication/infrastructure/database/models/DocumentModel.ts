@@ -7,9 +7,10 @@ const DocumentSchema = new mongoose.Schema({
     },
     documentType: {
         type: String,
+        enum:["TECHNICAL CERTIFICATE", "BUSINESS LICENSE", "GOVERNMENT ID FRONT", "GOVERNMENT ID BACK"],
         required: true
     },
-    documentUrl: {
+    documentKey: {
         type: String,
         required:true
     },

@@ -1,3 +1,5 @@
+import type { Document } from "../store/appyProviderSlice";
+
 export interface BusinessDetailsDTO{
     userId: string;
     businessDetails?: {
@@ -23,5 +25,5 @@ export interface BusinessDetailsDTO{
         serviceCategory: string,
         serviceRadius:number
     },
-    documents?:[string]
+    documents?:Document[]
 }

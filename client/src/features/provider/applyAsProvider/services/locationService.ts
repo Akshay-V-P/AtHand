@@ -31,7 +31,6 @@ export const reverseGeocode = async(latitude: number, longitude: number)=>{
     
     const data = await response.json()
 
-    console.log(data)
        
        return {
             address: {

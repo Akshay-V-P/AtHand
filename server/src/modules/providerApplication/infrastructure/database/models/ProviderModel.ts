@@ -40,6 +40,7 @@ const ProviderSchema = new mongoose.Schema({
 
     status: {
         type: String,
+        enum:["DRAFT", "PENDING", "APPROVED", "BLOCKED"],
         default: ProviderStatus.PENDING,
         required:true
     },

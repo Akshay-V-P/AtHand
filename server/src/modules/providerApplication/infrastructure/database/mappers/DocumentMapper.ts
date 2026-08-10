@@ -6,7 +6,7 @@ export abstract class DocumentMapper{
         return new ProviderDocument(
             data.providerId,
             data.documentType,
-            data.documentUrl,
+            data.documentKey,
             data.verificationStatus,
             data.remarks,
             data._id
@@ -18,7 +18,7 @@ export abstract class DocumentMapper{
             return new ProviderDocument(
                 doc.providerId,
                 doc.documentType,
-                doc.documentUrl,
+                doc.documentKey,
                 doc.verificationStatus,
                 doc.remarks,
                 doc._id

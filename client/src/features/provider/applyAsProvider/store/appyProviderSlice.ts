@@ -31,10 +31,11 @@ interface ServiceDetails{
     serviceRadius: number;
 }
 
-interface Document{
+export interface Document{
+    id: string;
     providerId: string;
     documentType: "TECHNICAL CERTIFICATE" | "BUSINESS LICENSE" | "GOVERNMENT ID";
-    documentUrl: string;
+    documentKey: string;
 }
 
 interface ProviderApplicationState{

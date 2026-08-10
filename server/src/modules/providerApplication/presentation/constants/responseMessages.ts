@@ -6,5 +6,8 @@ export const PROV_APP_MESSAGES = {
     INVALID_DOCUMENT_DATA: "Provide valid document data",
     DOCUMENT_UPLOADED: "Document added",
     
-    DRAFT_UPDATED:"Draft Updated",
+    DRAFT_UPDATED: "Draft Updated",
+    PROVIDE_REQUIED_FIELDS: "Provide required fields",
+    FILE_UPLOAD_URL: "File upload url granted",
+    GET_PROVIDER:"Provider details"
 } as const;

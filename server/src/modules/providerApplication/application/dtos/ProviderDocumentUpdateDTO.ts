@@ -1,4 +1,4 @@
 export interface ProviderDocumentUpdateDTO{
-    documentType: string;
-    documentUrl: string;
+    documentType?: string;
+    documentKey: string;
 }

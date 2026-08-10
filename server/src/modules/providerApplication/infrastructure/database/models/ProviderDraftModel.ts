@@ -1,5 +1,44 @@
 import mongoose, { InferSchemaType } from "mongoose";
 
+const ProviderDocumentDraftSchema = new mongoose.Schema(
+    {
+        providerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Provider",
+            required: true,
+        },
+
+        documentType: {
+            type: String,
+            enum: [
+                "TECHNICAL CERTIFICATE",
+                "BUSINESS LICENSE",
+                "GOVERNMENT ID",
+            ],
+            required: true,
+        },
+
+        documentKey: {
+            type: String,
+            required: true,
+        },
+
+        verificationStatus: {
+            type: String,
+            enum: ["VERIFIED", "PENDING", "REJECTED"],
+            default: "PENDING",
+            required: true,
+        },
+
+        remarks: {
+            type: String,
+        },
+    },
+    {
+        _id: false,
+    }
+);
+
 const ProviderDraftSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Types.ObjectId,
@@ -29,7 +68,8 @@ const ProviderDraftSchema = new mongoose.Schema({
         serviceRadius: { type: Number},
     },
     documents: {
-        type:[String]
+        type: [ProviderDocumentDraftSchema],
+        default:[]
     }
 }, {
     timestamps:true

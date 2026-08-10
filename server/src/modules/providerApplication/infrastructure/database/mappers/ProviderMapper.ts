@@ -4,20 +4,20 @@ import { Provider } from "../../../domain/entities/Provider";
 class ProviderMapper{
     static toDomain(data: any): Provider{
         return new Provider(
-            data.userId,
+            data.userId.toString(),
             data.businessName,
             data.contactPerson,
             data.phone,
             data.email,
-            data.serviceCategory,
+            data.serviceCategory.toString(),
             data.location,
             data.serviceRadius,
+            data.status,
             data.experience,
             data.averageRating,
-            data.status,
             data.totalReview,
             data.completedJobs,
-            data._id
+            data._id.toString()
         )
     }
 
