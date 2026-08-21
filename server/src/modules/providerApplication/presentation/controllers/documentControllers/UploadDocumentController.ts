@@ -3,7 +3,7 @@ import { DocumentUploadDTO } from "../../../application/dtos/DocumentUploadDto";
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler";
 import { HttpStatus } from "../../../../../shared/enums/HttpStatus";
 import { PROV_APP_MESSAGES } from "../../constants/responseMessages";
-import { DocumentType, ProviderDocument } from "../../../domain/entities/ProviderDocument";
+import { DocumentType, ProviderDocument } from "../../../../provider/domain/entities/ProviderDocument";
 import { IUsecase } from "../../../../../shared/application/interfaces/IUsecase";
 
 export class UploadDocumentController{

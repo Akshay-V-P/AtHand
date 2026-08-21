@@ -34,8 +34,10 @@ interface ServiceDetails{
 export interface Document{
     id: string;
     providerId: string;
-    documentType: "TECHNICAL CERTIFICATE" | "BUSINESS LICENSE" | "GOVERNMENT ID";
+    documentType: "TECHNICAL CERTIFICATE" | "BUSINESS LICENSE" | "GOVERNMENT ID FRONT" | "GOVERNMENT ID BACK";
     documentKey: string;
+    verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
+    remarks?: string;
 }
 
 interface ProviderApplicationState{
@@ -69,8 +71,8 @@ const providerApplicationSlice = createSlice({
             state.serviceDetails = action.payload
             state.stepCount = 2
         }, 
-        addDocument: (state,action:PayloadAction<Document>) => {
-            state.documents.push(action.payload)
+        addDocument: (state,action:PayloadAction<Document[]>) => {
+            state.documents = action.payload
         },
         removeDocument: (state, action:PayloadAction<string>) => {
             state.documents = state.documents.filter((doc)=> doc.documentType !== action.payload)

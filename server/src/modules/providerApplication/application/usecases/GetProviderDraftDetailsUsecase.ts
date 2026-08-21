@@ -1,9 +1,9 @@
 import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
-import { Provider } from "../../domain/entities/Provider";
-import { ProviderDraft } from "../../domain/entities/ProviderDraft";
-import { IProviderDraftRepository } from "../../domain/repositories/IProviderDraftRepository";
-import { IProviderRepository } from "../../domain/repositories/IProviderRepository";
+import { Provider } from "../../../provider/domain/entities/Provider";
+import { ProviderDraft } from "../../../provider/domain/entities/ProviderDraft";
+import { IProviderDraftRepository } from "../../../provider/domain/repositories/IProviderDraftRepository";
+import { IProviderRepository } from "../../../provider/domain/repositories/IProviderRepository";
 import { BusinessDetailsDraftDto } from "../dtos/BusinessDraftDto";
 import { CreateProviderDto } from "../dtos/CreateProviderDto";
 import { CreateProviderResponseDto } from "../dtos/CreateProviderResponseDto";
@@ -18,6 +18,7 @@ export class GetProvierDraftDetailsUsecase implements IUsecase<CreateProviderDto
 
         const providerDraft = await this.providerDraftRepo.findByUserId(data.userId)
 
+        
         if (!providerDraft) throw new NotFoundError("Provider draft not found")
         
         return providerDraft

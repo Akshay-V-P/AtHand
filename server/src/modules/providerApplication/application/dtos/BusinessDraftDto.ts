@@ -1,4 +1,4 @@
-import { IBusinessDetails, IDocuments, ILocationDetails, IServiceDetails } from "../../domain/entities/ProviderDraft";
+import { IBusinessDetails, IDocuments, ILocationDetails, IServiceDetails } from "../../../provider/domain/entities/ProviderDraft";
 
 export interface BusinessDetailsDraftDto{
     userId: string;

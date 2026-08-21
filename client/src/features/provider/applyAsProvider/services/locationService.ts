@@ -35,29 +35,29 @@ export const reverseGeocode = async(latitude: number, longitude: number)=>{
        return {
             address: {
                street:
-                    data.address.shop ??
-                    data.address.leisure ??
-                    data.address.amenity ??
-                    data.address.neighbourhood ??
-                    data.address.road ??
-                    data.address.pedestrian ??
-                    data.address.suburb ??
+                    data.address?.shop ??
+                    data.address?.leisure ??
+                    data.address?.amenity ??
+                    data.address?.neighbourhood ??
+                    data.address?.road ??
+                    data.address?.pedestrian ??
+                    data.address?.suburb ??
                    "",
                 
                city:
-                   data.address.suburb ??
-                   data.address.town ??
-                   data.address.city ??
-                   data.address.village ??
-                   data.address.municipality ??
+                   data.address?.suburb ??
+                   data.address?.town ??
+                   data.address?.city ??
+                   data.address?.village ??
+                   data.address?.municipality ??
                    "",
                district:
-                   data.address.state_district ??
-                   data.address.district ??
+                   data.address?.state_district ??
+                   data.address?.district ??
                    "",
                state:
-                   data.address.state ?? "",
-                pincode:data.address.postcode ?? "",
+                   data.address?.state ?? "",
+                pincode:data.address?.postcode ?? "",
             },
             coordinates: {
                 type: "Point" as const,

@@ -2,10 +2,10 @@ import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { ConflictError } from "../../../../shared/errors/ConflictError";
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
-import { Provider } from "../../domain/entities/Provider";
-import { ProviderStatus } from "../../domain/enums/ProviderStatus";
-import { IProviderDraftRepository } from "../../domain/repositories/IProviderDraftRepository";
-import { IProviderRepository } from "../../domain/repositories/IProviderRepository";
+import { Provider } from "../../../provider/domain/entities/Provider";
+import { ProviderStatus } from "../../../provider/domain/enums/ProviderStatus";
+import { IProviderDraftRepository } from "../../../provider/domain/repositories/IProviderDraftRepository";
+import { IProviderRepository } from "../../../provider/domain/repositories/IProviderRepository";
 import { CreateProviderDto } from "../dtos/CreateProviderDto";
 import { CreateProviderResponseDto } from "../dtos/CreateProviderResponseDto";
 

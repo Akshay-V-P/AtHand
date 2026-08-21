@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { CreateProviderDto } from "../../../application/dtos/CreateProviderDto";
-import { Provider } from "../../../domain/entities/Provider";
+import { Provider } from "../../../../provider/domain/entities/Provider";
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler";
 import { HttpStatus } from "../../../../../shared/enums/HttpStatus";
 import { PROV_APP_MESSAGES } from "../../constants/responseMessages";

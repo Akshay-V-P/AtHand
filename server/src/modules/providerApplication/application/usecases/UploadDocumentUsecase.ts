@@ -3,11 +3,11 @@ import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { ConflictError } from "../../../../shared/errors/ConflictError";
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
 import { UnauthorizedError } from "../../../../shared/errors/UnauthorizedError";
-import { DocumentType, ProviderDocument } from "../../domain/entities/ProviderDocument";
-import { DocumentVerificationStatus } from "../../domain/enums/DocumentVerificationStatus";
-import { ProviderStatus } from "../../domain/enums/ProviderStatus";
-import { IProviderDocumentRepository } from "../../domain/repositories/IProviderDocumentRepository";
-import { IProviderRepository } from "../../domain/repositories/IProviderRepository";
+import { DocumentType, ProviderDocument } from "../../../provider/domain/entities/ProviderDocument";
+import { DocumentVerificationStatus } from "../../../provider/domain/enums/DocumentVerificationStatus";
+import { ProviderStatus } from "../../../provider/domain/enums/ProviderStatus";
+import { IProviderDocumentRepository } from "../../../provider/domain/repositories/IProviderDocumentRepository";
+import { IProviderRepository } from "../../../provider/domain/repositories/IProviderRepository";
 import { DocumentUploadDTO } from "../dtos/DocumentUploadDto";
 
 export class UploadDocumentUsecase implements IUsecase<DocumentUploadDTO, ProviderDocument>{
@@ -25,6 +25,7 @@ export class UploadDocumentUsecase implements IUsecase<DocumentUploadDTO, Provid
         
         const documentExists = await this.providerDocumentRepo.findByDocumentType(data.providerId, data.documentType)
         if (documentExists) {
+            console.log("document Type is this: ",data.documentType)
             const document = await this.providerDocumentRepo.update(data.providerId, { documentKey: data.documentKey })
           
             return document!

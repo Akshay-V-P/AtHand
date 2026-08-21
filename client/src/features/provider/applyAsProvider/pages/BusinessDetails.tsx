@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { InputField } from "../../../../components/common/InputField";
 import InfoCard from "../../../../components/provider/applyProvider/InfoCard";
 import { Locate, Shield, Zap } from "lucide-react";
@@ -7,7 +7,7 @@ import ProgressBar from "../../../../components/provider/applyProvider/ProgressB
 import { Button } from "../../../../components/common/Button";
 import { getUserLocation, reverseGeocode } from "../services/locationService";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
-import { setLocationDetails } from "../store/appyProviderSlice";
+import { setBusinessDetails, setLocationDetails } from "../store/appyProviderSlice";
 import LocationPicker from "../../../../components/provider/applyProvider/LocationPicker";
 import { useForm } from "react-hook-form";
 import { businessDetailsSchema, type BusinessDetailsFormData } from "../validation/businessDetailsSchema";
@@ -25,13 +25,17 @@ const CreateAccount = () => {
     const user = useAppSelector((state)=>state.auth.user)
     const [latitude, setLatitude] = useState<number | null>(null)
     const [longitude, setLongitude] = useState<number | null>(null)
-    const { register, handleSubmit,reset, formState: { errors, isSubmitting } } = useForm<BusinessDetailsFormData>({
+    const { register, handleSubmit,reset,setValue, formState: { errors, isSubmitting } } = useForm<BusinessDetailsFormData>({
         resolver: zodResolver(businessDetailsSchema),
     })
 
-    
+    const isInitialized = useRef<boolean>(false)
+
     
     useEffect(() => {
+        
+        if(!providerDraft.businessDetails || !providerDraft.locationDetails) return
+        
         reset({
             businessName:
                 providerDraft.businessDetails?.businessName ?? "",
@@ -63,11 +67,23 @@ const CreateAccount = () => {
 
         setLatitude(providerDraft.locationDetails?.coordinates.coordinates[1]!)
         setLongitude(providerDraft.locationDetails?.coordinates.coordinates[0]!)
-    },[providerDraft, reset])
+        isInitialized.current = true
+
+    },[providerDraft.businessDetails])
 
     const onSubmit = async (data: BusinessDetailsFormData) => {
         try {
             const userId = user?.id
+            if (!userId) {
+                toast.error("Please login")
+                return
+            }
+
+            if (!latitude || !longitude) {
+                toast.error("Please select your location")
+                return
+            }
+
             const businessDetails = {
                 businessName: data.businessName,
                 contactPerson: data.contactPerson,
@@ -83,11 +99,13 @@ const CreateAccount = () => {
                     pincode:data.pincode
                 },
                 coordinates: {
-                    type: "Point",
-                    coordinates:[longitude, latitude]
+                    type: "Point" as const,
+                    coordinates:[longitude, latitude] as [number, number]
                 }
             }
-            console.log({userId, businessDetails, locationDetails})
+            dispatch(setBusinessDetails({ userId, ...businessDetails }))
+            dispatch(setLocationDetails(locationDetails))
+
             const draft = await apiService.updateDraft({userId, businessDetails, locationDetails } as BusinessDetailsDTO)
             navigate("/apply-provider/service")
         } catch (error:any) {
@@ -103,6 +121,12 @@ const CreateAccount = () => {
             setLongitude(position?.coords.longitude!)
 
             const payload = await reverseGeocode(position?.coords.latitude!, position?.coords.longitude!)
+            setValue('street', payload.address.street)
+            setValue('city', payload.address.city)
+            setValue('district', payload.address.district)
+            setValue('state', payload.address.state)
+            setValue('pincode', payload.address.pincode)
+
             dispatch(setLocationDetails(payload))
         } catch (error:any) {
             console.error(error.message)
@@ -183,11 +207,20 @@ const CreateAccount = () => {
                                         longitude
                                         );
 
+
                                         setLatitude(latitude)
                                         setLongitude(longitude)
+
+
+                                        setValue("street", location.address.street);
+                                        setValue("city", location.address.city);
+                                        setValue("district", location.address.district);
+                                        setValue("state", location.address.state);
+                                        setValue("pincode", location.address.pincode);
+
                                         dispatch(setLocationDetails(location));
                                     }}
-                                    positionDetails={{latitude:providerDraft.locationDetails?.coordinates.coordinates[1] || latitude, longitude:providerDraft.locationDetails?.coordinates.coordinates[0] || longitude}}
+                                    positionDetails={{latitude, longitude}}
                                     />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
                                     <InputField

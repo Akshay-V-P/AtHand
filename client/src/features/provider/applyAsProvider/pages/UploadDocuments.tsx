@@ -7,25 +7,29 @@ import { uploadDocumentToS3 } from "../services/imageUploadService";
 import { apiService } from "../services/apiService";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
 import { setProvider } from "../store/providerSlice";
+import { useNavigate } from "react-router-dom";
 
-interface IFileDetails {
-    file: File;
+interface IFileData {
+    file?: File;
+    url?: string;
+    documentKey?: string;
     fileType: string;
 }
 
 interface IFileType {
-    certifications: IFileDetails | null;
-    businessLicense: IFileDetails | null;
-    idFront: IFileDetails | null;
-    idBack: IFileDetails | null;
+    certifications: IFileData | null;
+    businessLicense: IFileData | null;
+    idFront: IFileData | null;
+    idBack: IFileData | null;
 }
 
 export default function DocumentVerification() {
-
-    const provider = useAppSelector((state) => state.provider)
-    const user = useAppSelector((state) => state.auth.user)
-    const dispatch = useAppDispatch()
-    const [isLoading, setIsLoading] = useState(false)
+    const navigate = useNavigate()
+    const provider = useAppSelector((state) => state.provider);
+    const providerDraft = useAppSelector((state) => state.providerApplication);
+    const user = useAppSelector((state) => state.auth.user);
+    const dispatch = useAppDispatch();
+    const [isLoading, setIsLoading] = useState(false);
     const [files, setFiles] = useState<IFileType>({
         certifications: null,
         businessLicense: null,
@@ -34,11 +38,74 @@ export default function DocumentVerification() {
     });
 
     useEffect(() => {
-        apiService.getProvider(user?.id!)
-            .then(response => { console.log(response); dispatch(setProvider(response.data.data)) })
-            .catch(error => console.error(error))
-        
-    },[user])
+        apiService
+            .getProvider(provider.id!)
+            .then((response) => {
+                dispatch(setProvider(response.data.data));
+            })
+            .catch((error) => console.error(error));
+    }, [provider]);
+
+
+    useEffect(() => {
+        if (providerDraft.documents && providerDraft.documents.length >= 1) {
+            for (let doc of providerDraft.documents) {
+                if (!doc.documentKey) continue;
+                apiService
+                    .getPresignedDisplayUrl(doc.documentKey)
+                    .then((response) => {
+                        switch (doc.documentType) {
+                            case "TECHNICAL CERTIFICATE":
+                                setFiles((prev) => ({
+                                    ...prev,
+                                    certifications: {
+                                        url: response.data.data,
+                                        documentKey:doc.documentKey,
+                                        fileType: "TECHNICAL CERTIFICATE",
+                                    },
+                                }));
+                                break;
+
+                            case "BUSINESS LICENSE":
+                                setFiles((prev) => ({
+                                    ...prev,
+                                    businessLicense: {
+                                        url: response.data.data,
+                                        documentKey:doc.documentKey,
+                                        fileType: "BUSINESS LICENSE",
+                                    },
+                                }));
+                                break;
+
+                            case "GOVERNMENT ID FRONT":
+                                setFiles((prev) => ({
+                                    ...prev,
+                                    idFront: {
+                                        url: response.data.data,
+                                        documentKey:doc.documentKey,
+                                        fileType: "GOVERNMENT ID FRONT",
+                                    },
+                                }));
+                                break;
+
+                            case "GOVERNMENT ID BACK":
+                                setFiles((prev) => ({
+                                    ...prev,
+                                    idBack: {
+                                        url: response.data.data,
+                                        documentKey:doc.documentKey,
+                                        fileType: "GOVERNMENT ID BACK",
+                                    },
+                                }));
+                                break;
+                        }
+                    })
+                    .catch((error) => console.error(error));
+            }
+        }
+    }, [providerDraft.documents]);
+
+   
 
     const handleFileChange = (id: string, file: File, fileType: string) => {
         setFiles((prev) => ({
@@ -49,43 +116,69 @@ export default function DocumentVerification() {
 
     const handleSubmit = async () => {
         try {
-            setIsLoading(true)
+            setIsLoading(true);
+
             if (
                 !files.businessLicense ||
                 !files.certifications ||
                 !files.idBack ||
                 !files.idFront
             ) {
-                toast.error("Please provide all documents")
+                toast.error("Please provide all documents");
+                return;
+            }
+
+            const documents = [];
+
+            if (!provider.id) {
+                toast.error("Please login")
                 return
             }
-            let documents = []
-            for (let document of Object.values(files)) {
-                if(!document) continue
-                const key = await uploadDocumentToS3(document.file)
-                
-                if (!provider.id || typeof key !== "string") {
-                    toast.error("Please login")
-                    return
+
+            for (const document of Object.values(files)) {
+                if (!document) continue;
+
+                if (document.file) {
+                    const key = await uploadDocumentToS3(document.file);
+
+                    const payload = {
+                        providerId: provider.id,
+                        documentKey: key,
+                        documentType: document.fileType,
+                    };
+
+                    const documentData =
+                        await apiService.uploadDocument(payload);
+
+                   
+                    documents.push({...documentData.data.data, documentType:document.fileType});
+                    
+                } else if (document.documentKey) {
+                    documents.push({
+                        providerId:provider.id,
+                        documentKey: document.documentKey,
+                        documentType: document.fileType,
+                    });
                 }
-                
-                const payload = {
-                    providerId:provider.id,
-                    documentKey: key,
-                    documentType:document.fileType
-                }
-                const documentData = await apiService.uploadDocument(payload)
-                documents.push(documentData.data.data)
             }
-            console.log(documents)
-            await apiService.updateDraft({userId:user?.id!, documents})
-        } catch (error:any) {
-            console.log("FULL ERROR:", error);
-            toast.error(error.response?.data.message || "Something went wrong")
+
+
+            await apiService.updateDraft({
+                userId: user?.id!,
+                documents,
+            });
+
+            await apiService.updateProvider(provider.id, { status: "PENDING" })
+            navigate("/apply-provider/verify")
+        } catch (error: any) {
+            console.log(error);
+            toast.error(
+                error.response?.data?.message || "Something went wrong",
+            );
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="p-8 lg:p-12 max-w-5xl mx-auto w-full bg-white min-h-full overflow-y-scroll hide-scrollbar">
@@ -135,7 +228,7 @@ export default function DocumentVerification() {
                         </p>
                         <FileUploadZone
                             id="certifications"
-                            file={files.certifications?.file ?? null}
+                            file={files.certifications?.file ?? files.certifications?.url ?? null}
                             onFileChange={handleFileChange}
                             fileType="TECHNICAL CERTIFICATE"
                             icon={CloudUpload}
@@ -159,7 +252,7 @@ export default function DocumentVerification() {
                         </p>
                         <FileUploadZone
                             id="businessLicense"
-                            file={files.businessLicense?.file ?? null}
+                            file={files.businessLicense?.file ?? files.businessLicense?.url ?? null}
                             onFileChange={handleFileChange}
                             fileType="BUSINESS LICENSE"
                             icon={Briefcase}
@@ -184,7 +277,7 @@ export default function DocumentVerification() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FileUploadZone
                                 id="idFront"
-                                file={files.idFront?.file ?? null}
+                                file={files.idFront?.file ?? files.idFront?.url ??  null}
                                 onFileChange={handleFileChange}
                                 fileType="GOVERNMENT ID FRONT"
                                 icon={IdCard}
@@ -192,7 +285,7 @@ export default function DocumentVerification() {
                             />
                             <FileUploadZone
                                 id="idBack"
-                                file={files.idBack?.file ?? null}
+                                file={files.idBack?.file ?? files.idBack?.url ?? null}
                                 onFileChange={handleFileChange}
                                 fileType="GOVERNMENT ID BACK"
                                 icon={IdCard}
@@ -235,9 +328,13 @@ export default function DocumentVerification() {
             <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4 pt-6 mt-6 border-t border-gray-100">
                 <button className="w-full md:w-auto px-8 py-3 rounded-lg font-semibold text-[#545CEB] bg-white border border-[#545CEB] hover:bg-blue-50 transition-colors focus:ring-4 focus:ring-blue-100">
                     Back to Services
-                </button >
-                <button onClick={handleSubmit} disabled={isLoading} className="w-full md:w-auto px-8 py-3 rounded-lg font-semibold text-white bg-[#545CEB] hover:bg-blue-700 shadow-sm transition-colors focus:ring-4 focus:ring-blue-200">
-                    {isLoading? "Submitting...":"Submit for Review"}
+                </button>
+                <button
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    className="w-full md:w-auto px-8 py-3 rounded-lg font-semibold text-white bg-[#545CEB] hover:bg-blue-700 shadow-sm transition-colors focus:ring-4 focus:ring-blue-200"
+                >
+                    {isLoading ? "Submitting..." : "Submit for Review"}
                 </button>
             </div>
         </div>

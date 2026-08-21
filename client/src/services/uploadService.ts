@@ -7,7 +7,7 @@ interface PresignedUrlResponse{
 }
 
 export const uploadFileToS3 = async (file: File, apiUrl: string) => {
-    if(!apiUrl) return new Error("Api url is required")
+    if(!apiUrl) throw new Error("Api url is required")
     const response = await api.post<{
         success: boolean;
         message: string;

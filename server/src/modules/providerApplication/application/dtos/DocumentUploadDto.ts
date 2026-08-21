@@ -1,4 +1,4 @@
-import { DocumentType } from "../../domain/entities/ProviderDocument";
+import { DocumentType } from "../../../provider/domain/entities/ProviderDocument";
 
 export interface DocumentUploadDTO{
     providerId: string;

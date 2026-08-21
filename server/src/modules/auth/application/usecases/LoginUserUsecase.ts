@@ -33,6 +33,7 @@ export class LoginUserUsecase implements IUsecase<LoginDto, LoginResponseDto>{
             role: user.role,
             sessionId
         }
+        console.log(payload)
         const accessToken = this.jwtService.generateAccessToken(payload)
         const refreshToken = this.jwtService.generateRefreshToken(payload)
 

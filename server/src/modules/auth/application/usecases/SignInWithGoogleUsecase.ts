@@ -20,12 +20,13 @@ export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDt
         const googleUser = await this.authService.verifyToken(token)
         if (!googleUser) throw new BadRequestError("User not authenticated")
         let user = await this.userRepository.findByEmail(googleUser.email)
+        if(!user?.googleId) throw new BadRequestError("Login with password")
         if (!user) {
             user = await this.userRepository.create({
                 id:undefined,
                 name: googleUser.name,
                 email: googleUser.email,
-                role: UserRole.USER,
+                role: [UserRole.USER],
                 status:"ACTIVE",
                 isVerified: true,
                 googleId: googleUser.googleId,

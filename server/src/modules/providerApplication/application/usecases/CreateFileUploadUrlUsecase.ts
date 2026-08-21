@@ -1,12 +1,12 @@
 import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
-import { CreateUploadUrlResponse, IUploadUrlService } from "../../domain/services/IUploadUrlService";
+import { CreateUploadUrlResponse, IImageUrlService } from "../../../provider/domain/services/IImageUrlService";
 import { CreateFileUploadUrlDto } from "../dtos/CreateFileUploadUrlDto";
 
 export class CreateFileUploadUrlUsecase implements IUsecase<CreateFileUploadUrlDto, CreateUploadUrlResponse>{
 
     constructor(
-        private readonly uploadUrlService:IUploadUrlService,
+        private readonly uploadUrlService:IImageUrlService,
     ){}
 
     async execute(data: CreateFileUploadUrlDto): Promise<CreateUploadUrlResponse> {

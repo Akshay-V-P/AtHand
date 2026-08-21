@@ -1,10 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import type { UserRole } from "../enums/UserRole";
 
 interface User{
     id: string;
     name: string;
     email: string;
-    role: string;
+    role: UserRole[];
     googleId: string;
     profilePhotoUrl: string;
 }

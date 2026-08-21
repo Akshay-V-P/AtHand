@@ -13,7 +13,7 @@ const Sidebar = () => {
 
   const logoutHandler = async () => {
     try {
-      await accountServices.logout()
+      await accountServices.logout({context:"USER"})
       dispatch(logout())
     } catch (error:any) {
       console.log(error)

@@ -1,10 +1,11 @@
 import { User } from "../entities/User";
+import { UserRole } from "../enum/UserRole";
 
 interface UserUpdateData{
     name?: string,
     phone?: string,
     password?: string,
-    role?: string,
+    role?: UserRole[],
     status?: string,
     isVerified?:boolean
 }

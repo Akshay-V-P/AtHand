@@ -11,5 +11,7 @@ export const AUTH_ROUTE = {
     UPDATE_PASSWORD: "/update-password",
     VERIFY_RESET_TOKEN: "/verify-reset-token",
     GOOGLE: "/google",
-    VERIFY_PASSWORD:"/verify-password"
+    VERIFY_PASSWORD: "/verify-password",
+    ADMIN_REFRESH: "/admin-refresh",
+    GET_ADMIN:"/admin/me",
 } as const

@@ -1,6 +1,8 @@
+import { UserRole } from "../enum/UserRole";
+
 export interface JwtPayload{
     id: string;
-    role: string;
+    role: UserRole[];
     sessionId: string;
 }
 

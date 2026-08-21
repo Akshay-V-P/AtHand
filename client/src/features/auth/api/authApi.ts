@@ -1,4 +1,5 @@
 import { api } from "../../../services/axios";
+import type { AuthcontextDTO } from "../dtos/AuthcontextDTO";
 import type { ForgotDto } from "../dtos/ForgotDto";
 import type { GoogleSignDto } from "../dtos/GoogleSignDto";
 import type { LoginDto } from "../dtos/LoginDto";
@@ -18,8 +19,8 @@ export const authApi = {
         api.post("/auth/verify-otp", data),
     resendOtp: () =>
         api.post("/auth/resend-otp"),
-    refresh: () =>
-        api.post("/auth/me"),
+    refresh: (data:AuthcontextDTO) =>
+        api.post("/auth/me", data),
     forgotPassword: (data:ForgotDto) =>
         api.post("/auth/forgot-password", data),
     verifyResetLink: (token:{token: string}) =>
@@ -29,6 +30,10 @@ export const authApi = {
     loginWithGoogle: (data:GoogleSignDto) =>
         api.post("/auth/google", data),
     verifyPassword:(data: VerifyPasswordDto) => 
-        api.post("/auth/verify-password", data)
+        api.post("/auth/verify-password", data),
+    adminRefresh: () =>
+        api.post("/auth/admin-refresh"),
+    refreshTokens: () =>
+        api.get("/auth/refresh")
     
 }

@@ -5,9 +5,9 @@ import { useAppSelector } from '../../../../hooks/storeHook'
 import { Button } from '../../../../components/common/Button'
 
 const Profile = () => {
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+  const { user, isAuthenticated, isLoading } = useAppSelector((state) => state.auth)
   const navigate = useNavigate()
-  
+  if (isLoading) return <div>Loadin...</div>
   return (
     <div className="flex-1 bg-gradient-to-br from-[#d4f0ff] via-[#e4f6fb] to-[#f6fbe3] rounded-[2.5rem] p-8 md:p-12 relative shadow-sm">
             
@@ -23,7 +23,7 @@ const Profile = () => {
               <div className="relative w-24 h-24">
                 {/* Placeholder for Profile Image */}
                 <div className="w-full h-full rounded-full bg-gray-300 overflow-hidden shadow-sm">
-                  <img src={user?.profilePhotoUrl? user.profilePhotoUrl:"https://placehold.net/default.png"} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={user?.profilePhotoUrl ?? "https://placehold.net/default.png"} alt="Profile" className="w-full h-full object-cover" />
                 </div>
                 
                 {/* Verified Blue Check Badge */}

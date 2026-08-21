@@ -1,3 +1,5 @@
+import { UserRole } from "../../domain/enum/UserRole";
+
 export interface LoginResponseDto{
     accessToken: string;
     refreshToken: string;
@@ -5,7 +7,7 @@ export interface LoginResponseDto{
         id: string,
         name: string,
         email: string,
-        role: string,
+        role: UserRole[],
         googleId: string,
         profilePhotoUrl:string
     }

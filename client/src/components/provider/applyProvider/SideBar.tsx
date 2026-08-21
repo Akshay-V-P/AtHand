@@ -8,7 +8,6 @@ const SideBar = () => {
   const location = useLocation()
   useEffect(() => {
     const pathName = location.pathname.split("/")[2]
-    console.log(pathName)
     setActiveTab(pathName)
   },[location])
   return (

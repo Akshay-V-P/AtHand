@@ -32,7 +32,11 @@ const Login = () => {
 
     const onSubmit = async (data: LoginFormData) => {
         try {
-            const res = await authService.login(data);
+            const loginData = {
+                ...data,
+                context:"USER" as const
+            }
+            const res = await authService.login(loginData);
             dispatch(loginSuccess(res.data.data.user));
         } catch (error: any) {
             console.log(error.response);

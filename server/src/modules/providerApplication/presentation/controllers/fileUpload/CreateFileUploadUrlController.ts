@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IUsecase } from "../../../../../shared/application/interfaces/IUsecase";
 import { CreateFileUploadUrlDto } from "../../../application/dtos/CreateFileUploadUrlDto";
-import { CreateUploadUrlResponse } from "../../../domain/services/IUploadUrlService";
+import { CreateUploadUrlResponse } from "../../../../provider/domain/services/IImageUrlService";
 import { ResponseHandler } from "../../../../../shared/presentation/ResponseHandler";
 import { HttpStatus } from "../../../../../shared/enums/HttpStatus";
 import { PROV_APP_MESSAGES } from "../../constants/responseMessages";

@@ -1,6 +1,8 @@
 import { providerApplicationApi } from "../api/providerApplicationApi";
 import type { BusinessDetailsDTO } from "../dtos/BusinessDetailsDTO";
 import type { DocumentUploadDTO } from "../dtos/DocumentUploadDTO";
+import type { PresignedDisplayUrlDTO } from "../dtos/PresignedUrlDTO";
+import type { IProviderUpdateData } from "../dtos/UpdateProviderDTO";
 
 export const apiService = {
     async updateDraft(data:BusinessDetailsDTO) {
@@ -23,8 +25,16 @@ export const apiService = {
         const document = await providerApplicationApi.uploadDocument(data)
         return document
     },
-    async getProvider(userId: string) {
-        const response = await providerApplicationApi.getProvider(userId)
+    async getProvider(id: string) {
+        const response = await providerApplicationApi.getProvider(id)
+        return response
+    },
+    async getPresignedDisplayUrl(key:string) {
+        const response = await providerApplicationApi.getPresignedUrl({key})
+        return response
+    },
+    async updateProvider(id: string, updateData: IProviderUpdateData) {
+        const response = await providerApplicationApi.updateProvider({ id, updateData })
         return response
     }
 }

@@ -31,6 +31,7 @@ import { ForgotPasswordController } from "./presentation/controllers/passwordCon
 import { UpdatePasswordController } from "./presentation/controllers/passwordControllers/UpdatePasswordController";
 import { VerifyPasswordController } from "./presentation/controllers/passwordControllers/VerifyPasswordController";
 import { SignupController } from "./presentation/controllers/signupControllers/SignupController";
+import { AdminRefreshController } from "./presentation/controllers/tokenControllers/AdminRefreshController";
 import { RefreshController } from "./presentation/controllers/tokenControllers/RefreshController";
 import { ResetTokenController } from "./presentation/controllers/tokenControllers/ResetTokenController";
 import { AuthMiddleware } from "./presentation/middlewares/AuthMiddleware";
@@ -75,6 +76,7 @@ const refreshController = new RefreshController(refreshTokenUsercase)
 const resetTokenController = new ResetTokenController(verifyResetTokenUsecase)
 const meController = new Me(getProfileUseCase)
 const googleController = new GoogleController(signInWithGoogle)
+const adminRefreshController = new AdminRefreshController(refreshTokenUsercase)
 
 const authController = {
     loginController,
@@ -90,9 +92,13 @@ const authController = {
     resetTokenController,
     meController,
     googleController,
+    adminRefreshController
 }
+ 
 
-export type AuthController = typeof authController
+
+
+export type AuthController = typeof authController 
 export const authMiddleware = new AuthMiddleware(jwtService)
 export const registrationMiddleware = new RegistrationMiddleware(jwtService)
 

@@ -31,7 +31,7 @@ export class RegisterUserUsecase implements IUsecase<RegisterDto, RegisterRespon
                 undefined,
                 dto.name,
                 dto.email,
-                UserRole.USER,
+                [UserRole.USER],
                 "ACTIVE",
                 false,
                 dto.phone,

@@ -29,8 +29,8 @@ export class UserRepository extends BaseRepository<UserSchemaType> implements IU
             googleId: user.googleId,
             profilePhotoUrl:user.profilePhotoUrl
         }
-        await this.createDocument(newUser)
-        return UserMapper.toDomain(newUser)
+        const freshUser = await this.createDocument(newUser)
+        return UserMapper.toDomain(freshUser)
     }
 
     async update(id: string, updateData: UserUpdateDto): Promise<User | null> {
@@ -46,3 +46,6 @@ export class UserRepository extends BaseRepository<UserSchemaType> implements IU
         return UserMapper.toDomain(user)
     }
 }
+
+
+

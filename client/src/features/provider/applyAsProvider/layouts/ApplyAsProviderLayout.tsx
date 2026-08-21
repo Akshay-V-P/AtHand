@@ -3,7 +3,7 @@ import SideBar from '../../../../components/provider/applyProvider/SideBar'
 import { Outlet } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../../hooks/storeHook'
 import { apiService } from '../services/apiService'
-import { setBusinessDetails, setLocationDetails, setServiceDetails } from '../store/appyProviderSlice'
+import { addDocument, setBusinessDetails, setLocationDetails, setServiceDetails } from '../store/appyProviderSlice'
 
 const ApplyAsProviderLayout = () => {
   const user = useAppSelector((state) => state.auth.user)
@@ -12,8 +12,8 @@ const ApplyAsProviderLayout = () => {
   useEffect(() => {
     apiService.getDraft(user?.id!)
       .then(response => {
-        console.log(response)
-        const {businessDetails, locationDetails, serviceDetails, documents} = response.data.data
+        const { businessDetails, locationDetails, serviceDetails, documents } = response.data.data
+        
         if (businessDetails) {
           dispatch(setBusinessDetails(businessDetails))
         }
@@ -26,13 +26,15 @@ const ApplyAsProviderLayout = () => {
           dispatch(setServiceDetails(serviceDetails))
         }
 
+        
         if (documents && documents.length >= 1) {
-          documents.forEach((doc:any)=> dispatch(doc))
+          dispatch(addDocument(documents))
         }
         
         
     })
   }, [])
+  
   return (
     <div className="md:flex overflow-hidden max-h-dvh">
         

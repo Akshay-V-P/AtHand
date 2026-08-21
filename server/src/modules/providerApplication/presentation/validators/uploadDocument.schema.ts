@@ -1,5 +1,5 @@
 import {z} from "zod";
-import { DocumentType } from "../../domain/entities/ProviderDocument";
+import { DocumentType } from "../../../provider/domain/entities/ProviderDocument";
 
 export const uploadDocumentSchema = z.object({
     providerId: z.string().min(1, "Provider ID is required"),

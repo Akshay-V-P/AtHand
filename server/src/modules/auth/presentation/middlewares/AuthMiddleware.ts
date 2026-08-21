@@ -9,7 +9,11 @@ export class AuthMiddleware{
     ) { }
     
     execute = (req: Request, res: Response, next: NextFunction):void => {
-        const token = req.cookies.accessToken
+        let token = req.cookies.accessToken
+        if (req.body.context == "ADMIN") {
+            token = req.cookies.adminAccessToken
+        }
+
 
         if (!token) {
             ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, "Invalid token")

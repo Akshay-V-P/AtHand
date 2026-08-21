@@ -39,8 +39,8 @@ export default function ServiceSelection() {
   };
 
   useEffect(() => {
-    setSelectedServices([serviceDetails?.serviceCategory!])
-    setServiceRadius(serviceDetails?.serviceRadius!)
+    setSelectedServices(serviceDetails?.serviceCategory? [serviceDetails?.serviceCategory!]:[])
+    setServiceRadius(serviceDetails?.serviceRadius ? serviceDetails.serviceRadius : 5)
   },[serviceDetails])
 
   useEffect(() => {
@@ -72,6 +72,8 @@ export default function ServiceSelection() {
         userId,
         serviceDetails
       }
+      console.log(selectedServices)
+      console.log(serviceRadius)
 
       await apiService.updateDraft(payload)
       const response = await apiService.createProvider(userId)

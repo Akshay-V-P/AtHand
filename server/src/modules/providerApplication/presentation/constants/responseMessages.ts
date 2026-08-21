@@ -9,5 +9,9 @@ export const PROV_APP_MESSAGES = {
     DRAFT_UPDATED: "Draft Updated",
     PROVIDE_REQUIED_FIELDS: "Provide required fields",
     FILE_UPLOAD_URL: "File upload url granted",
-    GET_PROVIDER:"Provider details"
+    GET_PROVIDER: "Provider details",
+    INVALID_KEY: "Invalid key",
+    REQUIRE_KEY: "Provide key",
+    DISPLAY_IMAGE: "Display image url success",
+    PROVIDER_UPDATED:"Provider updated"
 } as const;

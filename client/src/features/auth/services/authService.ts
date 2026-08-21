@@ -1,4 +1,5 @@
 import { authApi } from "../api/authApi";
+import type { AuthcontextDTO } from "../dtos/AuthcontextDTO";
 import type { ForgotDto } from "../dtos/ForgotDto";
 import type { LoginDto } from "../dtos/LoginDto";
 import type { RegisterDto } from "../dtos/RegisterDto";
@@ -32,8 +33,8 @@ export const authService = {
         return response
     },
 
-    async refresh() {
-        const response = await authApi.refresh()
+    async refresh(data:AuthcontextDTO) {
+        const response = await authApi.refresh(data)
         return response
     },
 
@@ -60,5 +61,14 @@ export const authService = {
     async verifyPassword(data: VerifyPasswordDto) {
         const response = await authApi.verifyPassword(data)
         return response
-    }
+    },
+    async adminRefresh() {
+        const response = await authApi.adminRefresh()
+        return response
+    },
+
+    async refreshTokens() {
+        const response = await authApi.refreshTokens()
+        return response
+    } 
 }
