@@ -69,6 +69,7 @@ const providerSlice = createSlice({
             state.averageRating = null
             state.totalReview = null
             state.completedJobs = null
+            state.id = null
         },
         setLoading: (state, action: PayloadAction<boolean>)=>{
             state.isLoading = action.payload

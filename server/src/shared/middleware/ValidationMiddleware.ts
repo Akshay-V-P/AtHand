@@ -12,6 +12,8 @@ export const validate =
         req.body = schema.parse(req.body)
         next()
     } catch (error) {
+        console.log(req.body)
+        console.log(error)
         if (error instanceof ZodError) {
             ResponseHandler.error(res, HttpStatus.BAD_REQUEST, "Validation failed",
                 error.issues.map((issue) => ({

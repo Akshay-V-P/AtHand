@@ -16,10 +16,12 @@ import toast from "react-hot-toast";
 import { apiService } from "../services/apiService";
 import type { BusinessDetailsDTO } from "../dtos/BusinessDetailsDTO";
 import { useNavigate } from "react-router-dom";
+import { setProvider } from "../store/providerSlice";
 
 const CreateAccount = () => {
     const location = useAppSelector((state) => state.providerApplication.locationDetails)
     const providerDraft = useAppSelector((state) => state.providerApplication)
+    
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const user = useAppSelector((state)=>state.auth.user)
@@ -30,6 +32,8 @@ const CreateAccount = () => {
     })
 
     const isInitialized = useRef<boolean>(false)
+
+    
 
     
     useEffect(() => {

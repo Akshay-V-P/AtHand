@@ -1,13 +1,30 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./Button";
-import { useActionState } from "react";
-import { useAppSelector } from "../../hooks/storeHook";
+import { useActionState, useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../hooks/storeHook";
+import { apiService } from "../../features/provider/applyAsProvider/services/apiService";
+import { setProvider } from "../../features/provider/applyAsProvider/store/providerSlice";
 
 
 
 const Navbar = () => {
     const navigate = useNavigate()
-    const {user, isAuthenticated} = useAppSelector((state)=>state.auth)
+    const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+    const provider = useAppSelector(state => state.provider)
+    const dispatch = useAppDispatch()
+    const [providerActive, setProviderActive] = useState(false)
+
+    useEffect(() => {
+        if (!user?.id) return;
+        if (!provider.id) {
+            apiService
+                .getProvider(user.id)
+                .then((response) => { setProviderActive(true); dispatch(setProvider(response.data.data)) })
+                .catch((error) => console.log(error));
+        }
+        
+    }, [provider]);
+    
     return (
         <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
             <div className="text-2xl font-extrabold text-gray-900 tracking-tight">
@@ -21,12 +38,12 @@ const Navbar = () => {
                 >
                     Services
                 </a>
-                <Link to={"/apply-provider/business"}>
+                <Link to={provider.status == "ACTIVE"? "/provider" :"/apply-provider/business"}>
                     
                     <p
                     className="text-sm font-medium text-gray-600 hover:text-gray-900"
                     >
-                    Become a Provider
+                    {provider.status == "ACTIVE"? "Provider Dashboard":"Become a Provider"}
                 </p>
                 </Link>
             </div>

@@ -10,7 +10,7 @@ export function createProviderApplicationRoute(controllers:ProvAppController, mi
         router.patch(PROV_APP_ROUTES.UPDATE_PROVIDER_DRAFT, middlewares.validateUploadProviderDraft, controllers.uploadDraftController.uploadDraft)
     router.post(PROV_APP_ROUTES.PRESIGNED_URL, controllers.createUploadUrlController.createUploadUrl)
     router.post(PROV_APP_ROUTES.GET_DRAFT, controllers.getProviderDraftController.getProviderDraft)
-    router.post(PROV_APP_ROUTES.GET_PROVIDER, controllers.getProviderController.getProvider)
+    router.get(PROV_APP_ROUTES.GET_PROVIDER, controllers.getProviderController.getProvider)
     router.post(PROV_APP_ROUTES.GET_DISPLAY_URL, controllers.getDisplayImageUrlController.getDisplayUrl)
     router.patch(PROV_APP_ROUTES.UPDATE_PROVIDER, controllers.updateProviderController.updateProvider)
 

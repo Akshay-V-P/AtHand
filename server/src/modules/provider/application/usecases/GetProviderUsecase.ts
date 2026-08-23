@@ -15,7 +15,11 @@ export class GetProviderUsecase implements IUsecase<GetProviderDto, Provider>{
     async execute(data: GetProviderDto): Promise<Provider> {
         if (!data.id) throw new BadRequestError("Please provide user id")
         
-        const provider = await this.providerRepo.findById(data.id)
+        let provider = await this.providerRepo.findById(data.id)
+        if (!provider) {
+            provider = await this.providerRepo.findByUserId(data.id)
+        }
+        
         if (!provider) throw new NotFoundError("Provider not found")
         
         return provider

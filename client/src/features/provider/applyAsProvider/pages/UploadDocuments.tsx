@@ -8,6 +8,7 @@ import { apiService } from "../services/apiService";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
 import { setProvider } from "../store/providerSlice";
 import { useNavigate } from "react-router-dom";
+import type { IDocumentDetails } from "../../intefaces/IDocumentDetails";
 
 interface IFileData {
     file?: File;
@@ -36,6 +37,18 @@ export default function DocumentVerification() {
         idFront: null,
         idBack: null,
     });
+
+    const [technicalCertificate, setTechnicalcertificate] = useState<IDocumentDetails|null>(null)
+    const [businessLicense, setBusinessLicense] = useState<IDocumentDetails|null>(null)
+    const [governmentIdFront, setGovernmentIdFront] = useState<IDocumentDetails|null>(null)
+    const [governmentIdBack, setGovernmentIdBack] = useState<IDocumentDetails | null>(null)
+    
+    useEffect(() => {
+        setTechnicalcertificate(providerDraft.documents.find(doc=>doc.documentType == "TECHNICAL CERTIFICATE") ?? null)
+        setBusinessLicense(providerDraft.documents.find(doc=>doc.documentType == "BUSINESS LICENSE") ?? null)
+        setGovernmentIdFront(providerDraft.documents.find(doc=>doc.documentType == "GOVERNMENT ID FRONT") ?? null)
+        setGovernmentIdBack(providerDraft.documents.find(doc=>doc.documentType == "GOVERNMENT ID BACK") ?? null)
+    },[])
 
     useEffect(() => {
         apiService
@@ -147,10 +160,12 @@ export default function DocumentVerification() {
                         documentType: document.fileType,
                     };
 
+                    
+
                     const documentData =
                         await apiService.uploadDocument(payload);
 
-                   
+                   console.log(documentData)
                     documents.push({...documentData.data.data, documentType:document.fileType});
                     
                 } else if (document.documentKey) {
@@ -179,6 +194,8 @@ export default function DocumentVerification() {
             setIsLoading(false);
         }
     };
+
+    
 
     return (
         <div className="p-8 lg:p-12 max-w-5xl mx-auto w-full bg-white min-h-full overflow-y-scroll hide-scrollbar">
@@ -220,12 +237,18 @@ export default function DocumentVerification() {
                             <h2 className="text-xl font-bold text-gray-900">
                                 Technical Certifications
                             </h2>
-                            <RequiredBadge />
+                            <RequiredBadge badge={technicalCertificate?.verificationStatus} />
                         </div>
                         <p className="text-sm text-gray-500 mb-5">
                             Upload valid repair certifications or industry trade
                             licenses.
                         </p>
+
+                        {technicalCertificate?.remarks ? 
+                            <p className="opacity-80 text-red-500 p-4 text-sm border border-red-500 rounded-md mb-4">Remarks: {technicalCertificate?.remarks}</p>
+                            :
+                            ""
+                        }
                         <FileUploadZone
                             id="certifications"
                             file={files.certifications?.file ?? files.certifications?.url ?? null}
@@ -235,6 +258,7 @@ export default function DocumentVerification() {
                             title="Drag and drop your certification files"
                             subtitle="Image files only (JPG or PNG) up to 10MB"
                             showButton={true}
+                            disabled={provider.status=="DRAFT" && technicalCertificate?.verificationStatus == "APPROVED" }
                         />
                     </div>
 
@@ -244,12 +268,19 @@ export default function DocumentVerification() {
                             <h2 className="text-xl font-bold text-gray-900">
                                 Business License
                             </h2>
-                            <RequiredBadge />
+                            <RequiredBadge badge={businessLicense?.verificationStatus} />
                         </div>
                         <p className="text-sm text-gray-500 mb-5">
                             Proof of registered business operation in your local
                             jurisdiction.
+                            
                         </p>
+
+                        {businessLicense?.remarks ? 
+                            <p className="opacity-80 text-red-500 p-4 text-sm border border-red-500 rounded-md mb-4">Remarks: {businessLicense?.remarks}</p>
+                            :
+                            ""
+                        }
                         <FileUploadZone
                             id="businessLicense"
                             file={files.businessLicense?.file ?? files.businessLicense?.url ?? null}
@@ -258,6 +289,7 @@ export default function DocumentVerification() {
                             icon={Briefcase}
                             title="Drop your business license here"
                             subtitle="High-resolution scans only (JPG, PNG)"
+                            disabled={provider.status == "DRAFT" && businessLicense?.verificationStatus == "APPROVED"}
                         />
                     </div>
 
@@ -267,13 +299,24 @@ export default function DocumentVerification() {
                             <h2 className="text-xl font-bold text-gray-900">
                                 Government ID
                             </h2>
-                            <RequiredBadge />
+                            <RequiredBadge badge={governmentIdFront?.verificationStatus} />
                         </div>
                         <p className="text-sm text-gray-500 mb-5">
                             A clear photo of your Passport, Driver's License, or
                             National ID.
                         </p>
 
+                        {governmentIdFront?.remarks ? 
+                            <p className="opacity-80 text-red-500 p-4 text-sm border border-red-500 rounded-md mb-4">Remarks: {governmentIdFront?.remarks}</p>
+                            :
+                            ""
+                        }
+
+                        {governmentIdBack?.remarks ? 
+                            <p className="opacity-80 text-red-500 p-4 text-sm border border-red-500 rounded-md mb-4">Remarks: {governmentIdFront?.remarks}</p>
+                            :
+                            ""
+                        }
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FileUploadZone
                                 id="idFront"
@@ -282,6 +325,7 @@ export default function DocumentVerification() {
                                 fileType="GOVERNMENT ID FRONT"
                                 icon={IdCard}
                                 title="Front Side"
+                                disabled={provider.status=="DRAFT" && governmentIdFront?.verificationStatus == "APPROVED"}
                             />
                             <FileUploadZone
                                 id="idBack"
@@ -290,6 +334,7 @@ export default function DocumentVerification() {
                                 fileType="GOVERNMENT ID BACK"
                                 icon={IdCard}
                                 title="Back Side"
+                                disabled={provider.status=="DRAFT" && governmentIdBack?.verificationStatus == "APPROVED"}
                             />
                         </div>
                     </div>

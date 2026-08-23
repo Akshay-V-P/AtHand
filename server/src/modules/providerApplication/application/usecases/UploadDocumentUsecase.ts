@@ -25,8 +25,16 @@ export class UploadDocumentUsecase implements IUsecase<DocumentUploadDTO, Provid
         
         const documentExists = await this.providerDocumentRepo.findByDocumentType(data.providerId, data.documentType)
         if (documentExists) {
-            console.log("document Type is this: ",data.documentType)
-            const document = await this.providerDocumentRepo.update(data.providerId, { documentKey: data.documentKey })
+            if (documentExists.verificationStatus == DocumentVerificationStatus.APPROVED) return documentExists
+
+            const updateData = {
+                documentKey: data.documentKey,
+                verificationStatus: DocumentVerificationStatus.PENDING,
+                remarks:""
+            }
+            
+            const document = await this.providerDocumentRepo.updateById(documentExists.id!, updateData)
+            
           
             return document!
         }

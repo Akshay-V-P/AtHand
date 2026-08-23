@@ -2,6 +2,7 @@ import type { ProviderStatus } from "../enum/ProviderStatus";
 import type { ILocationDetails } from "./ILocationDetails";
 
 export interface ProviderDetails{
+    id?:string,
     businessName?: string,
     contactPerson?: string,
     phone?: string,

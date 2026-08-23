@@ -33,7 +33,6 @@ export interface IDocuments{
     documentType: string;
     verificationStatus: DocumentVerificationStatus;
     remarks?: string;
-
 }
 
 
@@ -45,6 +44,6 @@ export class ProviderDraft{
         public readonly businessDetails?: IBusinessDetails,
         public readonly locationDetails?: ILocationDetails,
         public readonly serviceDetails?: IServiceDetails,
-        public readonly documents?:IDocuments[],
+        public readonly documents?:IDocuments[] | [],
     ){}
 }

@@ -26,11 +26,18 @@ export class ProviderDocumentRepository extends BaseRepository<DocumentSchemaTyp
     async create(providerDocument: ProviderDocument): Promise<ProviderDocument> {
         const documentMongoType = DocumentMapper.toMongoose(providerDocument)
         const newDocument = await this.createDocument(documentMongoType)
+       
         return DocumentMapper.toDomain(newDocument)
     }
 
-    async update(id: string, updateData: ProviderDocumentUpdateDTO): Promise<ProviderDocument | null> {
-        const updatedDocument = await DocumentModel.findOneAndUpdate({providerId:id}, updateData, {returnDocument:'after'})
+    async update(providerId: string, updateData: ProviderDocumentUpdateDTO): Promise<ProviderDocument | null> {
+        const updatedDocument = await DocumentModel.findOneAndUpdate({providerId}, updateData, {returnDocument:'after'})
+        if (!updatedDocument) return null
+        return DocumentMapper.toDomain(updatedDocument)
+    }
+
+    async updateById(id: string, updateData: ProviderDocumentUpdateDTO): Promise<ProviderDocument | null> {
+        const updatedDocument = await DocumentModel.findOneAndUpdate({_id:id}, updateData, {returnDocument:'after'})
         if (!updatedDocument) return null
         return DocumentMapper.toDomain(updatedDocument)
     }

@@ -1,48 +1,90 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import DocumentCard from '../../../components/admin/DocumentCard';
+import type { IDocumentDetails } from '../../provider/intefaces/IDocumentDetails';
+import { adminServices } from '../services/adminServices';
+import { useOutletContext } from 'react-router-dom';
+import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails';
 
 const ProviderVerificationDocuments = () => {
+  const [documents, setDocuments] = useState<IDocumentDetails[] | null>(null);
+  const { provider } = useOutletContext<{ provider: ProviderDetails | null }>();
+    
+  useEffect(() => {
+    if (!provider?.id) return;
+    adminServices.getDocuments(provider.id)
+      .then(response => { setDocuments(response.data.data) })
+      .catch(error => console.log(error));
+  }, [provider?.id]);
+  
+ 
+  const onApprove = async (id: string | null) => {
+    if (!id || !documents) return;
+    
+    const doc = documents.find(d => d.id === id);
+    if (!doc) return;
+
+    try {
+      await adminServices.updateDocument(id, {
+        documentKey: doc.documentKey,
+        verificationStatus: "APPROVED"
+      });
+      
+      
+      setDocuments(prev => 
+        prev ? prev.map(d => d.id === id ? { ...d, verificationStatus: "APPROVED" } : d) : null
+      );
+    } catch (error) {
+      console.error("Failed to approve document:", error);
+    }
+  };
+
+  const onReject = async (id: string | null, remark: string) => {
+    if (!id || !documents) return;
+    
+    const doc = documents.find(d => d.id === id);
+    if (!doc) return;
+    console.log("trying to reject")
+    try {
+      await adminServices.updateDocument(id, {
+        verificationStatus: "REJECTED",
+        remarks: remark
+      });
+      
+      console.log("rejected")
+    
+      setDocuments(prev => 
+        prev ? prev.map(d => d.id === id ? { ...d, verificationStatus: "REJECTED" } : d) : null
+      );
+    } catch (error) {
+      console.error("Failed to reject document:", error);
+    }
+  };
+    
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 font-sans">
       
       {/* Left Column: Documents List */}
       <div className="xl:col-span-2">
-        <DocumentCard
-          title="Business License"
-          subtitle="State of California • License #CA-993310-B"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-            </svg>
-          }
-          status="Verified"
-          file={{
-            name: 'business_license_2024.pdf',
-            uploadDate: 'Jan 15, 2024',
-            size: '1.2 MB'
-          }}
-          details={{
-            issuedDate: 'Jan 01, 2024',
-            expiryDate: 'Dec 31, 2024'
-          }}
-        />
-
-        <DocumentCard
-          title="General Liability Insurance"
-          subtitle="Coverage up to ₹2,000,000 • Policy #GL-XYZ-123"
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          }
-          status="Pending Review"
-          showActions={true}
-          file={{
-            name: 'liability_cert_signed.jpg',
-            uploadDate: 'Feb 10, 2024',
-            size: '3.4 MB'
-          }}
-        />
+        {documents?.map((doc) => (
+          <DocumentCard
+            key={doc.id}
+            id={doc.id || null}
+            title={doc.documentType}
+            subtitle="State of California • License #CA-993310-B"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+              </svg>
+            }
+            status={doc.verificationStatus}
+            file={{
+              name: doc.documentKey.split("/")[2] || doc.documentKey,
+            }}
+            showActions={doc.verificationStatus === "PENDING"}
+            onApprove={onApprove}
+            onReject={onReject}
+          />
+        ))}
       </div>
 
       {/* Right Column: Sidebar */}

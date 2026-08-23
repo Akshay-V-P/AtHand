@@ -9,4 +9,5 @@ export interface IProviderDocumentRepository{
     findByProviderId(providerId: string): Promise<ProviderDocument[] | null>;
     findDocumentCount(providerId: string): Promise<number>;
     findByDocumentType(providerId: string, documentType: DocumentType): Promise<ProviderDocument | null>;
+    updateById(id: string, updateData: ProviderDocumentUpdateDTO): Promise<ProviderDocument | null>;
 }

@@ -43,7 +43,7 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
 
         initializeAuth()
 
-    }, [dispatch, location.pathname])
+    }, [dispatch])
 
   return (
       <>{ children}</>
