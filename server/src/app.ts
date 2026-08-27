@@ -5,8 +5,8 @@ import { authRoute } from "./modules/auth/container"
 import cookieParser from "cookie-parser"
 import { errorHandler } from "./shared/middleware/ErrorMiddleware"
 import { provAppRoutes } from "./modules/providerApplication/container"
-import { categoryRoutes } from "./modules/category/container"
 import { adminProvManageRoutes } from "./modules/admin-provider-management/container"
+import { categoryAdminRoutes } from "./modules/admin-category-management/container"
 
 
 const app = express()
@@ -26,8 +26,8 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/auth', authRoute)
 app.use('/api/provider-application', provAppRoutes)
-app.use('/api/category', categoryRoutes)
 app.use('/api/admin', adminProvManageRoutes)
+app.use('/api/admin', categoryAdminRoutes)
 
 app.use(errorHandler)
 

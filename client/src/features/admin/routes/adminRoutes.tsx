@@ -9,6 +9,7 @@ import AdminProtection from "../../../components/admin/AdminProtection";
 import ProviderServiceCatalog from "../pages/ProviderServiceCatalog";
 import ProviderVerificationDocuments from "../pages/ProviderVerificationDocuments";
 import ProviderPerformanceMetrics from "../pages/ProviderPerformanceMetrics";
+import ServiceCategories from "../pages/ServiceCategories";
 
 const adminRoutes: RouteObject[] = [
     {
@@ -46,6 +47,10 @@ const adminRoutes: RouteObject[] = [
                             }
                         ],
                     },
+                    {
+                        path: "/admin/service-categories/category",
+                        element:<ServiceCategories/>
+                    }
                 ],
             },
         ]

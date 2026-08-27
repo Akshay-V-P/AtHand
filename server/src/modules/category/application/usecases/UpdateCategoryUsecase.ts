@@ -3,7 +3,7 @@ import { Category } from "../../domain/entities/Category";
 import { ICategoryRepository } from "../../domain/repositories/ICategoryRepository";
 import { UpdateCategoryDTO } from "../dtos/UpdateCategoryDTO";
 
-export class UpdateCategory implements IUsecase<UpdateCategoryDTO, Category> {
+export class UpdateCategoryUsecase implements IUsecase<UpdateCategoryDTO, Category> {
 
     constructor(
         private readonly categoryRepository: ICategoryRepository

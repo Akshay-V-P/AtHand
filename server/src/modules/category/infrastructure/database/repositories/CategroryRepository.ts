@@ -56,6 +56,7 @@ export class CategoryRepository
         return CategoryMapper.toDomain(document);
     }
 
+
     async findAll(options: GetCategoriesDTO): Promise<PaginatedResult<Category>> {
 
         const {

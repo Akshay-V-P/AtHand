@@ -4,7 +4,7 @@ import { ICategoryRepository } from "../../domain/repositories/ICategoryReposito
 import { CategoryResponseDTO } from "../dtos/CategoryResponseDTO";
 import { CategoryMapper } from "../mappers/CategoryMapper";
 
-export class GetCategory implements IUsecase<string, CategoryResponseDTO>{
+export class GetCategoryUsecase implements IUsecase<string, CategoryResponseDTO>{
 
     constructor(
         private readonly categoryRepository: ICategoryRepository

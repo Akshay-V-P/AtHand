@@ -96,7 +96,7 @@ const SideBar = () => {
                 />
 
                 <SidebarItem
-                    to="/admin/service-categories"
+                    to="/admin/service-categories/category"
                     label="Service Categories"
                     icon={
                         <svg

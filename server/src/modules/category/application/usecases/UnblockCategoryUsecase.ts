@@ -2,7 +2,7 @@ import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 import { CategoryStatus } from "../../domain/enums/CategoryStatus";
 import { ICategoryRepository } from "../../domain/repositories/ICategoryRepository";
 
-export class UnblockCategory implements IUsecase<string,void> {
+export class UnblockCategoryUsecase implements IUsecase<string,void> {
 
     constructor(
         private readonly categoryRepository: ICategoryRepository

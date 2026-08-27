@@ -1,7 +1,10 @@
+import type { CreateCategoryDTO } from "../../../shared/dtos/CreateCategoryDTO"
+import type { GetCategoriesDTO } from "../../../shared/dtos/GetCategoryDTO"
 import { accountApi } from "../../customer/account/api/accountApi"
 import type { LogoutDTO } from "../../customer/account/dtos/LogoutDTO"
 import type { ProviderStatus } from "../../provider/enum/ProviderStatus"
 import { adminApi } from "../api/adminApi"
+import type { EditCategoryFormData } from "../validation/EditCategorySchema"
 
 export const adminServices = {
     async getProviders(query?: object) {
@@ -48,6 +51,29 @@ export const adminServices = {
     async unblockProvider(id: string) {
         const response = await adminApi.updateProviderStatus(id, { status: "ACTIVE" })
         return response
+    },
+
+    async getAllCategories(query: GetCategoriesDTO) {
+        const response = await adminApi.getAllCategories(query)
+        return response
+    },
+
+    async createCategory(data: CreateCategoryDTO) {
+        const response = await adminApi.createCategory(data)
+        return response
+    },
+
+    async updateCategory(categoryId: string, data: EditCategoryFormData) {
+        const response = await adminApi.updateCategory(categoryId, data)
+        return response
+    },
+
+    async blockCategory(categoryId: string) {
+        return adminApi.blockCategory(categoryId)
+    },
+
+    async unblockCategory(categoryId: string) {
+        return adminApi.unblockCategory(categoryId)
     }
     
 }

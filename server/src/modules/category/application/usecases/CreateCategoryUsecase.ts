@@ -4,7 +4,7 @@ import { CategoryStatus } from "../../domain/enums/CategoryStatus";
 import { ICategoryRepository } from "../../domain/repositories/ICategoryRepository";
 import { CreateCategoryDTO } from "../dtos/CreateCategoryDTO";
 
-export class CreateCategory implements IUsecase<CreateCategoryDTO, Category> {
+export class CreateCategoryUsecase implements IUsecase<CreateCategoryDTO, Category> {
 
     constructor(
         private readonly categoryRepository: ICategoryRepository
