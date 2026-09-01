@@ -21,7 +21,6 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
                 if (location.pathname.startsWith("/admin")) {
                     await authService.adminRefresh()
                     const response = await authService.refresh({ context: "ADMIN" })
-                    console.log(response.data.data)
 
 
                     dispatch(adminloginSuccess(response.data.data))

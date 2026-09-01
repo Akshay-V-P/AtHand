@@ -74,6 +74,11 @@ export const adminServices = {
 
     async unblockCategory(categoryId: string) {
         return adminApi.unblockCategory(categoryId)
+    },
+
+    async getAllUsers(data:any) {
+        const response = await adminApi.getAllUsers(data.page, data.limit, data.search)
+        return response
     }
     
 }

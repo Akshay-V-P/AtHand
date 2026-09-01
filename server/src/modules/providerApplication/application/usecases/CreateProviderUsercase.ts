@@ -2,6 +2,8 @@ import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { ConflictError } from "../../../../shared/errors/ConflictError";
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
+import { UserRole } from "../../../auth/domain/enum/UserRole";
+import { IUserRepository } from "../../../auth/domain/repositories/IUserRepository";
 import { Provider } from "../../../provider/domain/entities/Provider";
 import { ProviderStatus } from "../../../provider/domain/enums/ProviderStatus";
 import { IProviderDraftRepository } from "../../../provider/domain/repositories/IProviderDraftRepository";
@@ -13,6 +15,7 @@ export class CreateProviderUsecase implements IUsecase<CreateProviderDto, Create
     constructor(
         private readonly providerRepo: IProviderRepository,
         private readonly providerDraftRepo: IProviderDraftRepository,
+        private readonly userRepository:IUserRepository,
     ) { }
 
     async execute(
@@ -28,7 +31,6 @@ export class CreateProviderUsecase implements IUsecase<CreateProviderDto, Create
             );
         }
 
-        // Make sure the draft is complete
         if (
             !providerDraft.businessDetails ||
             !providerDraft.locationDetails ||
@@ -37,7 +39,7 @@ export class CreateProviderUsecase implements IUsecase<CreateProviderDto, Create
             throw new BadRequestError("All details required");
         }
 
-        // Check whether provider was already initialized
+        
         const existingProvider =
             await this.providerRepo.findByUserId(data.userId);
 
@@ -55,7 +57,7 @@ export class CreateProviderUsecase implements IUsecase<CreateProviderDto, Create
             };
         }
 
-        // Check email only when creating a new provider
+       
         const isEmailExists =
             await this.providerRepo.findByEmail(
                 providerDraft.businessDetails.email
@@ -65,7 +67,6 @@ export class CreateProviderUsecase implements IUsecase<CreateProviderDto, Create
             throw new ConflictError("Email is already in use");
         }
 
-        // Validate location
         const [longitude, latitude] =
             providerDraft.locationDetails.coordinates.coordinates;
 
@@ -80,7 +81,7 @@ export class CreateProviderUsecase implements IUsecase<CreateProviderDto, Create
             );
         }
 
-        // Validate service radius
+   
         const serviceRadius =
             providerDraft.serviceDetails.serviceRadius;
 
@@ -108,6 +109,7 @@ export class CreateProviderUsecase implements IUsecase<CreateProviderDto, Create
 
         const provider =
             await this.providerRepo.create(newProvider);
+        const user = await this.userRepository.update(provider.userId, {role:[UserRole.USER, UserRole.PROVIDER]})
 
         if (!provider.id) {
             throw new BadRequestError(

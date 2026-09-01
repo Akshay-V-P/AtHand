@@ -5,7 +5,7 @@ export interface Category{
     description: string;
     commissionPercentage: number;
     slug: string;
-    icon: string;
+    icon?: string;
     status: CategoryStatus;
     id: string;
 }

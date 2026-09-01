@@ -7,6 +7,7 @@ import { errorHandler } from "./shared/middleware/ErrorMiddleware"
 import { provAppRoutes } from "./modules/providerApplication/container"
 import { adminProvManageRoutes } from "./modules/admin-provider-management/container"
 import { categoryAdminRoutes } from "./modules/admin-category-management/container"
+import { adminUserMangRoutes } from "./modules/admin-user-management/container"
 
 
 const app = express()
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoute)
 app.use('/api/provider-application', provAppRoutes)
 app.use('/api/admin', adminProvManageRoutes)
 app.use('/api/admin', categoryAdminRoutes)
+app.use('/api/admin', adminUserMangRoutes)
 
 app.use(errorHandler)
 

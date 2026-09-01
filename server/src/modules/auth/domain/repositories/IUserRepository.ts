@@ -1,3 +1,4 @@
+import { PaginatedResult } from "../../../../shared/application/dtos/PaginatedResultDTO";
 import { User } from "../entities/User";
 import { UserRole } from "../enum/UserRole";
 
@@ -15,4 +16,13 @@ export interface IUserRepository{
     create(user: User): Promise<User>;
     update(id: string, updateData: UserUpdateData): Promise<User | null>;
     findById(id: string): Promise<User | null>;
+    updateStatus(
+        id: string,
+        status: "ACTIVE" | "BLOCKED"
+    ): Promise<User | null>;
+    findAll(
+        page: number,
+        limit: number,
+        search?: string
+    ): Promise<PaginatedResult<User>>;
 }

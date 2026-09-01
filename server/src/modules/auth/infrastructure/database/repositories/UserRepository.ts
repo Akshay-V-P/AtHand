@@ -1,6 +1,8 @@
+import { PaginatedResult } from "../../../../../shared/application/dtos/PaginatedResultDTO";
 import { BaseRepository } from "../../../../../shared/infrastructure/database/BaseRepository";
 import { UserUpdateDto } from "../../../application/dto/UserUpdateDto";
 import { User } from "../../../domain/entities/User";
+import { UserRole } from "../../../domain/enum/UserRole";
 import { IUserRepository } from "../../../domain/repositories/IUserRepository";
 import { UserMapper } from "../mappers/UserMapper";
 import UserModel,{ UserSchemaType } from "../models/UserModel";
@@ -45,6 +47,87 @@ export class UserRepository extends BaseRepository<UserSchemaType> implements IU
         if (!user) return null
         return UserMapper.toDomain(user)
     }
+
+    async updateStatus(
+        id: string,
+        status: "ACTIVE" | "BLOCKED"
+    ): Promise<User | null> {
+
+        const user =
+            await this.updateDocument(
+                id,
+                { status }
+            );
+
+        if (!user) return null;
+
+        return UserMapper.toDomain(user);
+    }
+
+    async findAll(
+    page: number,
+    limit: number,
+    search?: string
+): Promise<PaginatedResult<User>> {
+
+    const skip = (page - 1) * limit;
+
+        const filter: Record<string, any> = {
+        role: {
+            $nin: [UserRole.ADMIN]
+    }
+    };
+
+    if (search?.trim()) {
+        filter.$or = [
+            {
+                name: {
+                    $regex: search.trim(),
+                    $options: "i"
+                }
+            },
+            {
+                email: {
+                    $regex: search.trim(),
+                    $options: "i"
+                }
+            },
+            {
+                phone: {
+                    $regex: search.trim(),
+                    $options: "i"
+                }
+            }
+        ];
+    }
+
+    const [users, totalItems] =
+        await Promise.all([
+            UserModel
+                .find(filter)
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+
+            UserModel.countDocuments(filter)
+        ]);
+
+    return {
+        items: users.map(
+            (user) => UserMapper.toDomain(user)
+        ),
+
+        totalItems,
+
+        page,
+
+        limit,
+
+        totalPages: Math.ceil(
+            totalItems / limit
+        )
+    };
+}
 }
 
 

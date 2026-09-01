@@ -21,7 +21,7 @@ const CategoryCard = ({
     badge,
     subCategoryCount,
     activeProvidersCount,
-    image: icon,
+    icon,
     status,
   } = category;
 

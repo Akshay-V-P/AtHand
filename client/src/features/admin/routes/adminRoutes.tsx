@@ -10,6 +10,7 @@ import ProviderServiceCatalog from "../pages/ProviderServiceCatalog";
 import ProviderVerificationDocuments from "../pages/ProviderVerificationDocuments";
 import ProviderPerformanceMetrics from "../pages/ProviderPerformanceMetrics";
 import ServiceCategories from "../pages/ServiceCategories";
+import UserManagement from "../pages/UserMangement";
 
 const adminRoutes: RouteObject[] = [
     {
@@ -46,6 +47,10 @@ const adminRoutes: RouteObject[] = [
                                 element:<ProviderPerformanceMetrics/>
                             }
                         ],
+                    },
+                    {
+                        path: "/admin/user-management",
+                        element:<UserManagement/>
                     },
                     {
                         path: "/admin/service-categories/category",

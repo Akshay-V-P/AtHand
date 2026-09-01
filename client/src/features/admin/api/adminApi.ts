@@ -31,4 +31,7 @@ export const adminApi = {
 
     unblockCategory: (categoryId: string) =>
         api.patch(`/admin/category/${categoryId}/unblock`),
+
+    getAllUsers: (page: number, limit: number, search: string) =>
+        api.get(`/admin/users?page=${page}&limit=${limit}&${search}`)
 }

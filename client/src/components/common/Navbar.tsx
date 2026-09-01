@@ -9,21 +9,22 @@ import { setProvider } from "../../features/provider/applyAsProvider/store/provi
 
 const Navbar = () => {
     const navigate = useNavigate()
-    const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+    const { user, isAuthenticated, isLoading } = useAppSelector((state) => state.auth)
     const provider = useAppSelector(state => state.provider)
     const dispatch = useAppDispatch()
     const [providerActive, setProviderActive] = useState(false)
 
     useEffect(() => {
+        console.log(user)
         if (!user?.id) return;
         if (!provider.id) {
             apiService
                 .getProvider(user.id)
-                .then((response) => { setProviderActive(true); dispatch(setProvider(response.data.data)) })
+                .then((response) => { console.log(response.data.data); setProviderActive(true); dispatch(setProvider(response.data.data)) })
                 .catch((error) => console.log(error));
         }
         
-    }, [provider]);
+    }, [provider, isLoading]);
     
     return (
         <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">

@@ -7,7 +7,7 @@ const AdminLayout = () => {
   return (
       <div className="flex h-screen bg-[#f8f9fb] ">
             <SideBar/>  
-          <div className='w-full overflow-y-hidden'>
+          <div className='w-full overflow-y-scroll'>
             <Navbar />
         <Outlet />
           </div>
