@@ -92,12 +92,12 @@ export default function UserManagement() {
     }
   };
 
-  // Initial fetch
+  
   useEffect(() => {
     fetchUsers(1, "", "", "", "");
   }, []);
 
-  // Search
+  
   useEffect(() => {
     const timeout = setTimeout(() => {
       fetchUsers(1, search, statusFilter, verifiedFilter, sortOption);
@@ -106,7 +106,7 @@ export default function UserManagement() {
     return () => clearTimeout(timeout);
   }, [search]);
 
-  // Filters & Sort
+  
   useEffect(() => {
     fetchUsers(1, search, statusFilter, verifiedFilter, sortOption);
   }, [statusFilter, verifiedFilter, sortOption]);

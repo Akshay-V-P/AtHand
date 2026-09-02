@@ -4,6 +4,9 @@ export interface ProviderFilter {
     status?: ProviderStatus;
     categoryId?: string;
     minRating?: number;
+    search?: string;
+    sort?: string;
+    sortOrder?: 'asc' | 'desc';
     page: number;
     limit: number;
 

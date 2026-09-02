@@ -6,7 +6,7 @@ import { ProviderFilter } from "../../../domain/types/ProviderFilter";
 import ProviderMapper from "../mappers/ProviderMapper";
 import ProviderModel, { ProviderSchemaType } from "../models/ProviderModel";
 
-export class ProviderRepository extends BaseRepository<ProviderSchemaType> implements IProviderRepository{
+export class ProviderRepository extends BaseRepository<ProviderSchemaType> implements IProviderRepository {
     constructor() {
         super(ProviderModel)
     }
@@ -32,8 +32,7 @@ export class ProviderRepository extends BaseRepository<ProviderSchemaType> imple
     async findMany(filter: ProviderFilter): Promise<Provider[]> {
         const query: any = {};
 
-        
-        const skip = (filter.page-1)*filter.limit
+        const skip = (filter.page - 1) * filter.limit
 
         if (filter?.status) {
             query.status = filter.status;
@@ -45,24 +44,55 @@ export class ProviderRepository extends BaseRepository<ProviderSchemaType> imple
 
         if (filter?.minRating) {
             query.averageRating = {
-                $gte:filter.minRating
+                $gte: filter.minRating
             }
         }
 
-        const providers = await ProviderModel.find(query).populate("serviceCategory").skip(skip).limit(filter.limit)
+        if (filter?.search?.trim()) {
+            query.$or = [
+                { businessName: { $regex: filter.search.trim(), $options: "i" } },
+                { email: { $regex: filter.search.trim(), $options: "i" } },
+                { contactPerson: { $regex: filter.search.trim(), $options: "i" } }
+            ];
+        }
 
+        let sortObj: any = {};
+        if (filter?.sort) {
+            sortObj[filter.sort] = filter.sortOrder === 'desc' ? -1 : 1;
+        } else {
+            sortObj = { createdAt: -1 };
+        }
+
+        const providers = await ProviderModel.find(query)
+            .populate("serviceCategory")
+            .sort(sortObj)
+            .skip(skip)
+            .limit(filter.limit);
 
         return providers.map(ProviderMapper.toDomain)
     }
 
-    async findCount(): Promise<number>{
-        const count = await ProviderModel.countDocuments()
-        console.log(count)
+    async findCount(filter?: ProviderFilter): Promise<number> {
+        const query: any = {};
+        if (filter) {
+            if (filter.status) query.status = filter.status;
+            if (filter.categoryId) query.serviceCategory = filter.categoryId;
+            if (filter.minRating) query.averageRating = { $gte: filter.minRating };
+            if (filter.search?.trim()) {
+                query.$or = [
+                    { businessName: { $regex: filter.search.trim(), $options: "i" } },
+                    { email: { $regex: filter.search.trim(), $options: "i" } },
+                    { contactPerson: { $regex: filter.search.trim(), $options: "i" } }
+                ];
+            }
+        }
+
+        const count = await ProviderModel.countDocuments(query);
         return count
     }
-    
+
     async create(provider: Provider): Promise<Provider> {
-        const providerMongoType = ProviderMapper.toMongoose(provider) 
+        const providerMongoType = ProviderMapper.toMongoose(provider)
         const newProvider = await this.createDocument(providerMongoType)
         return ProviderMapper.toDomain(newProvider)
     }

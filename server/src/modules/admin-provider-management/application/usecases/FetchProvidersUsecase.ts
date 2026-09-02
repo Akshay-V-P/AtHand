@@ -6,21 +6,21 @@ import { IProviderRepository } from "../../../provider/domain/repositories/IProv
 import { ProviderFilter } from "../../../provider/domain/types/ProviderFilter";
 import { FetProviderDTO } from "../dtos/FetchProviderDTO";
 
-export class FetchProvidersUsecase implements IUsecase<ProviderFilter, PaginatedResult<Provider>>{
+export class FetchProvidersUsecase implements IUsecase<ProviderFilter, PaginatedResult<Provider>> {
     constructor(
-        private readonly providerRepo:IProviderRepository,
+        private readonly providerRepo: IProviderRepository,
     ) { }
-    
+
     async execute(data: ProviderFilter): Promise<PaginatedResult<Provider>> {
         const providers = await this.providerRepo.findMany(data)
-        const providersCount = await this.providerRepo.findCount()
-        
+        const providersCount = await this.providerRepo.findCount(data)
+
         return {
             items: providers,
             totalItems: providersCount,
             page: data.page,
             limit: data.limit,
-            totalPages:Math.ceil(providersCount/data.limit)
+            totalPages: Math.ceil(providersCount / data.limit)
         }
     }
 }

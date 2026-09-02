@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import { Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react'
 import ProviderRow from '../../../components/admin/ProviderRow'
 import FilterSelect from '../../../components/admin/FilterSelect'
 import { adminServices } from '../services/adminServices'
 
-interface FetchProviderResponse{
+interface FetchProviderResponse {
   items: [];
   totalItems: number;
   page: number;
@@ -17,31 +18,82 @@ const ProviderManagement = () => {
     totalItems: 0,
     page: 1,
     limit: 10,
-    totalPages:0
+    totalPages: 0
   })
-    useEffect(() => {
-        adminServices.getProviders()
-          .then(response => { setProviderData(response.data.data); })
-            .catch(error => console.log(error))
-        
-    }, [])
-  
-  const handlePageChange = async(page: number) => {
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [sortOption, setSortOption] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
+
+  const fetchProviders = async (
+    page = 1,
+    searchValue = search,
+    statusVal = statusFilter,
+    categoryVal = categoryFilter,
+    sortVal = sortOption
+  ) => {
     try {
-        
-        const response = await adminServices.getProviders({page, limit:10})
-        
-        setProviderData(response.data.data)
-      } catch (error) {
-        console.log(error)
+      setLoading(true);
+
+      let sort;
+      let sortOrder;
+      if (sortVal) {
+        const parts = sortVal.split('_');
+        sort = parts[0];
+        sortOrder = parts[1];
       }
+
+      const response = await adminServices.getProviders({
+        page,
+        limit: providerData.limit,
+        search: searchValue || undefined,
+        status: statusVal || undefined,
+        categoryId: categoryVal || undefined,
+        sort,
+        sortOrder
+      });
+
+      setProviderData(response.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchProviders(1, "", "", "", "");
+    adminServices.getAllCategories({ page: 1, limit: 100 })
+      .then(res => setCategories(res.data.data.items || []))
+      .catch(console.error);
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      fetchProviders(1, search, statusFilter, categoryFilter, sortOption);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  // Status, Category & Sort filters
+  useEffect(() => {
+    fetchProviders(1, search, statusFilter, categoryFilter, sortOption);
+  }, [statusFilter, categoryFilter, sortOption]);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > providerData.totalPages) return;
+    fetchProviders(page, search, statusFilter, categoryFilter, sortOption);
   }
 
-    
-    
   return (
     <div className="flex-1 overflow-y-auto p-8 bg-[#f8f9fb] font-sans">
-      
+
       {/* Breadcrumbs & Header */}
       <div className="mb-8">
         <nav className="flex text-xs text-gray-500 mb-2">
@@ -55,18 +107,66 @@ const ProviderManagement = () => {
 
       {/* Top Action / Filter Bar */}
       <div className="flex flex-col lg:flex-row gap-6 mb-8">
-        
+
         {/* Filters Card */}
-        <div className="flex-1 bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
-            <FilterSelect label="Filter by Status" value="All Statuses" />
-            <FilterSelect label="Category" value="All Categories" />
-            <FilterSelect label="Location" value="All Locations" />
-            <FilterSelect
-              label="Rating" 
-              value="4.0+ Stars" 
-              icon={<svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>}
+        <div className="flex-1 bg-white p-5 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl shadow-sm">
+
+          {/* Search */}
+          <div className="relative w-full sm:w-[350px]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by business name or email..."
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
+          </div>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="DRAFT">Draft</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="BLOCKED">Blocked</option>
+              </select>
+              <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              >
+                <option value="">All Categories</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              >
+                <option value="">Sort by: Default</option>
+                <option value="averageRating_desc">Highest Rating</option>
+                <option value="averageRating_asc">Lowest Rating</option>
+                <option value="businessName_asc">Name (A-Z)</option>
+                <option value="businessName_desc">Name (Z-A)</option>
+              </select>
+              <ArrowUpDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -111,36 +211,36 @@ const ProviderManagement = () => {
                 <th scope="col" className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                          {
-                              providerData?.items.length >= 1 ?
-                                  providerData.items.map((provider:any) => (
-                                      <ProviderRow 
-                                          key={provider.id}
-                                            initials=""
-                                            name={provider.businessName}
-                                            id={provider.id}
-                                            category={provider.serviceCategory.name}
-                                            location={provider.location.address.street}
-                                            status={provider.status}
-                                            rating={provider.averageRating}
-                                            earnings="₹0"
-                                            actionType="ban"
-                                        />
-                                  ))
+            <tbody className="bg-white divide-y divide-gray-200">
+              {
+                providerData?.items.length >= 1 ?
+                  providerData.items.map((provider: any) => (
+                    <ProviderRow
+                      key={provider.id}
+                      initials=""
+                      name={provider.businessName}
+                      id={provider.id}
+                      category={provider.serviceCategory.name}
+                      location={provider.location.address.street}
+                      status={provider.status}
+                      rating={provider.averageRating}
+                      earnings="₹0"
+                      actionType="ban"
+                    />
+                  ))
 
-                                  :
-                                  <tr>
+                  :
+                  <tr>
                     <td>
 
-                    <p>Nothing to show</p>
+                      <p>Nothing to show</p>
                     </td>
-                                  </tr>
-                          
-                          }
-              
-              
-             
+                  </tr>
+
+              }
+
+
+
             </tbody>
           </table>
         </div>
@@ -151,19 +251,19 @@ const ProviderManagement = () => {
             Showing {providerData.page} to {providerData.totalPages} of {providerData.totalItems || 0} providers
           </p>
           <div className="flex space-x-1">
-            <button onClick={()=>handlePageChange(providerData.page-1)} disabled={providerData.page <= 1} className="px-3 py-1.5 border border-gray-200 rounded-md text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" >
+            <button onClick={() => handlePageChange(providerData.page - 1)} disabled={providerData.page <= 1} className="px-3 py-1.5 border border-gray-200 rounded-md text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
             </button>
-            
-            <button className="px-3 py-1.5 border border-gray-200 rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium text-sm">{ providerData.page}</button>
-            
-            <button onClick={()=>handlePageChange(providerData.page+1)} disabled={ providerData.totalPages<=providerData.page} className="px-3 py-1.5 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-500 bg-white hover:bg-gray-50 cursor-pointer">
+
+            <button className="px-3 py-1.5 border border-gray-200 rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium text-sm">{providerData.page}</button>
+
+            <button onClick={() => handlePageChange(providerData.page + 1)} disabled={providerData.totalPages <= providerData.page} className="px-3 py-1.5 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-500 bg-white hover:bg-gray-50 cursor-pointer">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
             </button>
           </div>
         </div>
       </div>
-      
+
     </div>
   )
 }
