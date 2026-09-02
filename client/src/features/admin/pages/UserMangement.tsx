@@ -47,6 +47,9 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [verifiedFilter, setVerifiedFilter] = useState("");
+  const [sortOption, setSortOption] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [statusUser, setStatusUser] = useState<User | null>(null);
   const [editName, setEditName] = useState("");
@@ -55,15 +58,30 @@ export default function UserManagement() {
 
   const fetchUsers = async (
     page = 1,
-    searchValue = search
+    searchValue = search,
+    statusVal = statusFilter,
+    verifiedVal = verifiedFilter,
+    sortVal = sortOption
   ) => {
     try {
       setLoading(true);
+
+      let sort;
+      let sortOrder;
+      if (sortVal) {
+        const parts = sortVal.split('_');
+        sort = parts[0];
+        sortOrder = parts[1];
+      }
 
       const response = await adminServices.getAllUsers({
         page,
         limit: usersData.limit,
         search: searchValue,
+        status: statusVal || undefined,
+        isVerified: verifiedVal || undefined,
+        sort,
+        sortOrder
       });
 
       setUsersData(response.data.data);
@@ -76,24 +94,32 @@ export default function UserManagement() {
 
   // Initial fetch
   useEffect(() => {
-    fetchUsers(1, "");
+    fetchUsers(1, "", "", "", "");
   }, []);
 
   // Search
   useEffect(() => {
     const timeout = setTimeout(() => {
-      fetchUsers(1, search);
+      fetchUsers(1, search, statusFilter, verifiedFilter, sortOption);
     }, 500);
 
     return () => clearTimeout(timeout);
   }, [search]);
+
+  // Filters & Sort
+  useEffect(() => {
+    fetchUsers(1, search, statusFilter, verifiedFilter, sortOption);
+  }, [statusFilter, verifiedFilter, sortOption]);
 
   const handlePreviousPage = () => {
     if (usersData.page <= 1) return;
 
     fetchUsers(
       usersData.page - 1,
-      search
+      search,
+      statusFilter,
+      verifiedFilter,
+      sortOption
     );
   };
 
@@ -102,7 +128,10 @@ export default function UserManagement() {
 
     fetchUsers(
       usersData.page + 1,
-      search
+      search,
+      statusFilter,
+      verifiedFilter,
+      sortOption
     );
   };
 
@@ -159,8 +188,8 @@ export default function UserManagement() {
     usersData.totalItems === 0
       ? 0
       : (usersData.page - 1) *
-          usersData.limit +
-        1;
+      usersData.limit +
+      1;
 
   const endItem = Math.min(
     usersData.page * usersData.limit,
@@ -266,15 +295,44 @@ export default function UserManagement() {
           {/* Filters */}
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
 
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-              <SlidersHorizontal className="w-4 h-4 text-slate-400" />
-              <span>Filters</span>
-            </button>
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="ACTIVE">Active Users</option>
+                <option value="BLOCKED">Blocked Users</option>
+              </select>
+              <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
 
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-              <ArrowUpDown className="w-4 h-4 text-slate-400" />
-              <span>Sort</span>
-            </button>
+            <div className="relative">
+              <select
+                value={verifiedFilter}
+                onChange={(e) => setVerifiedFilter(e.target.value)}
+                className="appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              >
+                <option value="">Verifications</option>
+                <option value="true">Verified</option>
+                <option value="false">Unverified</option>
+              </select>
+              <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              >
+                <option value="">Sort by: Default</option>
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="name_desc">Name (Z-A)</option>
+              </select>
+              <ArrowUpDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            </div>
 
           </div>
 
@@ -413,11 +471,10 @@ export default function UserManagement() {
                     <td className="py-4 px-6">
 
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                          user.status === "ACTIVE"
-                            ? "bg-emerald-50 text-emerald-600"
-                            : "bg-rose-50 text-rose-600"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${user.status === "ACTIVE"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-rose-50 text-rose-600"
+                          }`}
                       >
                         {user.status}
                       </span>
@@ -439,11 +496,10 @@ export default function UserManagement() {
 
                         <button
                           onClick={() => setStatusUser(user)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            user.status === "ACTIVE"
-                              ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                              : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
-                          }`}
+                          className={`p-2 rounded-lg transition-colors ${user.status === "ACTIVE"
+                            ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                            : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                            }`}
                           title={
                             user.status === "ACTIVE"
                               ? "Block User"

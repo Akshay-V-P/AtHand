@@ -7,25 +7,25 @@ import type { EditCategoryFormData } from "../validation/EditCategorySchema";
 import type { IProviderUpdateData } from "../../provider/applyAsProvider/dtos/UpdateProviderDTO";
 
 export const adminApi = {
-    getProviders: (query:string) =>
+    getProviders: (query: string) =>
         api.get(`/admin/get-providers?${query}`),
     getProvider: (id: string) =>
         api.get(`/admin/provider/${id}`),
     updateProvider: (id: string, data: IProviderUpdateData) =>
         api.patch(`/admin/provider/${id}`, data),
-    logout: (data:LogoutDTO) => 
+    logout: (data: LogoutDTO) =>
         api.post("/auth/logout", data),
     getDocuments: (id: string) =>
         api.get(`/admin/document?id=${id}`),
     getDocumentDisplayUrl: (key: string) =>
         api.post("/provider-application/get-display-url", { key }),
-    updateDocument: (id: string, data: any) => 
+    updateDocument: (id: string, data: any) =>
         api.patch(`/admin/document/${id}`, data),
-    updateProviderStatus: (id: string, data:{status:ProviderStatus}) =>
+    updateProviderStatus: (id: string, data: { status: ProviderStatus }) =>
         api.patch(`/admin/provider/${id}/status`, data),
-    getAllCategories:(query: GetCategoriesDTO) =>
+    getAllCategories: (query: GetCategoriesDTO) =>
         api.get("/admin/category", {
-            params:query
+            params: query
         }),
     createCategory: (data: CreateCategoryDTO) =>
         api.put("/admin/category", data),
@@ -37,8 +37,8 @@ export const adminApi = {
     unblockCategory: (categoryId: string) =>
         api.patch(`/admin/category/${categoryId}/unblock`),
 
-    getAllUsers: (page: number, limit: number, search?: string) =>
-        api.get(`/admin/users`, { params: { page, limit, search } }),
+    getAllUsers: (page: number, limit: number, search?: string, status?: string, isVerified?: string, sort?: string, sortOrder?: string) =>
+        api.get(`/admin/users`, { params: { page, limit, search, status, isVerified, sort, sortOrder } }),
     updateUser: (id: string, data: { name: string; phone?: string }) =>
         api.patch(`/admin/user/${id}`, data),
     blockUser: (id: string) =>

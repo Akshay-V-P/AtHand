@@ -20,7 +20,7 @@ export class FetchUsersController {
                 GetUsersDTO,
                 PaginatedResult<User>
             >
-    ) {}
+    ) { }
 
     fetchUsers = async (
         req: Request,
@@ -43,11 +43,20 @@ export class FetchUsersController {
                     ? query.search
                     : undefined;
 
+            const status = typeof query.status === "string" ? query.status : undefined;
+            const isVerified = typeof query.isVerified === "string" ? query.isVerified : undefined;
+            const sort = typeof query.sort === "string" ? query.sort : undefined;
+            const sortOrder = typeof query.sortOrder === "string" && (query.sortOrder === 'asc' || query.sortOrder === 'desc') ? query.sortOrder : undefined;
+
             const users =
                 await this.fetchUsersUsecase.execute({
                     page,
                     limit,
-                    search
+                    search,
+                    status,
+                    isVerified,
+                    sort,
+                    sortOrder
                 });
 
             ResponseHandler.success(

@@ -9,7 +9,7 @@ import type { IProviderUpdateData } from "../../provider/applyAsProvider/dtos/Up
 export const adminServices = {
     async getProviders(query?: object) {
         const url = new URLSearchParams()
-        
+
         for (let [key, value] of Object.entries(query || {})) {
             if (value !== undefined) {
                 url.append(key, String(value))
@@ -26,11 +26,11 @@ export const adminServices = {
         return adminApi.updateProvider(id, data)
     },
 
-    async logout(data:LogoutDTO) {
+    async logout(data: LogoutDTO) {
         const response = await accountApi.logout(data)
         return response
     },
-    
+
     async getDocuments(id: string) {
         const response = await adminApi.getDocuments(id)
         return response
@@ -44,7 +44,7 @@ export const adminServices = {
         return response;
     },
     async approveProvider(id: string) {
-        const response = await adminApi.updateProviderStatus(id, {status:"ACTIVE"})
+        const response = await adminApi.updateProviderStatus(id, { status: "ACTIVE" })
         return response
     },
     async rejectProvider(id: string) {
@@ -83,8 +83,8 @@ export const adminServices = {
         return adminApi.unblockCategory(categoryId)
     },
 
-    async getAllUsers(data:any) {
-        const response = await adminApi.getAllUsers(data.page, data.limit, data.search)
+    async getAllUsers(data: any) {
+        const response = await adminApi.getAllUsers(data.page, data.limit, data.search, data.status, data.isVerified, data.sort, data.sortOrder)
         return response
     },
     async updateUser(id: string, data: { name: string; phone?: string }) {
@@ -96,5 +96,5 @@ export const adminServices = {
     async unblockUser(id: string) {
         return adminApi.unblockUser(id)
     }
-    
+
 }

@@ -6,10 +6,10 @@ import { IUserRepository } from "../../../auth/domain/repositories/IUserReposito
 import { GetUsersDTO } from "../dtos/GetUserDTO";
 
 
-export class GetAllUsersUsecase implements IUsecase< GetUsersDTO, PaginatedResult<User>>{
+export class GetAllUsersUsecase implements IUsecase<GetUsersDTO, PaginatedResult<User>> {
     constructor(
         private readonly userRepository: IUserRepository
-    ) {}
+    ) { }
 
     async execute(
         data: GetUsersDTO
@@ -18,7 +18,11 @@ export class GetAllUsersUsecase implements IUsecase< GetUsersDTO, PaginatedResul
         const {
             page,
             limit,
-            search
+            search,
+            status,
+            isVerified,
+            sort,
+            sortOrder
         } = data;
 
         if (page < 1) {
@@ -36,7 +40,11 @@ export class GetAllUsersUsecase implements IUsecase< GetUsersDTO, PaginatedResul
         return await this.userRepository.findAll(
             page,
             limit,
-            search
+            search,
+            status,
+            isVerified,
+            sort,
+            sortOrder
         );
     }
 }

@@ -2,16 +2,16 @@ import { PaginatedResult } from "../../../../shared/application/dtos/PaginatedRe
 import { User } from "../entities/User";
 import { UserRole } from "../enum/UserRole";
 
-interface UserUpdateData{
+interface UserUpdateData {
     name?: string,
     phone?: string,
     password?: string,
     role?: UserRole[],
     status?: string,
-    isVerified?:boolean
+    isVerified?: boolean
 }
 
-export interface IUserRepository{
+export interface IUserRepository {
     findByEmail(email: string): Promise<User | null>;
     create(user: User): Promise<User>;
     update(id: string, updateData: UserUpdateData): Promise<User | null>;
@@ -23,6 +23,10 @@ export interface IUserRepository{
     findAll(
         page: number,
         limit: number,
-        search?: string
+        search?: string,
+        status?: string,
+        isVerified?: string,
+        sort?: string,
+        sortOrder?: 'asc' | 'desc'
     ): Promise<PaginatedResult<User>>;
 }
