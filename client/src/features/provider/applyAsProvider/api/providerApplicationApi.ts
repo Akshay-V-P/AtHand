@@ -12,7 +12,7 @@ export const providerApplicationApi = {
     updateDraft: (data:BusinessDetailsDTO) =>
         api.patch("/provider-application/update-provider-draft", data),
     getCategories: () =>
-        api.get("/admin/category"),
+        api.get("/provider-application/categories"),
     getDraft: (userId:string) =>
         api.post("/provider-application/get-draft", { userId }),
     getProvider: (id: string) =>

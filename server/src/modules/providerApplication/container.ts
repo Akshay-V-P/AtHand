@@ -6,11 +6,13 @@ import { GetImageDisplayUrlUsecase } from "../provider/application/usecases/GetI
 import { GetProvierDraftDetailsUsecase } from "./application/usecases/GetProviderDraftDetailsUsecase"
 import { GetProviderUsecase } from "../provider/application/usecases/GetProviderUsecase"
 import { UpdateProviderUsecase } from "../provider/application/usecases/UpdateProviderUsecase"
+import { GetAllCategoriesUsecase } from "../category/application/usecases/GetAllCategoriesUsecase"
 import { UploadBusinessDetailsDraftUsecase } from "./application/usecases/UploadBusinessDetailsUsecase"
 import { UploadDocumentUsecase } from "./application/usecases/UploadDocumentUsecase"
 import { ProviderDocumentRepository } from "../provider/infrastructure/database/repositories/ProviderDocumentRepository"
 import { ProviderDraftRepository } from "../provider/infrastructure/database/repositories/ProviderDraftRepository"
 import { ProviderRepository } from "../provider/infrastructure/database/repositories/ProviderRepository"
+import { CategoryRepository } from "../category/infrastructure/database/repositories/CategroryRepository"
 import { S3UploadUrlService } from "../provider/infrastructure/services/S3UrlService"
 import { CreateProviderController } from "./presentation/controllers/createProvider/CreateProviderController"
 import { UploadDocumentController } from "./presentation/controllers/documentControllers/UploadDocumentController"
@@ -18,21 +20,25 @@ import { GetProviderDraftController } from "./presentation/controllers/draftCont
 import { UploadDraftController } from "./presentation/controllers/draftControllers/UploadDraftController"
 import { CreateFileUploadUrlController } from "./presentation/controllers/fileUpload/CreateFileUploadUrlController"
 import { GetProviderController } from "./presentation/controllers/getProvider/GetProviderController"
+import { GetAllCategoriesController } from "./presentation/controllers/categoryControllers/GetAllCategoriesController"
 import { GetDisplayImageUrlController } from "./presentation/controllers/imageUrlController/GetDisplayImageUrlController"
 import { UpdateProviderController } from "./presentation/controllers/updateProvider/UpdateProviderController"
 import { createProviderApplicationRoute } from "./presentation/routes/providerApplication.routes"
 import { createProviderSchema } from "./presentation/validators/createProvider.schema"
 import { uploadDocumentSchema } from "./presentation/validators/uploadDocument.schema"
 import { updateProviderDraftSchema } from "./presentation/validators/uploadProviderDraft.schema"
+import { UserRepository } from "../auth/infrastructure/database/repositories/UserRepository"
 
 const providerRepository = new ProviderRepository()
 const documentRepository = new ProviderDocumentRepository()
 const providerDraftRepository = new ProviderDraftRepository()
+const categoryRepository = new CategoryRepository()
+const userRepository = new UserRepository()
 
 const s3UploadUrlService = new S3UploadUrlService(s3client)
 
 
-const createProviderUsecase = new CreateProviderUsecase(providerRepository, providerDraftRepository)
+const createProviderUsecase = new CreateProviderUsecase(providerRepository, providerDraftRepository, userRepository)
 const uploadDocumentUsecase = new UploadDocumentUsecase(documentRepository, providerRepository)
 const uploadBusinessDetailsUsecase = new UploadBusinessDetailsDraftUsecase(providerDraftRepository, providerRepository, documentRepository)
 const createUploadUrlUsecase = new CreateFileUploadUrlUsecase(s3UploadUrlService)
@@ -40,6 +46,7 @@ const getProviderDraftUsecase = new GetProvierDraftDetailsUsecase(providerReposi
 const getProviderUsecase = new GetProviderUsecase(providerRepository)
 const getDisplayImageUrlUsecase = new GetImageDisplayUrlUsecase(s3UploadUrlService)
 const updateProviderUsecase = new UpdateProviderUsecase(providerRepository)
+const getAllCategoriesUsecase = new GetAllCategoriesUsecase(categoryRepository)
 
 
 const createProviderController = new CreateProviderController(createProviderUsecase)
@@ -50,6 +57,7 @@ const getProviderDraftController = new GetProviderDraftController(getProviderDra
 const getProviderController = new GetProviderController(getProviderUsecase)
 const getDisplayImageUrlController = new GetDisplayImageUrlController(getDisplayImageUrlUsecase)
 const updateProviderController = new UpdateProviderController(updateProviderUsecase)
+const getAllCategoriesController = new GetAllCategoriesController(getAllCategoriesUsecase)
 
 const provAppControllers = {
     createProviderController,
@@ -60,6 +68,7 @@ const provAppControllers = {
     getProviderController,
     getDisplayImageUrlController,
     updateProviderController,
+    getAllCategoriesController,
 }
 
 const providerMiddlewares = {

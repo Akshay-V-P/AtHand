@@ -45,7 +45,7 @@ export default function ServiceSelection() {
 
   useEffect(() => {
     providerApplicationApi.getCategories()
-      .then(response => setServices(response.data.data))
+      .then(response => { console.log(response.data.data); setServices(response.data.data.items) })
       .catch(error => console.error(error))
     
   }, [])

@@ -1,65 +1,100 @@
-import React, { useEffect } from 'react'
-import ReadOnlyInput from '../../../components/admin/ReadonlyInput'
-import ServicePill from '../../../components/admin/ServicePill'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
 import { useOutletContext } from 'react-router-dom'
+import ServicePill from '../../../components/admin/ServicePill'
+import { InputField } from '../../../components/common/InputField'
 import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails'
+import { adminServices } from '../services/adminServices'
+
+type BusinessDetailsForm = {
+  businessName: string; contactPerson: string; phone: string; email: string
+  street: string; city: string; district: string; state: string; pincode: string
+}
+
+const formValues = (provider: ProviderDetails): BusinessDetailsForm => ({
+  businessName: provider.businessName ?? '', contactPerson: provider.contactPerson ?? '',
+  phone: provider.phone ?? '', email: provider.email ?? '',
+  street: provider.location?.address.street ?? '', city: provider.location?.address.city ?? '',
+  district: provider.location?.address.district ?? '', state: provider.location?.address.state ?? '',
+  pincode: provider.location?.address.pincode ?? '',
+})
 
 const EditProviderProfile = () => {
+  const { provider, setProvider } = useOutletContext<{
+    provider: ProviderDetails | null
+    setProvider: (provider: ProviderDetails | null) => void
+  }>()
+  const [isEditing, setIsEditing] = useState(false)
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<BusinessDetailsForm>()
 
-  const { provider } = useOutletContext<{ provider: ProviderDetails | null }>()
+  useEffect(() => { if (provider) reset(formValues(provider)) }, [provider, reset])
 
-  console.log(provider)
-  
+  const cancelEdit = () => {
+    if (provider) reset(formValues(provider))
+    setIsEditing(false)
+  }
 
-    return (
+  const onSubmit = async (data: BusinessDetailsForm) => {
+    if (!provider?.id || !provider.location) return
+    try {
+      const response = await adminServices.updateProvider(provider.id, {
+        businessName: data.businessName.trim(), contactPerson: data.contactPerson.trim(),
+        phone: data.phone.trim(), email: data.email.trim(),
+        location: {
+          address: {
+            street: data.street.trim(), city: data.city.trim(), district: data.district.trim(),
+            state: data.state.trim(), pincode: data.pincode.trim(),
+          },
+          coordinates: provider.location.coordinates,
+        },
+      })
+      setProvider(response.data.data)
+      setIsEditing(false)
+      toast.success('Business details updated successfully')
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Unable to update business details')
+    }
+  }
+
+  const required = (name: string) => ({ required: `${name} is required` })
+
+  return (
     <div className='overflow-y-auto max-h-screen'>
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 mb-6">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 mb-6">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-bold text-gray-900">Company Profile</h2>
-          <button className="flex items-center space-x-1.5 text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-            <span>Edit Details</span>
-          </button>
+          {!isEditing ? (
+            <button type="button" onClick={() => setIsEditing(true)} className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors cursor-pointer">Edit Details</button>
+          ) : (
+            <div className="flex gap-3">
+              <button type="button" onClick={cancelEdit} disabled={isSubmitting} className="text-sm font-semibold text-gray-600 hover:text-gray-900 cursor-pointer">Cancel</button>
+              <button type="submit" form="provider-business-details" disabled={isSubmitting} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">{isSubmitting ? 'Saving...' : 'Save changes'}</button>
+            </div>
+          )}
         </div>
 
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          <ReadOnlyInput label="Legal Business Name" value={provider?.businessName || ''} />
-          <ReadOnlyInput label="Tax ID / EIN" value="XX-XXXX6789" />
-          <ReadOnlyInput label="Primary Contact" value={provider?.contactPerson || ''} />
-          <ReadOnlyInput label="Business Phone" value={provider?.phone || ''} />
-          
-          <ReadOnlyInput 
-            fullWidth 
-            label="Service Region" 
-            value={`${provider?.location?.address.street}, ${provider?.location?.address.city}`} 
-            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>} 
-          />
+        <form id="provider-business-details" onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <InputField inputLabel="Legal Business Name" disabled={!isEditing} {...register('businessName', required('Business name'))} label={errors.businessName?.message} />
+          <InputField inputLabel="Primary Contact" disabled={!isEditing} {...register('contactPerson', required('Contact person'))} label={errors.contactPerson?.message} />
+          <InputField inputLabel="Business Phone" type="tel" disabled={!isEditing} {...register('phone', { ...required('Phone'), minLength: { value: 10, message: 'Enter a valid phone number' }, maxLength: { value: 15, message: 'Enter a valid phone number' } })} label={errors.phone?.message} />
+          <InputField inputLabel="Business Email" type="email" disabled={!isEditing} {...register('email', { ...required('Email'), pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email address' } })} label={errors.email?.message} />
+          <div className="col-span-full border-t border-gray-100 pt-6"><h3 className="font-semibold text-gray-900">Service Address</h3></div>
+          <InputField inputLabel="Street" disabled={!isEditing} {...register('street', required('Street'))} label={errors.street?.message} />
+          <InputField inputLabel="City" disabled={!isEditing} {...register('city', required('City'))} label={errors.city?.message} />
+          <InputField inputLabel="District" disabled={!isEditing} {...register('district', required('District'))} label={errors.district?.message} />
+          <InputField inputLabel="State" disabled={!isEditing} {...register('state', required('State'))} label={errors.state?.message} />
+          <InputField inputLabel="Pincode" disabled={!isEditing} {...register('pincode', { ...required('Pincode'), minLength: { value: 6, message: 'Pincode must be 6 characters' }, maxLength: { value: 6, message: 'Pincode must be 6 characters' } })} label={errors.pincode?.message} />
         </form>
       </div>
 
-      
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Service Catalog</h2>
-        
         <div className="flex flex-wrap items-center gap-4">
-          <ServicePill 
-            label="Electronics" 
-            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
-          />
-          <ServicePill 
-            label="Mobile" 
-            icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
-          />
-          
-          <button className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 transition-colors">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Add Category</span>
-          </button>
+          <ServicePill label="Electronics" icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 012-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>} />
         </div>
-            </div>
-            </div>
+      </div>
+    </div>
   )
 }
 

@@ -5,6 +5,7 @@ export const PROV_APP_ROUTES = {
     PRESIGNED_URL: "/presigned-url",
     GET_DRAFT: "/get-draft",
     GET_PROVIDER: "/get-provider/:id",
+    GET_CATEGORIES: "/categories",
     GET_DISPLAY_URL: "/get-display-url",
     UPDATE_PROVIDER: "/update",
 }

@@ -10,6 +10,7 @@ export const PROV_APP_MESSAGES = {
     PROVIDE_REQUIED_FIELDS: "Provide required fields",
     FILE_UPLOAD_URL: "File upload url granted",
     GET_PROVIDER: "Provider details",
+    GET_CATEGORIES: "Categories fetched",
     INVALID_KEY: "Invalid key",
     REQUIRE_KEY: "Provide key",
     DISPLAY_IMAGE: "Display image url success",

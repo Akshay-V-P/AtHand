@@ -20,7 +20,16 @@ const Navbar = () => {
         if (!provider.id) {
             apiService
                 .getProvider(user.id)
-                .then((response) => { console.log(response.data.data); setProviderActive(true); dispatch(setProvider(response.data.data)) })
+                .then((response) => {
+
+                    const provider = response.data.data
+                    console.log(provider)
+                    if (provider.status === "ACTIVE") {
+                        setProviderActive(true);
+                    }
+
+                    dispatch(setProvider(provider))
+                })
                 .catch((error) => console.log(error));
         }
         

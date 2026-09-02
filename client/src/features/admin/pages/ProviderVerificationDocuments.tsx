@@ -4,6 +4,7 @@ import type { IDocumentDetails } from '../../provider/intefaces/IDocumentDetails
 import { adminServices } from '../services/adminServices';
 import { useOutletContext } from 'react-router-dom';
 import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails';
+import toast from 'react-hot-toast';
 
 const ProviderVerificationDocuments = () => {
   const [documents, setDocuments] = useState<IDocumentDetails[] | null>(null);
@@ -59,6 +60,27 @@ const ProviderVerificationDocuments = () => {
       console.error("Failed to reject document:", error);
     }
   };
+
+  const onView = async (id: string | null) => {
+    if (!id || !documents) return;
+
+    const doc = documents.find(d => d.id === id);
+    if (!doc) return;
+
+    try {
+      const response = await adminServices.getDocumentDisplayUrl(doc.documentKey);
+      const documentUrl = response.data.data;
+
+      if (!documentUrl) {
+        throw new Error("Document URL is unavailable");
+      }
+
+      window.open(documentUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("Failed to open document:", error);
+      toast.error("Unable to open document");
+    }
+  };
     
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 font-sans">
@@ -83,6 +105,7 @@ const ProviderVerificationDocuments = () => {
             showActions={doc.verificationStatus === "PENDING"}
             onApprove={onApprove}
             onReject={onReject}
+            onView={onView}
           />
         ))}
       </div>

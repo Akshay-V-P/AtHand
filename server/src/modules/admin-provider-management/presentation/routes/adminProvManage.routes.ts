@@ -8,6 +8,7 @@ export const createAdminProviderManageRoutes = (controllers:AdminProvMangeContro
     router.get(ROUTES.GET_PROVIDERS, controllers.fetchProvidersController.fetchProviders)
     router.route(ROUTES.PROVIDER)
         .get(controllers.getProviderController.getProvider)
+        .patch(controllers.updateProviderController.updateProvider)
     router.get(ROUTES.GET_DOCUMENTS, controllers.getDocumentsController.getDocuments)
     router.patch(ROUTES.GET_DOCUMENT, controllers.updateDocumentController.updateDocument)
     router.patch(ROUTES.UPDATE_PROVIDER_STATUS, controllers.updateProviderStatusController.updateProvider)

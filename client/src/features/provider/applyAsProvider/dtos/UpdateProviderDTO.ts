@@ -1,4 +1,5 @@
 import type { ProviderStatus } from "../../enum/ProviderStatus";
+import type { ILocationDetails } from "../../intefaces/ILocationDetails";
 
 export interface IProviderUpdateData {
     businessName?: string,
@@ -6,7 +7,7 @@ export interface IProviderUpdateData {
     phone?: string,
     email?: string,
     serviceCategory?: string,
-    location?: Location,
+    location?: ILocationDetails,
     serviceRadius?: number,
     status?: ProviderStatus,
     experience?: number,

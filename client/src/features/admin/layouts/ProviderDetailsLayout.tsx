@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import LocationMap from '../../../components/common/LocationMap'
 import { adminServices } from '../services/adminServices'
@@ -216,7 +216,7 @@ const ProviderDetailsLayout = () => {
         </NavLink>
       </div>
 
-      <Outlet context={{ provider }} />
+      <Outlet context={{ provider, setProvider }} />
 
       {/* Confirmation Modal */}
       <Modal

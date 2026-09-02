@@ -2,9 +2,9 @@ import type { CreateCategoryDTO } from "../../../shared/dtos/CreateCategoryDTO"
 import type { GetCategoriesDTO } from "../../../shared/dtos/GetCategoryDTO"
 import { accountApi } from "../../customer/account/api/accountApi"
 import type { LogoutDTO } from "../../customer/account/dtos/LogoutDTO"
-import type { ProviderStatus } from "../../provider/enum/ProviderStatus"
 import { adminApi } from "../api/adminApi"
 import type { EditCategoryFormData } from "../validation/EditCategorySchema"
+import type { IProviderUpdateData } from "../../provider/applyAsProvider/dtos/UpdateProviderDTO"
 
 export const adminServices = {
     async getProviders(query?: object) {
@@ -22,6 +22,9 @@ export const adminServices = {
         const response = await adminApi.getProvider(id)
         return response
     },
+    async updateProvider(id: string, data: IProviderUpdateData) {
+        return adminApi.updateProvider(id, data)
+    },
 
     async logout(data:LogoutDTO) {
         const response = await accountApi.logout(data)
@@ -30,6 +33,10 @@ export const adminServices = {
     
     async getDocuments(id: string) {
         const response = await adminApi.getDocuments(id)
+        return response
+    },
+    async getDocumentDisplayUrl(key: string) {
+        const response = await adminApi.getDocumentDisplayUrl(key)
         return response
     },
     async updateDocument(id: string, data: { documentKey?: string; verificationStatus: string; remarks?: string; documentType?: string }) {
@@ -79,6 +86,15 @@ export const adminServices = {
     async getAllUsers(data:any) {
         const response = await adminApi.getAllUsers(data.page, data.limit, data.search)
         return response
+    },
+    async updateUser(id: string, data: { name: string; phone?: string }) {
+        return adminApi.updateUser(id, data)
+    },
+    async blockUser(id: string) {
+        return adminApi.blockUser(id)
+    },
+    async unblockUser(id: string) {
+        return adminApi.unblockUser(id)
     }
     
 }

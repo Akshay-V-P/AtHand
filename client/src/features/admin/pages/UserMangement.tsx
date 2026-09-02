@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   Users,
   UserPlus,
@@ -13,6 +14,7 @@ import {
 
 import StatCard from "../../../components/admin/StatCard";
 import { adminServices } from "../services/adminServices";
+import { Modal } from "../../../components/common/Modal";
 
 interface User {
   id: string;
@@ -45,6 +47,11 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [statusUser, setStatusUser] = useState<User | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchUsers = async (
     page = 1,
@@ -97,6 +104,55 @@ export default function UserManagement() {
       usersData.page + 1,
       search
     );
+  };
+
+  const updateUserInList = (id: string, update: Partial<User>) => {
+    setUsersData((current) => ({
+      ...current,
+      items: current.items.map((user) => user.id === id ? { ...user, ...update } : user),
+    }));
+  };
+
+  const openEdit = (user: User) => {
+    setEditingUser(user);
+    setEditName(user.name);
+    setEditPhone(user.phone || "");
+  };
+
+  const saveUser = async () => {
+    if (!editingUser) return;
+    if (editName.trim().length < 2) {
+      toast.error("Enter a valid user name");
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      await adminServices.updateUser(editingUser.id, { name: editName.trim(), phone: editPhone.trim() || undefined });
+      updateUserInList(editingUser.id, { name: editName.trim(), phone: editPhone.trim() || undefined });
+      setEditingUser(null);
+      toast.success("User details updated successfully");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Unable to update user");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const updateUserStatus = async () => {
+    if (!statusUser) return;
+    const isBlocking = statusUser.status === "ACTIVE";
+    try {
+      setIsSubmitting(true);
+      if (isBlocking) await adminServices.blockUser(statusUser.id);
+      else await adminServices.unblockUser(statusUser.id);
+      updateUserInList(statusUser.id, { status: isBlocking ? "BLOCKED" : "ACTIVE" });
+      setStatusUser(null);
+      toast.success(isBlocking ? "User blocked" : "User unblocked");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || `Unable to ${isBlocking ? "block" : "unblock"} user`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const startItem =
@@ -374,6 +430,7 @@ export default function UserManagement() {
                       <div className="flex items-center justify-end gap-2">
 
                         <button
+                          onClick={() => openEdit(user)}
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Edit"
                         >
@@ -381,6 +438,7 @@ export default function UserManagement() {
                         </button>
 
                         <button
+                          onClick={() => setStatusUser(user)}
                           className={`p-2 rounded-lg transition-colors ${
                             user.status === "ACTIVE"
                               ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
@@ -476,6 +534,31 @@ export default function UserManagement() {
         </div>
 
       </div>
+
+      <Modal isOpen={editingUser !== null} onClose={() => !isSubmitting && setEditingUser(null)} title="Edit User">
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-slate-700">Name
+            <input value={editName} onChange={(event) => setEditName(event.target.value)} disabled={isSubmitting} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </label>
+          <label className="block text-sm font-medium text-slate-700">Phone
+            <input value={editPhone} onChange={(event) => setEditPhone(event.target.value)} disabled={isSubmitting} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" />
+          </label>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setEditingUser(null)} disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-slate-600">Cancel</button>
+            <button type="button" onClick={saveUser} disabled={isSubmitting} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{isSubmitting ? "Saving..." : "Save changes"}</button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={statusUser !== null} onClose={() => !isSubmitting && setStatusUser(null)} title={statusUser?.status === "ACTIVE" ? "Block User" : "Unblock User"}>
+        <div className="space-y-5">
+          <p className="text-sm text-slate-600">{statusUser?.status === "ACTIVE" ? `Block ${statusUser?.name}? They will no longer be able to access their account.` : `Unblock ${statusUser?.name}? They will regain access to their account.`}</p>
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={() => setStatusUser(null)} disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-slate-600">Cancel</button>
+            <button type="button" onClick={updateUserStatus} disabled={isSubmitting} className={`rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${statusUser?.status === "ACTIVE" ? "bg-rose-600" : "bg-emerald-600"}`}>{isSubmitting ? "Updating..." : statusUser?.status === "ACTIVE" ? "Block user" : "Unblock user"}</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

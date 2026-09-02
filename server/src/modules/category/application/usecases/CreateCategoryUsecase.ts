@@ -1,4 +1,5 @@
 import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
+import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { Category } from "../../domain/entities/Category";
 import { CategoryStatus } from "../../domain/enums/CategoryStatus";
 import { ICategoryRepository } from "../../domain/repositories/ICategoryRepository";
@@ -16,7 +17,7 @@ export class CreateCategoryUsecase implements IUsecase<CreateCategoryDTO, Catego
             await this.categoryRepository.findBySlug(data.slug);
 
         if (existingCategory) {
-            throw new Error("Category with this slug already exists");
+            throw new BadRequestError("Category with this slug already exists");
         }
 
         const category = new Category(
