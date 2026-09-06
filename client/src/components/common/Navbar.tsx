@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./Button";
-import { useActionState, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/storeHook";
 import { apiService } from "../../features/provider/applyAsProvider/services/apiService";
 import { setProvider } from "../../features/provider/applyAsProvider/store/providerSlice";
@@ -12,29 +12,22 @@ const Navbar = () => {
     const { user, isAuthenticated, isLoading } = useAppSelector((state) => state.auth)
     const provider = useAppSelector(state => state.provider)
     const dispatch = useAppDispatch()
-    const [providerActive, setProviderActive] = useState(false)
+
 
     useEffect(() => {
-        console.log(user)
         if (!user?.id) return;
         if (!provider.id) {
             apiService
                 .getProvider(user.id)
                 .then((response) => {
-
-                    const provider = response.data.data
-                    console.log(provider)
-                    if (provider.status === "ACTIVE") {
-                        setProviderActive(true);
-                    }
-
-                    dispatch(setProvider(provider))
+                    const providerData = response.data.data
+                    dispatch(setProvider(providerData))
                 })
                 .catch((error) => console.log(error));
         }
-        
-    }, [provider, isLoading]);
-    
+
+    }, [provider, isLoading, user?.id]);
+
     return (
         <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
             <div className="text-2xl font-extrabold text-gray-900 tracking-tight">
@@ -48,13 +41,13 @@ const Navbar = () => {
                 >
                     Services
                 </a>
-                <Link to={provider.status == "ACTIVE"? "/provider" :"/apply-provider/business"}>
-                    
+                <Link to={provider.status == "ACTIVE" ? "/provider" : "/apply-provider/business"}>
+
                     <p
-                    className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                        className="text-sm font-medium text-gray-600 hover:text-gray-900"
                     >
-                    {provider.status == "ACTIVE"? "Provider Dashboard":"Become a Provider"}
-                </p>
+                        {provider.status == "ACTIVE" ? "Provider Dashboard" : "Become a Provider"}
+                    </p>
                 </Link>
             </div>
 

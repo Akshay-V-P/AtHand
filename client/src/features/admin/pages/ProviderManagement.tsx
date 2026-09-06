@@ -28,6 +28,7 @@ const ProviderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
 
+  // fetch provider function
   const fetchProviders = async (
     page = 1,
     searchValue = search,
@@ -86,6 +87,7 @@ const ProviderManagement = () => {
     fetchProviders(1, search, statusFilter, categoryFilter, sortOption);
   }, [statusFilter, categoryFilter, sortOption]);
 
+  // Page navigation
   const handlePageChange = (page: number) => {
     if (page < 1 || page > providerData.totalPages) return;
     fetchProviders(page, search, statusFilter, categoryFilter, sortOption);
