@@ -75,7 +75,7 @@ const Navbar = () => {
                         <span className="material-symbols-outlined pt-1 cursor-pointer">
                             chat_bubble
                         </span>
-                        <Link to={"/account"}>
+                        <Link to={"/account/profile"}>
                             <div className="bg-black rounded-full w-8 h-8 flex items-center justify-center cursor-pointer">
                                 <span className="material-symbols-outlined text-white">
                                     account_circle

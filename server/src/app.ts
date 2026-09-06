@@ -8,6 +8,7 @@ import { provAppRoutes } from "./modules/providerApplication/container"
 import { adminProvManageRoutes } from "./modules/admin-provider-management/container"
 import { categoryAdminRoutes } from "./modules/admin-category-management/container"
 import { adminUserMangRoutes } from "./modules/admin-user-management/container"
+import { addressRoutes } from "./modules/address/container"
 
 
 const app = express()
@@ -16,7 +17,7 @@ app.disable('x-powered-by')
 
 app.use(cors({
     origin: process.env.CLIENT_ORIGIN,
-    credentials:true
+    credentials: true
 }))
 
 
@@ -30,6 +31,7 @@ app.use('/api/provider-application', provAppRoutes)
 app.use('/api/admin', adminProvManageRoutes)
 app.use('/api/admin', categoryAdminRoutes)
 app.use('/api/admin', adminUserMangRoutes)
+app.use('/api/address', addressRoutes)
 
 app.use(errorHandler)
 

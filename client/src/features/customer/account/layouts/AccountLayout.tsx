@@ -3,6 +3,7 @@ import React from 'react'
 import Profile from '../pages/Profile'
 import Navbar from '../../../../components/common/Navbar'
 import Sidebar from '../../../../components/account/Sidebar'
+import { Outlet } from 'react-router-dom'
 
 const AccountLayout = () => {
     return (
@@ -11,7 +12,7 @@ const AccountLayout = () => {
                 <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
 
                     <Sidebar />
-                    <Profile/>
+                    <Outlet/>
                 </div>
             </main>
             

@@ -10,7 +10,7 @@ export class AuthMiddleware{
     
     execute = (req: Request, res: Response, next: NextFunction):void => {
         let token = req.cookies.accessToken
-        if (req.body.context == "ADMIN") {
+        if (req.body?.context == "ADMIN") {
             token = req.cookies.adminAccessToken
         }
 
