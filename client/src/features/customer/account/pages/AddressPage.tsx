@@ -9,17 +9,40 @@ import { Form } from '../../../../components/common/Form';
 import { InputField } from '../../../../components/common/InputField';
 import { Button } from '../../../../components/common/Button';
 import toast from 'react-hot-toast';
-import { MapPin, Home, Briefcase, Plus, Trash2, Edit2 } from 'lucide-react';
+import { MapPin, Home, Briefcase, Plus, Trash2, Edit2, Locate } from 'lucide-react';
+import LocationPicker from '../../../../components/provider/applyProvider/LocationPicker';
+import { getUserLocation, reverseGeocode } from '../../../../features/provider/applyAsProvider/services/locationService';
 
 const AddressPage = () => {
   const [addresses, setAddresses] = useState<AddressResponseDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<AddressResponseDTO | null>(null);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<AddressFormData>({
+  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
   });
+
+
+  const fetchLocation = async () => {
+    try {
+      const position = await getUserLocation();
+      if (!position) return;
+      setLatitude(position.coords.latitude);
+      setLongitude(position.coords.longitude);
+
+      const payload = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+      setValue('area', payload.address.street || payload.address.district || '');
+      setValue('city', payload.address.city);
+      setValue('state', payload.address.state);
+      setValue('pincode', payload.address.pincode);
+    } catch (error: any) {
+      console.error(error.message);
+      toast.error(error.message || 'Something went wrong');
+    }
+  };
 
   const fetchAddresses = async () => {
     setIsLoading(true);
@@ -39,12 +62,18 @@ const AddressPage = () => {
 
   const openAddModal = () => {
     setEditingAddress(null);
+    setLatitude(null);
+    setLongitude(null);
     reset({ label: '', houseName: '', area: '', city: '', state: '', pincode: '', isPrimary: false });
     setIsModalOpen(true);
   };
 
   const openEditModal = (address: AddressResponseDTO) => {
     setEditingAddress(address);
+    if (address.coordinates?.coordinates) {
+      setLongitude(address.coordinates.coordinates[0]);
+      setLatitude(address.coordinates.coordinates[1]);
+    }
     reset({
       label: address.label,
       houseName: address.houseName,
@@ -69,9 +98,14 @@ const AddressPage = () => {
   };
 
   const onSubmit = async (data: AddressFormData) => {
+    if (!latitude || !longitude) {
+      toast.error('Please select your location on the map');
+      return;
+    }
+
     const payload = {
       ...data,
-      coordinates: { type: 'Point' as const, coordinates: [0, 0] as [number, number] }
+      coordinates: { type: 'Point' as const, coordinates: [longitude, latitude] as [number, number] }
     };
 
     try {
@@ -169,6 +203,33 @@ const AddressPage = () => {
           <div className="space-y-1 max-h-[60vh] overflow-y-auto px-1 hide-scrollbar">
             <InputField inputLabel="Label (e.g. Home, Work)" placeholder="Enter label" {...register('label')} label={errors.label?.message} />
             <InputField inputLabel="House / Building Name" placeholder="Enter house name" {...register('houseName')} label={errors.houseName?.message} />
+
+            <div className="mt-4 mb-2">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-gray-800">Pin Location</label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="outline-1 outline-gray-200 flex gap-2 items-center h-8 text-xs px-3 rounded-lg text-gray-700 hover:bg-gray-50"
+                  onClick={fetchLocation}
+                >
+                  <Locate size={14} /> Use current location
+                </Button>
+              </div>
+              <LocationPicker
+                onLocationSelect={async (lat, lng) => {
+                  const location = await reverseGeocode(lat, lng);
+                  setLatitude(lat);
+                  setLongitude(lng);
+                  setValue("area", location.address.street || location.address.district || '');
+                  setValue("city", location.address.city);
+                  setValue("state", location.address.state);
+                  setValue("pincode", location.address.pincode);
+                }}
+                positionDetails={{ latitude, longitude }}
+              />
+            </div>
+
             <InputField inputLabel="Area / Street" placeholder="Enter area" {...register('area')} label={errors.area?.message} />
             <div className="grid grid-cols-2 gap-4">
               <InputField inputLabel="City" placeholder="Enter city" {...register('city')} label={errors.city?.message} />
