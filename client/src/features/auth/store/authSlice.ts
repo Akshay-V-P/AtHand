@@ -1,19 +1,21 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import type { UserRole } from "../enums/UserRole";
 
-interface User{
+interface User {
     id: string;
     name: string;
     email: string;
     role: UserRole[];
     googleId: string;
     profilePhotoUrl: string;
+    profileKey?: string;
+    phone?: string;
 }
 
 interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
-    isLoading:boolean
+    isLoading: boolean
 }
 
 const initialState: AuthState = {
@@ -34,12 +36,17 @@ const authSlice = createSlice({
             state.user = null;
             state.isAuthenticated = false
         },
-        setIsLoading(state, action:PayloadAction<boolean>) {
+        updateUser(state, action: PayloadAction<Partial<User>>) {
+            if (state.user) {
+                state.user = { ...state.user, ...action.payload };
+            }
+        },
+        setIsLoading(state, action: PayloadAction<boolean>) {
             state.isLoading = action.payload
         }
     }
 })
 
-export const { loginSuccess, logout, setIsLoading } = authSlice.actions;
+export const { loginSuccess, logout, setIsLoading, updateUser } = authSlice.actions;
 
 export default authSlice.reducer;

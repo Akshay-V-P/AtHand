@@ -5,5 +5,5 @@ export interface CreateUploadUrlResponse{
 
 export interface IImageUrlService{
     createUploadUrl(fileName: string, fileType: string): Promise<CreateUploadUrlResponse>;
-    createDisplayUrl(data: string): Promise<string | null>;
+    createDisplayUrl?(data: string): Promise<string | null>;
 }

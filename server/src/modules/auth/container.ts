@@ -37,6 +37,12 @@ import { ResetTokenController } from "./presentation/controllers/tokenController
 import { AuthMiddleware } from "./presentation/middlewares/AuthMiddleware";
 import { RegistrationMiddleware } from "./presentation/middlewares/RegistrationMiddleware";
 import { createAuthRoutes } from "./presentation/routes/auth.routes";
+import { CreateProfileUploadUrlUsecase } from "./application/usecases/CreateProfileUploadUrlUsecase";
+import { UpdateUserProfileUsecase } from "./application/usecases/UpdateUserProfileUsecase";
+import { CreateProfileUploadUrlController } from "./presentation/controllers/CreateProfileUploadUrlController";
+import { UpdateUserProfileController } from "./presentation/controllers/UpdateUserProfileController";
+import { S3UserProfileUrlService } from "./infrastructure/services/S3UserProfileUrlService";
+import { s3client } from "../../config/s3";
 
 const userRepository = new UserRepository()
 const redisRefreshTokenRepo = new RedisRefreshTokenRepository()
@@ -62,6 +68,11 @@ const updatePasswordUsecase = new UpdatePasswordUsecase(userRepository, password
 const verifyResetTokenUsecase = new VerifyResetTokenUsecase(cryptoService, passwordResetTokenRepo)
 const signInWithGoogle = new SignInWithGoogleUsecase(authService, userRepository, jwtService, redisRefreshTokenRepo)
 const verifyPasswordUsecase = new VerifyPasswordUsecase(userRepository, emailService, cryptoService, passwordResetTokenRepo, passwordService)
+
+const s3UserProfileUrlService = new S3UserProfileUrlService(s3client)
+
+const createProfileUploadUrlUsecase = new CreateProfileUploadUrlUsecase(s3UserProfileUrlService)
+const updateUserProfileUsecase = new UpdateUserProfileUsecase(userRepository)
 
 const signupController = new SignupController(registerUserUsecase)
 const loginController = new LoginController(loginUserUsecase)
@@ -92,13 +103,15 @@ const authController = {
     resetTokenController,
     meController,
     googleController,
-    adminRefreshController
+    adminRefreshController,
+    createProfileUploadUrlController: new CreateProfileUploadUrlController(createProfileUploadUrlUsecase),
+    updateUserProfileController: new UpdateUserProfileController(updateUserProfileUsecase),
 }
- 
 
 
 
-export type AuthController = typeof authController 
+
+export type AuthController = typeof authController
 export const authMiddleware = new AuthMiddleware(jwtService)
 export const registrationMiddleware = new RegistrationMiddleware(jwtService)
 

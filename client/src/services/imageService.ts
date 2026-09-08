@@ -27,3 +27,9 @@ export const uploadFileToS3 = async (file: File, apiUrl: string) => {
 
     return key
 }
+
+export const getPresignedDisplayUrl = async (key: string) => {
+    if (!key) throw new Error("Image key not found")
+    const url = await api.post("/image/presigned-url", { key })
+    return url
+}

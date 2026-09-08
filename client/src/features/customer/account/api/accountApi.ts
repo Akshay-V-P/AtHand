@@ -7,6 +7,8 @@ export const accountApi = {
     logout: (data: LogoutDTO) =>
         api.post("/auth/logout", data),
 
+    updateProfile: (data: { name?: string; phone?: string; profilePhotoUrl?: string }) => api.patch("/auth/update-profile", data),
+
     // Address endpoints
     addAddress: (data: CreateAddressDTO) => api.post("/address", data),
     getAddresses: () => api.get("/address"),

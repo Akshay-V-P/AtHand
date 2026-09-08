@@ -9,6 +9,7 @@ import { adminProvManageRoutes } from "./modules/admin-provider-management/conta
 import { categoryAdminRoutes } from "./modules/admin-category-management/container"
 import { adminUserMangRoutes } from "./modules/admin-user-management/container"
 import { addressRoutes } from "./modules/address/container"
+import { imageRoutes } from "./shared/presentation/image.route"
 
 
 const app = express()
@@ -32,6 +33,7 @@ app.use('/api/admin', adminProvManageRoutes)
 app.use('/api/admin', categoryAdminRoutes)
 app.use('/api/admin', adminUserMangRoutes)
 app.use('/api/address', addressRoutes)
+app.use('/api/image', imageRoutes)
 
 app.use(errorHandler)
 

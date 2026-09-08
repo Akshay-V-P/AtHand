@@ -8,6 +8,11 @@ export const accountServices = {
         return response
     },
 
+    async updateProfile(data: { name?: string; phone?: string; profilePhotoUrl?: string }) {
+        const response = await accountApi.updateProfile(data)
+        return response.data
+    },
+
     async addAddress(data: CreateAddressDTO) {
         const response = await accountApi.addAddress(data)
         return response.data

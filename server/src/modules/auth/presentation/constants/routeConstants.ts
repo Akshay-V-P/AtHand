@@ -13,5 +13,7 @@ export const AUTH_ROUTE = {
     GOOGLE: "/google",
     VERIFY_PASSWORD: "/verify-password",
     ADMIN_REFRESH: "/admin-refresh",
-    GET_ADMIN:"/admin/me",
+    GET_ADMIN: "/admin/me",
+    PROFILE_UPLOAD_URL: "/profile-upload-url",
+    UPDATE_PROFILE: "/update-profile",
 } as const
