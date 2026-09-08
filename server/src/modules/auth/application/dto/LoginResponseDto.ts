@@ -9,6 +9,7 @@ export interface LoginResponseDto{
         email: string,
         role: UserRole[],
         googleId: string,
+        phone:string,
         profilePhotoUrl:string
     }
 }

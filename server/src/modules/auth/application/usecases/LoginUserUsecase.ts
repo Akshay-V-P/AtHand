@@ -48,6 +48,7 @@ export class LoginUserUsecase implements IUsecase<LoginDto, LoginResponseDto>{
                 email: user.email,
                 role: user.role,
                 googleId: user.googleId!,
+                phone:user.phone || "",
                 profilePhotoUrl:user.profilePhotoUrl!
             }
         }

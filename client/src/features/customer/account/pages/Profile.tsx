@@ -24,6 +24,7 @@ const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    console.log(user)
     if (isEditing && user) {
       setEditName(user.name || '')
       setEditPhone(user.phone || '')
@@ -82,7 +83,6 @@ const Profile = () => {
 
       
       if (response && response.data.user) {
-        console.log(response.data.user.profilePhotoUrl)
         const profileUrl = await getPresignedDisplayUrl(response.data.user.profilePhotoUrl)
         const updatedUser = {
           ...response.data.user,
