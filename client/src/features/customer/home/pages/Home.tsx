@@ -107,48 +107,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 7. FOOTER */}
-      <div className="p-4">
-        <footer className="bg-[#2A2A2A] rounded-[2rem] p-12 md:p-16 text-white flex flex-col md:flex-row justify-between gap-12">
-          <div className="max-w-xs">
-            <h2 className="text-3xl font-extrabold leading-tight mb-4">Simple way to hire with confidence</h2>
-            <p className="text-gray-400 text-sm mt-12">Made with ❤️</p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
-            <div className="flex flex-col gap-3 text-gray-400">
-              <h4 className="text-white font-bold mb-2">Discover</h4>
-              <a href="#" className="hover:text-white transition-colors">Services by city</a>
-              <a href="#" className="hover:text-white transition-colors">Our community</a>
-              <a href="#" className="hover:text-white transition-colors">Gift cards</a>
-              <a href="#" className="hover:text-white transition-colors">Elite Taskers</a>
-              <a href="#" className="hover:text-white transition-colors">Become a Provider</a>
-            </div>
-            <div className="flex flex-col gap-3 text-gray-400">
-              <h4 className="text-white font-bold mb-2">Company</h4>
-              <a href="#" className="hover:text-white transition-colors">About us</a>
-              <a href="#" className="hover:text-white transition-colors">Careers</a>
-              <a href="#" className="hover:text-white transition-colors">Partnerships</a>
-              <a href="#" className="hover:text-white transition-colors">Blog</a>
-            </div>
-            <div className="flex flex-col gap-3 text-gray-400">
-              <h4 className="text-white font-bold mb-2">Support</h4>
-              <a href="#" className="hover:text-white transition-colors">Help Center</a>
-              <a href="#" className="hover:text-white transition-colors">Contact us</a>
-              <a href="#" className="hover:text-white transition-colors">Safety</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            </div>
-            <div className="flex flex-col gap-3 text-gray-400">
-              <h4 className="text-white font-bold mb-2">Connect</h4>
-              <a href="#" className="hover:text-white transition-colors">Instagram</a>
-              <a href="#" className="hover:text-white transition-colors">Twitter (X)</a>
-              <a href="#" className="hover:text-white transition-colors">Facebook</a>
-              <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
-            </div>
-          </div>
-        </footer>
-      </div>
+      
+      
       </>
   )
 }

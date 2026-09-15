@@ -23,7 +23,7 @@ const ApplyAsProviderLayout = () => {
                 .getProvider(user?.id!)
                 .then((response) => {
                   console.log(response.data.data);
-                  if(response.data.data.status == "ACTIVE") navigate("/provider")
+                  if(response.data.data.status == "ACTIVE") navigate("/provider/dashboard")
                     dispatch(setProvider(response.data.data));
                 })
                 .catch((error) => console.log(error));

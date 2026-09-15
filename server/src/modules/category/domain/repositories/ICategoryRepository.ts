@@ -3,8 +3,8 @@ import { GetCategoriesDTO } from "../../application/dtos/GetCategoriesDTO";
 import { Category } from "../entities/Category";
 import { CategoryStatus } from "../enums/CategoryStatus";
 
-export interface ICategoryRepository{
-    findAll(options:GetCategoriesDTO): Promise<PaginatedResult<Category>>
+export interface ICategoryRepository {
+    findAll(options: GetCategoriesDTO): Promise<PaginatedResult<Category>>
 
     create(category: Category): Promise<Category>;
 
@@ -18,4 +18,6 @@ export interface ICategoryRepository{
         id: string,
         status: CategoryStatus
     ): Promise<Category | null>;
+
+    findActiveForDropdown(): Promise<{ id: string, name: string }[]>;
 }

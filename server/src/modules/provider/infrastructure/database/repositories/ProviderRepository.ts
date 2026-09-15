@@ -56,10 +56,23 @@ export class ProviderRepository extends BaseRepository<ProviderSchemaType> imple
             ];
         }
 
+        if (filter?.location) {
+            query["location.coordinates"] = {
+                $near: {
+                    $geometry: {
+                        type: "Point",
+                        coordinates: [filter.location.longitude, filter.location.latitude]
+                    },
+                    $maxDistance: filter.location.radiusKm * 1000
+                }
+            };
+        }
+
         let sortObj: any = {};
         if (filter?.sort) {
             sortObj[filter.sort] = filter.sortOrder === 'desc' ? -1 : 1;
-        } else {
+        } else if (!filter?.location) {
+            // Only add default sort if we aren't using $near, because $near automatically sorts by distance
             sortObj = { createdAt: -1 };
         }
 
@@ -84,6 +97,16 @@ export class ProviderRepository extends BaseRepository<ProviderSchemaType> imple
                     { email: { $regex: filter.search.trim(), $options: "i" } },
                     { contactPerson: { $regex: filter.search.trim(), $options: "i" } }
                 ];
+            }
+            if (filter.location) {
+                query["location.coordinates"] = {
+                    $geoWithin: {
+                        $centerSphere: [
+                            [filter.location.longitude, filter.location.latitude],
+                            filter.location.radiusKm / 6378.1
+                        ]
+                    }
+                };
             }
         }
 

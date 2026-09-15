@@ -82,14 +82,14 @@ export class CategoryRepository
         }
 
         const [documents, totalItems] = await Promise.all([
-                this.model
-                    .find(filter)
-                    .skip(skip)
-                    .limit(limit)
-                    .sort({ createdAt: -1 }),
+            this.model
+                .find(filter)
+                .skip(skip)
+                .limit(limit)
+                .sort({ createdAt: -1 }),
 
-                this.model.countDocuments(filter)
-            ]);
+            this.model.countDocuments(filter)
+        ]);
 
         return {
             items: documents.map(
@@ -145,5 +145,16 @@ export class CategoryRepository
         return CategoryMapper.toDomain(document);
     }
 
-    
+    async findActiveForDropdown(): Promise<{ id: string, name: string }[]> {
+        const documents = await this.model
+            .find({ status: CategoryStatus.ACTIVE })
+            .select('name _id')
+            .sort({ name: 1 })
+            .lean();
+
+        return documents.map(doc => ({
+            id: doc._id.toString(),
+            name: doc.name
+        }));
+    }
 }

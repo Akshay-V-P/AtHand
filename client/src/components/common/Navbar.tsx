@@ -35,13 +35,13 @@ const Navbar = () => {
             </div>
 
             <div className="hidden md:flex items-center gap-8">
-                <a
-                    href="#"
+                <Link 
+                    to={"/services"}
                     className="text-sm font-medium text-gray-600 hover:text-gray-900"
                 >
                     Services
-                </a>
-                <Link to={provider.status == "ACTIVE" ? "/provider" : "/apply-provider/business"}>
+                </Link>
+                <Link to={provider.status == "ACTIVE" ? "/provider/dashboard" : "/apply-provider/business"}>
 
                     <p
                         className="text-sm font-medium text-gray-600 hover:text-gray-900"

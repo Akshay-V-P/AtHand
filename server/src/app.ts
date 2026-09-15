@@ -10,7 +10,8 @@ import { categoryAdminRoutes } from "./modules/admin-category-management/contain
 import { adminUserMangRoutes } from "./modules/admin-user-management/container"
 import { addressRoutes } from "./modules/address/container"
 import { imageRoutes } from "./shared/presentation/image.route"
-
+import { providerRoutes } from "./modules/provider/container"
+import { categoryRoutes } from "./modules/category/container"
 
 const app = express()
 
@@ -34,7 +35,10 @@ app.use('/api/admin', categoryAdminRoutes)
 app.use('/api/admin', adminUserMangRoutes)
 app.use('/api/address', addressRoutes)
 app.use('/api/image', imageRoutes)
+app.use('/api/provider', providerRoutes)
+app.use('/api/category', categoryRoutes)
 
 app.use(errorHandler)
+
 
 export default app
