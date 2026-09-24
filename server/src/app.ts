@@ -12,6 +12,7 @@ import { addressRoutes } from "./modules/address/container"
 import { imageRoutes } from "./shared/presentation/image.route"
 import { providerRoutes } from "./modules/provider/container"
 import { categoryRoutes } from "./modules/category/container"
+import { providerServiceRoutes } from "./modules/provider-service/container"
 
 const app = express()
 
@@ -37,6 +38,7 @@ app.use('/api/address', addressRoutes)
 app.use('/api/image', imageRoutes)
 app.use('/api/provider', providerRoutes)
 app.use('/api/category', categoryRoutes)
+app.use('/api/provider-service', providerServiceRoutes)
 
 app.use(errorHandler)
 
