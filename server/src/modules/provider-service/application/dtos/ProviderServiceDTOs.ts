@@ -38,3 +38,16 @@ export interface GetProviderServicesDTO {
     providerId?: string;
     status?: string;
 }
+
+export interface NearbyServicesFilter {
+    page: number;
+    limit: number;
+    lat?: number | null;
+    lng?: number | null;
+    radiusKm?: number;
+    categoryId?: string;
+    sortField?: string;
+    sortOrder?: 'asc' | 'desc';
+    search?: string;
+    minRating?: number;
+}

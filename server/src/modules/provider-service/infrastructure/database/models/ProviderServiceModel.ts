@@ -58,7 +58,8 @@ const ProviderServiceSchema = new mongoose.Schema({
         default: "ACTIVE"
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    collection: "providerservices"
 });
 
 export type ProviderServiceSchemaType = InferSchemaType<typeof ProviderServiceSchema>;

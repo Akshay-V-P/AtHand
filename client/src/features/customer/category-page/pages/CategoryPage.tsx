@@ -1,13 +1,17 @@
 // pages/CategoryPage.jsx
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import Filters from '../../../../components/user/category-list/Filter';
-import ProviderCard from '../../../../components/user/category-list/ProviderCard';
+import ServiceCard from '../../../../components/user/home/ServiceCard';
 import { useGeolocation } from '../../../../hooks/useGeolocation';
 import { categoryPageServices, type FetchProvidersParams } from '../services/categoryPageServices';
 
 export default function CategoryPage() {
-  const [providers, setProviders] = useState([]);
+  const [searchParams] = useSearchParams();
+  const searchParam = searchParams.get('search') || '';
+
+  const [services, setServices] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 9, totalPages: 1, totalItems: 0 });
   const [loading, setLoading] = useState(false);
 
@@ -16,10 +20,11 @@ export default function CategoryPage() {
     distance: '15',
     category: '',
     urgency: 'Flexible',
-    sortBy: 'Popularity'
+    sortBy: 'Popularity',
+    search: searchParam
   });
 
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<any[]>([]);
 
   const locationCoords = useGeolocation();
 
@@ -37,7 +42,7 @@ export default function CategoryPage() {
   }, [])
 
 
-  const handleFilterChange = (filterKey, value) => {
+  const handleFilterChange = (filterKey: string, value: any) => {
     setActiveFilters((prevFilters) => ({
       ...prevFilters,
       [filterKey]: value
@@ -46,7 +51,7 @@ export default function CategoryPage() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPagination(prev => ({ ...prev, page: newPage }));
     }
@@ -57,6 +62,15 @@ export default function CategoryPage() {
       setActiveFilters(prev => ({ ...prev, location: 'Current Location' }));
     }
   }, [locationCoords]);
+
+  useEffect(() => {
+    setActiveFilters(prev => {
+      if (prev.search !== searchParam) {
+        return { ...prev, search: searchParam };
+      }
+      return prev;
+    });
+  }, [searchParam]);
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -86,17 +100,22 @@ export default function CategoryPage() {
           params.categoryId = activeFilters.category;
         }
 
-        const res = await categoryPageServices.fetchProvidersApi(params);
+        if (activeFilters.search) {
+          params.search = activeFilters.search;
+        }
+
+        const res = await categoryPageServices.fetchServicesApi(params);
         if (res.success) {
-          setProviders(res.data.items || []);
+          setServices(res.data.items || []);
           setPagination(prev => ({
             ...prev,
             totalPages: res.data.totalPages,
             totalItems: res.data.totalItems
           }));
         }
+        console.log(res)
       } catch (error) {
-        console.error("Failed to fetch providers:", error);
+        console.error("Failed to fetch services:", error);
       } finally {
         setLoading(false);
       }
@@ -116,19 +135,27 @@ export default function CategoryPage() {
           categories={categories}
         />
 
-        {/* Provider Grid */}
+        {/* Service Grid */}
         <div className="px-8 mt-10">
           {loading ? (
-            <div className="flex justify-center items-center h-40">Loading providers...</div>
-          ) : providers.length === 0 ? (
+            <div className="flex justify-center items-center h-40">Loading services...</div>
+          ) : services.length === 0 ? (
             <div className="flex justify-center flex-col items-center h-40 text-gray-500">
-              <p className="text-xl font-semibold mb-2">No providers found</p>
+              <p className="text-xl font-semibold mb-2">No services found</p>
               <p>Try adjusting your search filters or distance.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-              {providers.map((provider) => (
-                <ProviderCard key={provider._id} provider={provider} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {services.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  title={service.name}
+                  location={service.providerLocation || (service.distanceKm ? `${service.distanceKm.toFixed(1)} km away` : 'Unknown location')}
+                  price={service.startingPrice?.toString() || '0'}
+                  rating={service.providerRating ? service.providerRating.toFixed(1) : '0.0'}
+                  providerName={service.providerName}
+                  mediaKeys={service.media}
+                />
               ))}
             </div>
           )}

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./Button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/storeHook";
 import { apiService } from "../../features/provider/applyAsProvider/services/apiService";
 import { setProvider } from "../../features/provider/applyAsProvider/store/providerSlice";
@@ -12,6 +12,16 @@ const Navbar = () => {
     const { user, isAuthenticated, isLoading } = useAppSelector((state) => state.auth)
     const provider = useAppSelector(state => state.provider)
     const dispatch = useAppDispatch()
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/services?search=${encodeURIComponent(searchQuery)}`);
+        } else {
+            navigate(`/services`);
+        }
+    };
 
 
     useEffect(() => {
@@ -35,7 +45,7 @@ const Navbar = () => {
             </div>
 
             <div className="hidden md:flex items-center gap-8">
-                <Link 
+                <Link
                     to={"/services"}
                     className="text-sm font-medium text-gray-600 hover:text-gray-900"
                 >
@@ -52,18 +62,20 @@ const Navbar = () => {
             </div>
 
             <div className="hidden lg:flex flex-1 max-w-md mx-8">
-                <div className="relative w-full">
+                <form onSubmit={handleSearch} className="relative w-full">
                     <input
                         type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search services..."
                         className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-gray-200"
                     />
-                    <span className="absolute left-4 top-2 text-gray-400 text-sm">
+                    <button type="submit" className="absolute left-4 top-2 text-gray-400 text-sm flex items-center justify-center">
                         <span className="material-symbols-outlined">
                             search
                         </span>
-                    </span>
-                </div>
+                    </button>
+                </form>
             </div>
 
             <div className="flex items-center gap-4">

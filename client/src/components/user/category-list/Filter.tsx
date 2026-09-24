@@ -2,7 +2,7 @@
 import React from 'react';
 import { MapPin, ChevronDown, ArrowUpDown, List, Clock, Star, Smartphone } from 'lucide-react';
 
-export default function Filters({ filters, onFilterChange, categories = [] }) {
+export default function Filters({ filters, onFilterChange, categories = [] }: { filters: any, onFilterChange: any, categories: any[] }) {
   return (
     <div className="mt-6 px-8">
       {/* Primary Filter Block */}

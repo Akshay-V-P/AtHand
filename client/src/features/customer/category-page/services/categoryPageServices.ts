@@ -1,5 +1,5 @@
-
 import { categoryPageApi } from "../apis/categoryPageApi";
+import { api } from "../../../../services/axios";
 
 
 export interface FetchProvidersParams {
@@ -16,8 +16,9 @@ export interface FetchProvidersParams {
 }
 
 export const categoryPageServices = {
-    async fetchProvidersApi(params: FetchProvidersParams) {
-        const response = await categoryPageApi.fetchProvider({ params })
+    async fetchServicesApi(params: FetchProvidersParams) {
+        // Pointing to the new provider-service endpoint
+        const response = await api.get('/provider-service/public/nearby', { params })
         return response.data
     },
 
