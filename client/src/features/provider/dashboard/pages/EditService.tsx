@@ -4,6 +4,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { providerServiceApi } from '../apis/providerServiceApi';
 import toast from 'react-hot-toast';
 import { useAppSelector } from '../../../../hooks/storeHook';
+import { uploadFileToS3, getPresignedDisplayUrl } from '../../../../services/imageService';
+import { useRef } from 'react';
 
 export default function EditService() {
     const { id } = useParams<{ id: string }>();
@@ -12,6 +14,11 @@ export default function EditService() {
 
     const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [existingMediaKeys, setExistingMediaKeys] = useState<string[]>([]);
+    const [existingMediaPreviews, setExistingMediaPreviews] = useState<string[]>([]);
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -53,6 +60,18 @@ export default function EditService() {
                             acceptEmergency: s.acceptUrgent || false,
                             instantBooking: s.instantBooking || false
                         });
+
+                        if (s.media && s.media.length > 0) {
+                            setExistingMediaKeys(s.media);
+                            try {
+                                const displayUrls = await Promise.all(
+                                    s.media.map((key: string) => getPresignedDisplayUrl(key).then(res => res.data.data))
+                                );
+                                setExistingMediaPreviews(displayUrls);
+                            } catch (err) {
+                                console.error("Failed to fetch display urls for existing images");
+                            }
+                        }
                     }
                 }
             } catch (error) {
@@ -74,6 +93,26 @@ export default function EditService() {
         setFormData(prev => ({ ...prev, [field]: !prev[field] }));
     };
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const filesArray = Array.from(e.target.files);
+            setSelectedImages(prev => [...prev, ...filesArray]);
+
+            const newPreviews = filesArray.map(file => URL.createObjectURL(file));
+            setImagePreviews(prev => [...prev, ...newPreviews]);
+        }
+    };
+
+    const removeNewImage = (index: number) => {
+        setSelectedImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingImage = (index: number) => {
+        setExistingMediaKeys(prev => prev.filter((_, i) => i !== index));
+        setExistingMediaPreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -87,14 +126,33 @@ export default function EditService() {
             return;
         }
 
+        const totalImages = existingMediaKeys.length + selectedImages.length;
+        if (totalImages < 3) {
+            toast.error("Please ensure at least 3 photos are in your portfolio");
+            return;
+        }
+
         try {
             setIsLoading(true);
+            let finalMediaKeys = [...existingMediaKeys];
+
+            if (selectedImages.length > 0) {
+                toast.loading("Uploading new photos...", { id: "upload" });
+                const uploadedKeys: string[] = [];
+                for (const file of selectedImages) {
+                    const key = await uploadFileToS3(file, "/provider-service/upload-url");
+                    uploadedKeys.push(key);
+                }
+                toast.success("Photos uploaded successfully", { id: "upload" });
+                finalMediaKeys = [...finalMediaKeys, ...uploadedKeys];
+            }
+
             const payload = {
                 providerId: providerId,
                 categoryId: formData.categoryId,
                 name: formData.name,
                 description: formData.description,
-                media: ['dummy_image_1.jpg', 'dummy_image_2.jpg'], // Hardcoded mock images
+                media: finalMediaKeys,
                 onSite: formData.onSite,
                 acceptUrgent: formData.acceptEmergency,
                 instantBooking: formData.instantBooking,
@@ -115,7 +173,8 @@ export default function EditService() {
             }
         } catch (error: any) {
             console.error(error);
-            toast.error(error?.response?.data?.message || "Failed to publish service");
+            toast.dismiss("upload");
+            toast.error(error?.response?.data?.message || "Failed to finalize service update");
         } finally {
             setIsLoading(false);
         }
@@ -199,30 +258,45 @@ export default function EditService() {
                         <div className="flex justify-between items-center mb-6">
                             <div className="flex items-center">
                                 <ImageIcon className="w-5 h-5 text-indigo-600 mr-2" />
-                                <h2 className="text-lg font-bold text-gray-900">Portfolio Gallery (Dummy Placeholder)</h2>
+                                <h2 className="text-lg font-bold text-gray-900">Portfolio Gallery</h2>
                             </div>
                             <span className="text-xs font-semibold text-gray-500">Min. 3 high-res photos</span>
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {/* Upload Button */}
-                            <button type="button" className="border-2 border-dashed border-gray-300 rounded-lg h-32 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
+                            <button onClick={() => fileInputRef.current?.click()} type="button" className="border-2 border-dashed border-gray-300 rounded-lg h-32 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-indigo-600 transition-colors">
                                 <Camera className="w-6 h-6 mb-2" />
-                                <span className="text-xs font-bold">Upload (Mock)</span>
+                                <span className="text-xs font-bold">Upload</span>
                             </button>
+                            <input type="file" multiple ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
 
-                            {/* Sample images */}
-                            <div className="h-32 rounded-lg bg-gray-200 overflow-hidden relative group">
-                                <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500 text-xs text-center p-2">mock img 1</div>
-                            </div>
-                            <div className="h-32 rounded-lg bg-gray-200 overflow-hidden relative group">
-                                <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500 text-xs text-center p-2">mock img 2</div>
-                            </div>
+                            {/* Existing Images */}
+                            {existingMediaPreviews.map((preview, idx) => (
+                                <div key={`existing-${idx}`} className="h-32 rounded-lg bg-gray-200 overflow-hidden relative group border">
+                                    <img src={preview} alt={`existing preview ${idx}`} className="w-full h-full object-cover" />
+                                    <button type="button" onClick={() => removeExistingImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer">
+                                        <span className="text-xs font-bold">X</span>
+                                    </button>
+                                </div>
+                            ))}
 
-                            {/* Empty slot */}
-                            <div className="border border-gray-100 bg-indigo-50/50 rounded-lg h-32 flex items-center justify-center">
-                                <ImageIcon className="w-6 h-6 text-gray-300" />
-                            </div>
+                            {/* New Previews */}
+                            {imagePreviews.map((preview, idx) => (
+                                <div key={`new-${idx}`} className="h-32 rounded-lg bg-gray-200 overflow-hidden relative group border-2 border-indigo-400">
+                                    <img src={preview} alt={`new preview ${idx}`} className="w-full h-full object-cover" />
+                                    <button type="button" onClick={() => removeNewImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer">
+                                        <span className="text-xs font-bold">X</span>
+                                    </button>
+                                </div>
+                            ))}
+
+                            {/* Empty slots for requirement indication */}
+                            {Array.from({ length: Math.max(0, 3 - (existingMediaPreviews.length + imagePreviews.length)) }).map((_, idx) => (
+                                <div key={`empty-${idx}`} className="border border-gray-100 bg-indigo-50/50 rounded-lg h-32 flex items-center justify-center">
+                                    <ImageIcon className="w-6 h-6 text-gray-300" />
+                                </div>
+                            ))}
                         </div>
                     </div>
 
