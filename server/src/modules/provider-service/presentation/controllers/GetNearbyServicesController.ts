@@ -24,8 +24,6 @@ export class GetNearbyServicesController {
 
             const result = await this.getNearbyServicesUsecase.execute(filter);
 
-            // To ensure compatibility with the frontend that might look for .items vs .data
-            // Since we standardize via ResponseHandler, we'll return result directly which has .items inside it
             console.log("services",result)
             ResponseHandler.success(res, HttpStatus.OK, "Nearby services retrieved successfully", result);
         } catch (error: any) {

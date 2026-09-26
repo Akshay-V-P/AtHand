@@ -113,7 +113,7 @@ export default function CategoryPage() {
             totalItems: res.data.totalItems
           }));
         }
-        console.log(res)
+        
       } catch (error) {
         console.error("Failed to fetch services:", error);
       } finally {

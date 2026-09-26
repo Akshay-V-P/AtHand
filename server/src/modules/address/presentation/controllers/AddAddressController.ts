@@ -8,7 +8,6 @@ export class AddAddressController {
 
     handle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            // we assume that auth middleware attaches the user ID payload to req.user.id
             const userId = req.user?.id || req.body.userId;
             const addressData = { ...req.body, userId };
             const address = await this.addAddressUsecase.execute(addressData);
