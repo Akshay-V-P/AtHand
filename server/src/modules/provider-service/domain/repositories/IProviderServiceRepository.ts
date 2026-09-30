@@ -12,4 +12,5 @@ export interface IProviderServiceRepository {
     update(service: ProviderService): Promise<ProviderService | null>;
     updateStatus(id: string, status: ProviderServiceStatus): Promise<ProviderService | null>;
     findNearbyServices(filter: NearbyServicesFilter): Promise<PaginatedResult<NearbyServiceDto>>;
+    countServiceByCategoryId(categoryId: string): Promise<number>;
 }

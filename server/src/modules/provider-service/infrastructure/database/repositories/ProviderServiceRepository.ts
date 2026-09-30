@@ -109,6 +109,10 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
         return ProviderServiceMapper.toDomain(document);
     }
 
+    async countServicesByCategory(categoryId: string): Promise<number>{
+        return this.model.countDocuments({categoryId})
+    }
+
     async findNearbyServices(filter: NearbyServicesFilter): Promise<PaginatedResult<NearbyServiceDto>> {
         const skip = (filter.page - 1) * filter.limit;
         const pipeline: any[] = [];
@@ -126,7 +130,6 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
             });
         }
 
-        // We temporarily remove strict status matching in case test data is pending
         const providerMatch: any = {};
         if (filter.minRating) providerMatch.averageRating = { $gte: filter.minRating };
 
@@ -154,7 +157,7 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
 
         pipeline.push({ $match: serviceMatch });
 
-        // Sorting
+       
         const sortStage: any = {};
         if (filter.sortField === "averageRating") {
             sortStage.averageRating = filter.sortOrder === "asc" ? 1 : -1;
@@ -172,7 +175,7 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
         pipeline.push({ $skip: skip });
         pipeline.push({ $limit: filter.limit });
 
-        // Projection
+     
         pipeline.push({
             $project: {
                 id: "$service._id",

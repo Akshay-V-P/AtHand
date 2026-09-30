@@ -5,4 +5,5 @@ export interface GetCategoriesDTO {
     limit: number;
     search?: string;
     status?: CategoryStatus;
+    filter?: string
 }

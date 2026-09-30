@@ -13,14 +13,22 @@ import { EditCategoryForm } from "../../../components/admin/EditCategoryForm";
 
 import type { CreateCategoryFormData } from "../validation/CreateCategorySchema";
 import type { EditCategoryFormData } from "../validation/EditCategorySchema";
+import type { CategoryStatus } from "../../../shared/enums/CategoryStatus";
 
 interface Category {
   id: string;
   name: string;
-  description?: string | null;
+  description: string ;
   slug: string;
   commissionPercentage: number;
   status: "ACTIVE" | "BLOCKED";
+}
+
+interface ResponseData {
+  items: [];
+  page: number;
+  totalPages: number;
+  totalItems: number;
 }
 
 const ServiceCategories = () => {
@@ -41,15 +49,29 @@ const ServiceCategories = () => {
 
   const [updatingCategoryId, setUpdatingCategoryId] =
     useState<string | null>(null);
+  
+  const [filter, setFilter] = useState<CategoryStatus| undefined>(undefined)
+  const [categoryData, setCategoryData] = useState<ResponseData>({
+    items: [],
+    totalItems: 0,
+    totalPages: 0,
+    page:1
+  })
 
-  const fetchCategories = async (search = searchQuery) => {
+  const fetchCategories = async (search = searchQuery, status:CategoryStatus | undefined = undefined, page=1) => {
     const response = await adminServices.getAllCategories({
-      page: 1,
+      page: page,
       limit: 10,
       search,
+      status
     });
 
+    
     const { items } = response.data.data;
+    
+    setCategoryData(response.data.data)
+    console.log(response.data.data.items)
+    
 
     setCategories(items);
   };
@@ -62,7 +84,8 @@ const ServiceCategories = () => {
       try {
         setLoading(true);
 
-        await fetchCategories(searchQuery);
+        await fetchCategories(searchQuery, filter);
+
       } catch (error) {
         console.error(
           "Error loading service categories:",
@@ -76,7 +99,7 @@ const ServiceCategories = () => {
     }, 1000);
 
     return () => clearTimeout(timeout);
-  }, [searchQuery]);
+  }, [searchQuery, filter]);
 
   // CREATE CATEGORY
   const handleCreateCategorySubmit = async (
@@ -238,6 +261,16 @@ const ServiceCategories = () => {
           />
         </div>
 
+        <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as CategoryStatus) }
+                className="appearance-none flex items-center gap-2 pl-4 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="ACTIVE">Active</option>
+                <option value="BLOCKED">Blocked</option>
+              </select>
+
         {/* Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {metricsData.map((metric: any, index) => (
@@ -309,6 +342,32 @@ const ServiceCategories = () => {
           />
         )}
       </Modal>
+
+      <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50 flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            Showing {categoryData.page} to {categoryData.totalPages} of {categoryData.totalItems || 0} providers
+          </p>
+          <div className="flex space-x-1">
+            <button onClick={() => fetchCategories(undefined, undefined, categoryData.page - 1)} disabled={categoryData.page <= 1} className="px-3 py-1.5 border border-gray-200 rounded-md text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+
+          {
+            Array.from({ length: categoryData.totalPages }, (_, index) => {
+              const page = index + 1
+              return (
+
+                <button onClick={()=> fetchCategories(searchQuery, filter, page)} disabled={categoryData.page == page} className="px-3 py-1.5 border border-gray-200 rounded-md text-gray-700 bg-white hover:bg-gray-50 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">{page}</button>
+              )
+            })
+          
+          }
+
+            <button onClick={() => fetchCategories(searchQuery, filter,categoryData.page + 1)} disabled={categoryData.totalPages <= categoryData.page} className="px-3 py-1.5 border border-gray-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-gray-500 bg-white hover:bg-gray-50 cursor-pointer">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        </div>
 
     </div>
   );
