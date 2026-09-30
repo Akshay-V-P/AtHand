@@ -27,6 +27,7 @@ export default function MyServices() {
                     limit,
                     providerId,
                 });
+                console.log(providerId)
                 if (response.success && response.data) {
                     setServices(response.data.items || []);
                     setTotalPages(response.data.totalPages || 1);

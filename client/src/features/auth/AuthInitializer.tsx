@@ -1,61 +1,47 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useAppDispatch } from '../../hooks/storeHook'
 import { authService } from './services/authService'
-import { loginSuccess, setIsLoading } from './store/authSlice'
+import { setIsLoading } from './store/authSlice'
 import { adminloginSuccess, adminSetIsLoading } from '../admin/store/adminSlice'
 import { useLocation } from 'react-router-dom'
-import { apiService } from '../provider/applyAsProvider/services/apiService'
-import { setProvider } from '../provider/applyAsProvider/store/providerSlice'
+import { initializeAuthenticatedUser } from './utils/initializeUser'
 
 const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
-
     const dispatch = useAppDispatch()
     const location = useLocation()
 
-
+    // Capture the initial path on mount to prevent re-running on route changes
+    const initialPath = useRef(location.pathname)
 
     useEffect(() => {
         const initializeAuth = async () => {
-            dispatch(setIsLoading(true))
-            dispatch(adminSetIsLoading(true))
-            try {
+            const path = initialPath.current;
 
-                if (location.pathname.startsWith("/admin")) {
+            try {
+                if (path.startsWith("/admin")) {
+                    dispatch(adminSetIsLoading(true))
                     await authService.adminRefresh()
                     const response = await authService.refresh({ context: "ADMIN" })
-
-
                     dispatch(adminloginSuccess(response.data.data))
                 } else {
+                    dispatch(setIsLoading(true))
                     await authService.refreshTokens()
                     const response = await authService.refresh({ context: "USER" })
-                    console.log(response.data.data)
-
                     const userData = response.data.data;
-                    dispatch(loginSuccess(userData));
-
-                    if (userData && userData.role && userData.role.includes("PROVIDER")) {
-                        try {
-                            const providerResponse = await apiService.getProvider(userData.id);
-                            if (providerResponse?.data?.data) {
-                                dispatch(setProvider(providerResponse.data.data));
-                            }
-                        } catch (err) {
-                            console.error("Failed to fetch provider info during auth initialization", err);
-                        }
-                    }
+                    await initializeAuthenticatedUser(dispatch, userData);
                 }
-
             } catch (error) {
-                console.log(error)
+                console.error("Auth initialization failed:", error)
             } finally {
-                dispatch(setIsLoading(false))
-                dispatch(adminSetIsLoading(false))
+                if (path.startsWith("/admin")) {
+                    dispatch(adminSetIsLoading(false))
+                } else {
+                    dispatch(setIsLoading(false))
+                }
             }
         }
 
         initializeAuth()
-
     }, [dispatch])
 
     return (

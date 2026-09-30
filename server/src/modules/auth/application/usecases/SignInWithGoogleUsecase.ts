@@ -8,26 +8,26 @@ import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginResponseDto } from "../dto/LoginResponseDto";
 import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
 
-export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDto>{
+export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDto> {
     constructor(
         private readonly authService: IAuthService,
         private readonly userRepository: IUserRepository,
         private readonly tokenService: ITokenService,
-        private readonly refreshTokenService:IRefreshTokenRepository,
+        private readonly refreshTokenService: IRefreshTokenRepository,
     ) { }
-    
-    async execute(token:string): Promise<LoginResponseDto> {
+
+    async execute(token: string): Promise<LoginResponseDto> {
         const googleUser = await this.authService.verifyToken(token)
         if (!googleUser) throw new BadRequestError("User not authenticated")
         let user = await this.userRepository.findByEmail(googleUser.email)
-        if(!user?.googleId) throw new BadRequestError("Login with password")
+        if (user && !user.googleId) throw new BadRequestError("Login with password")
         if (!user) {
             user = await this.userRepository.create({
-                id:undefined,
+                id: undefined,
                 name: googleUser.name,
                 email: googleUser.email,
                 role: [UserRole.USER],
-                status:"ACTIVE",
+                status: "ACTIVE",
                 isVerified: true,
                 googleId: googleUser.googleId,
                 profilePhotoUrl: googleUser.picture,
@@ -52,11 +52,11 @@ export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDt
             refreshToken,
             user: {
                 id: user.id,
-                name:user.name,
+                name: user.name,
                 email: user.email,
                 role: user.role,
                 googleId: user.googleId!,
-                profilePhotoUrl:user.profilePhotoUrl!
+                profilePhotoUrl: user.profilePhotoUrl!
             }
         }
 

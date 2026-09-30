@@ -5,6 +5,7 @@ import { IProviderRepository } from "../../../domain/repositories/IProviderRepos
 import { ProviderFilter } from "../../../domain/types/ProviderFilter";
 import ProviderMapper from "../mappers/ProviderMapper";
 import ProviderModel, { ProviderSchemaType } from "../models/ProviderModel";
+import mongoose from "mongoose";
 
 export class ProviderRepository extends BaseRepository<ProviderSchemaType> implements IProviderRepository {
     constructor() {
@@ -24,8 +25,9 @@ export class ProviderRepository extends BaseRepository<ProviderSchemaType> imple
     }
 
     async findByUserId(userId: string): Promise<Provider | null> {
-        const provider = await ProviderModel.findOne({ userId })
+        const provider = await ProviderModel.findOne({ userId: new mongoose.Types.ObjectId(userId) })
         if (!provider) return null
+
         return ProviderMapper.toDomain(provider)
     }
 

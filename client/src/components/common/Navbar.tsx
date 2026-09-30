@@ -31,7 +31,10 @@ const Navbar = () => {
                 .getProvider(user.id)
                 .then((response) => {
                     const providerData = response.data.data
-                    dispatch(setProvider(providerData))
+                    console.log(providerData)
+                    if (providerData) {
+                        dispatch(setProvider(providerData))
+                    }
                 })
                 .catch((error) => console.log(error));
         }

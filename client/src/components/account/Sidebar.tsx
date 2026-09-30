@@ -5,6 +5,8 @@ import { useAppDispatch } from '../../hooks/storeHook'
 import { logout } from '../../features/auth/store/authSlice'
 import { accountServices } from '../../features/customer/account/services/accountServices'
 import { Modal } from '../common/Modal'
+import { clearProvider } from '../../features/provider/applyAsProvider/store/providerSlice'
+import { clearProviderApplication } from '../../features/provider/applyAsProvider/store/appyProviderSlice'
 
 const Sidebar = () => {
 
@@ -15,6 +17,8 @@ const Sidebar = () => {
     try {
       await accountServices.logout({ context: "USER" })
       dispatch(logout())
+      dispatch(clearProvider())
+      dispatch(clearProviderApplication())
     } catch (error: any) {
       console.log(error)
       toast.error(error.response?.message || "Something went wrong")

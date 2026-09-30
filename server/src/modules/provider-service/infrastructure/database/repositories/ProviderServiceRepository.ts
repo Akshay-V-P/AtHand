@@ -8,7 +8,7 @@ import ProviderServiceModel, { ProviderServiceSchemaType } from "../models/Provi
 import ProviderModel from "../../../../../modules/provider/infrastructure/database/models/ProviderModel";
 import mongoose from "mongoose";
 import { NearbyServicesFilter } from "../../../application/dtos/ProviderServiceDTOs";
-import { NearbyServiceDto } from "../../../application/dtos/NearbyServiceDto";
+import { NearbyProviderDto } from "../../../application/dtos/NearbyServiceDto";
 
 export class ProviderServiceRepository extends BaseRepository<ProviderServiceSchemaType> implements IProviderServiceRepository {
     constructor() {
@@ -62,8 +62,8 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
 
         const filter: any = {};
         if (status) filter.status = status;
-        if (categoryId) filter.categoryId = categoryId;
-        if (providerId) filter.providerId = providerId;
+        if (categoryId) filter.categoryId = new mongoose.Types.ObjectId(categoryId);
+        if (providerId) filter.providerId = new mongoose.Types.ObjectId(providerId);
         if (search) {
             filter.name = { $regex: search, $options: "i" };
         }
@@ -109,11 +109,11 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
         return ProviderServiceMapper.toDomain(document);
     }
 
-    async countServicesByCategory(categoryId: string): Promise<number>{
-        return this.model.countDocuments({categoryId})
+    async countServiceByCategoryId(categoryId: string): Promise<number> {
+        return this.model.countDocuments({ categoryId })
     }
 
-    async findNearbyServices(filter: NearbyServicesFilter): Promise<PaginatedResult<NearbyServiceDto>> {
+    async findNearbyServices(filter: NearbyServicesFilter): Promise<PaginatedResult<NearbyProviderDto>> {
         const skip = (filter.page - 1) * filter.limit;
         const pipeline: any[] = [];
 
@@ -132,37 +132,40 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
 
         const providerMatch: any = {};
         if (filter.minRating) providerMatch.averageRating = { $gte: filter.minRating };
+        if (filter.categoryId) providerMatch.serviceCategory = new mongoose.Types.ObjectId(filter.categoryId);
 
-        pipeline.push({ $match: providerMatch });
+        if (Object.keys(providerMatch).length > 0) {
+            pipeline.push({ $match: providerMatch });
+        }
 
         pipeline.push({
             $lookup: {
                 from: "providerservices",
                 localField: "_id",
                 foreignField: "providerId",
-                as: "service"
+                as: "services"
             }
         });
 
-        pipeline.push({ $unwind: "$service" });
-
-        const serviceMatch: any = {};
-        if (filter.categoryId) serviceMatch["service.categoryId"] = new mongoose.Types.ObjectId(filter.categoryId);
+        const searchMatch: any = {};
         if (filter.search) {
-            serviceMatch["$or"] = [
-                { "service.name": { $regex: filter.search, $options: "i" } },
+            searchMatch["$or"] = [
+                { "services.name": { $regex: filter.search, $options: "i" } },
                 { businessName: { $regex: filter.search, $options: "i" } }
             ];
         }
 
-        pipeline.push({ $match: serviceMatch });
+        searchMatch["services.0"] = { $exists: true };
 
-       
+        if (Object.keys(searchMatch).length > 0) {
+            pipeline.push({ $match: searchMatch });
+        }
+
         const sortStage: any = {};
         if (filter.sortField === "averageRating") {
             sortStage.averageRating = filter.sortOrder === "asc" ? 1 : -1;
         } else if (!hasGeoNear) {
-            sortStage["service.createdAt"] = -1;
+            sortStage.createdAt = -1;
         }
 
         if (Object.keys(sortStage).length > 0) {
@@ -175,25 +178,16 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
         pipeline.push({ $skip: skip });
         pipeline.push({ $limit: filter.limit });
 
-     
         pipeline.push({
             $project: {
-                id: "$service._id",
-                name: "$service.name",
-                description: "$service.description",
-                media: "$service.media",
-                startingPrice: "$service.startingPrice",
-                pricingType: "$service.pricingType",
-                onSite: "$service.onSite",
-                serviceRadius: "$service.serviceRadius",
-                categoryId: "$service.categoryId",
-
-                providerId: "$_id",
+                id: "$_id",
                 providerName: "$businessName",
                 providerRating: "$averageRating",
                 providerTotalReviews: "$totalReviews",
                 providerLocation: "$location.address.city",
-                distanceKm: { $divide: ["$distance", 1000] }
+                distanceKm: { $divide: ["$distance", 1000] },
+                serviceNames: "$services.name",
+                startingPrice: { $min: "$services.startingPrice" }
             }
         });
 
@@ -208,8 +202,6 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
             items: data.map(doc => ({
                 ...doc,
                 id: doc.id.toString(),
-                providerId: doc.providerId.toString(),
-                categoryId: doc.categoryId.toString(),
             })),
             totalItems,
             page: filter.page,

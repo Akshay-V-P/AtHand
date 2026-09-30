@@ -22,16 +22,20 @@ const ApplyAsProviderLayout = () => {
             apiService
                 .getProvider(user?.id!)
                 .then((response) => {
-                  console.log(response.data.data);
-                  if(response.data.data.status == "ACTIVE") navigate("/provider/dashboard")
-                    dispatch(setProvider(response.data.data));
+                    const providerData = response.data.data;
+                    console.log(providerData)
+
+                    if (providerData) {
+                        if (providerData.status === "ACTIVE") navigate("/provider/dashboard");
+                        dispatch(setProvider(providerData));
+                    }
                 })
                 .catch((error) => console.log(error));
         }
 
         if (provider.status == "ACTIVE") navigate("/provider");
     }, [provider]);
-  
+
 
     useEffect(() => {
         apiService.getDraft(user?.id!).then((response) => {
@@ -41,6 +45,8 @@ const ApplyAsProviderLayout = () => {
                 serviceDetails,
                 documents,
             } = response.data.data;
+
+            console.log(user?.id)
 
             if (businessDetails) {
                 dispatch(setBusinessDetails(businessDetails));

@@ -9,7 +9,7 @@ import { authService } from "../services/authService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../hooks/storeHook";
-import { loginSuccess } from "../store/authSlice";
+import { initializeAuthenticatedUser } from "../utils/initializeUser";
 import { Form } from "../../../components/common/Form";
 import GoogleAuthButton from "../../../components/auth/GoogleAuthButton";
 
@@ -34,10 +34,10 @@ const Login = () => {
         try {
             const loginData = {
                 ...data,
-                context:"USER" as const
+                context: "USER" as const
             }
             const res = await authService.login(loginData);
-            dispatch(loginSuccess(res.data.data.user));
+            await initializeAuthenticatedUser(dispatch, res.data.data.user);
         } catch (error: any) {
             console.log(error.response);
             toast.error(error.response?.data.message || "Something went wrong");
@@ -125,7 +125,7 @@ const Login = () => {
 
                         {/* Social Login & Redirect */}
                         <div className="flex flex-col items-center space-y-6">
-                <GoogleAuthButton/>
+                            <GoogleAuthButton />
 
                             <a
                                 href="/signup"
