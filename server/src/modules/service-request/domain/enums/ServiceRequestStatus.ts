@@ -1,0 +1,8 @@
+export enum ServiceRequestStatus {
+    OPEN = "OPEN",
+    QUOTING = "QUOTING",
+    QUOTE_ACCEPTED = "QUOTE_ACCEPTED",
+    IN_PROGRESS = "IN_PROGRESS",
+    COMPLETED = "COMPLETED",
+    CANCELLED = "CANCELLED",
+} 
