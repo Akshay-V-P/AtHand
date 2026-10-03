@@ -4,6 +4,8 @@ import ProviderDashLayout from "../layouts/ProviderDashLayout";
 import MyServices from "../pages/MyServices";
 import AddNewService from "../pages/AddNewService";
 import EditService from "../pages/EditService";
+import RequestInbox from "../pages/RequestInbox";
+import RequestReviewQuote from "../pages/RequestReviewQuote";
 
 export const ProviderDashRoutes: RouteObject[] = [
     {
@@ -16,6 +18,14 @@ export const ProviderDashRoutes: RouteObject[] = [
             {
                 path: "/provider/dashboard/services",
                 element: <MyServices />
+            },
+            {
+                path: "/provider/dashboard/requests",
+                element: <RequestInbox />
+            },
+            {
+                path: "/provider/dashboard/requests/:id",
+                element: <RequestReviewQuote />
             },
             {
                 path: "/provider/dashboard/services/new",

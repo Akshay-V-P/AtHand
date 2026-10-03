@@ -74,7 +74,7 @@ export class ProviderRepository extends BaseRepository<ProviderSchemaType> imple
         if (filter?.sort) {
             sortObj[filter.sort] = filter.sortOrder === 'desc' ? -1 : 1;
         } else if (!filter?.location) {
-            // Only add default sort if we aren't using $near, because $near automatically sorts by distance
+         
             sortObj = { createdAt: -1 };
         }
 

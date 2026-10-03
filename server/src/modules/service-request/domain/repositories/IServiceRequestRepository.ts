@@ -6,4 +6,5 @@ export interface IServiceRequestRepository {
     findById(id: string): Promise<ServiceRequest | null>;
     findByUserId(userId: string, page: number, limit: number, status?: ServiceRequestStatus): Promise<{ data: ServiceRequest[], total: number }>;
     update(id: string, updates: Partial<ServiceRequest>): Promise<ServiceRequest | null>;
+    findNearbyRequests(categoryId: string, coordinates: [number, number], maxDistanceInKm: number, page: number, limit: number): Promise<{ data: ServiceRequest[], total: number }>;
 }

@@ -6,7 +6,6 @@ export const providerServiceApi = {
         return response.data;
     },
     getActiveCategories: async () => {
-        // Reuse the existing categories dropdown endpoint from category module
         const response = await api.get('/category/active/dropdown');
         return response.data;
     },
@@ -21,5 +20,13 @@ export const providerServiceApi = {
     updateProviderService: async (id: string, data: any) => {
         const response = await api.put(`/provider-service/${id}`, data);
         return response.data;
+    },
+    getServiceRequests: async (params: { lat: number, lng: number, radius: number, categoryId: string }) => {
+        const response = await api.get(`/service-requests/nearby`, { params })
+        return response.data
+    },
+    getServiceRequestById: async (id: string) => {
+        const response = await api.get(`/service-requests/${id}`)
+        return response.data
     }
 }

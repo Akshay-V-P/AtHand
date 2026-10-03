@@ -45,4 +45,38 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         if (!document) return null;
         return ServiceRequestMapper.toDomain(document);
     }
+
+    async findNearbyRequests(
+        categoryId: string,
+        coordinates: [number, number],
+        maxDistanceInKm: number,
+        page: number,
+        limit: number
+    ): Promise<{ data: ServiceRequest[]; total: number }> {
+        const query = {
+            categoryId,
+            status: ServiceRequestStatus.OPEN,
+            "address.coordinates": {
+                $geoWithin: {
+                    $centerSphere: [
+                        [coordinates[0], coordinates[1]],
+                        maxDistanceInKm / 6378.1 // Convert km to radians
+                    ]
+                }
+            }
+        };
+
+        const [documents, total] = await Promise.all([
+            ServiceRequestModel.find(query)
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .lean(),
+            ServiceRequestModel.countDocuments(query)
+        ]);
+
+        return {
+            data: documents.map((doc: any) => ServiceRequestMapper.toDomain(doc)),
+            total
+        };
+    }
 }

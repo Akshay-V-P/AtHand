@@ -9,13 +9,15 @@ export const createServiceRequestRoutes = (controllers: ServiceRequestController
         updateController,
         cancelController,
         getServiceRequestController,
-        getServiceRequestsController
+        getServiceRequestsController,
+        getNearbyServiceRequestsController
     } = controllers;
 
     // Apply authentication middleware
     router.use(authMiddleware.execute);
 
     // Routes
+    router.get('/nearby', getNearbyServiceRequestsController.getNearby);
     router.post('/', createController.create);
     router.get('/', getServiceRequestsController.list);
     router.get('/:id', getServiceRequestController.get);

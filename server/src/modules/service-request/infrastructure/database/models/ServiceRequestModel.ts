@@ -81,4 +81,7 @@ const ServiceRequestSchema = new mongoose.Schema({
 });
 
 export type ServiceRequestSchemaType = InferSchemaType<typeof ServiceRequestSchema>;
+
+ServiceRequestSchema.index({ "address.coordinates": "2dsphere" });
+
 export default mongoose.model("ServiceRequests", ServiceRequestSchema);
