@@ -1,25 +1,36 @@
 import { ServiceRequestStatus } from "../enums/ServiceRequestStatus";
 import { ServiceRequestUrgency } from "../enums/ServiceRequestUrgency";
 
-type AddressType = {
-    houseName: string;
+interface Coordinates {
+    type: "Point",
+    coordinates: [number, number]
 }
 
-export class ServiceRequest{
+type AddressType = {
+    houseName: string;
+    area: string;
+    city: string;
+    state: string;
+    pincode: string;
+    coordinates: Coordinates
+}
+
+export class ServiceRequest {
     constructor(
-        private readonly userId:string,
-        private readonly categoryId: string,
-        private readonly address: AddressType,
-        private readonly title: string,
-        private readonly description: string,
-        private readonly urgency: ServiceRequestUrgency = ServiceRequestUrgency.NORMAL,
-        private readonly onSite: boolean,
-        private readonly media: string[] = [],
-        private readonly productBrand: string,
-        private readonly productModel: string,
-        private readonly status: ServiceRequestStatus = ServiceRequestStatus.OPEN,
-        private readonly preferredDate?: Date,
-        private readonly preferredTimeSlot?: string,
-        private readonly id?:string
-    ){}
+        public readonly userId: string,
+        public readonly categoryId: string,
+        public readonly address: AddressType,
+        public readonly title: string,
+        public readonly description: string,
+        public readonly urgency: ServiceRequestUrgency = ServiceRequestUrgency.NORMAL,
+        public readonly onSite: boolean,
+        public readonly media: string[] = [],
+        public readonly productBrand: string,
+        public readonly productModel: string,
+        public readonly status: ServiceRequestStatus = ServiceRequestStatus.OPEN,
+        public readonly preferredDate?: Date,
+        public readonly preferredTimeSlot?: string,
+        public readonly id?: string,
+        public readonly createdAt?:Date
+    ) { }
 }

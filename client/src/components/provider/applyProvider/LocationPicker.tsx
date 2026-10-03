@@ -47,7 +47,8 @@ const MapController = ({ position }: { position: [number, number] | null }) => {
 const LocationPicker = ({
     onLocationSelect,
     positionDetails,
-}: LocationPickerProps) => {
+    className
+}: LocationPickerProps & { className?: string }) => {
     const [position, setPosition] = useState<[number, number] | null>(null);
 
     // Update when parent sends a new location
@@ -69,7 +70,7 @@ const LocationPicker = ({
     };
 
     return (
-        <div className="h-[400px] rounded-xl overflow-hidden">
+        <div className={`overflow-hidden ${className || "h-[400px] rounded-xl"}`}>
             <MapContainer
                 center={[10.8505, 76.2711]}
                 zoom={10}

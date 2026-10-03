@@ -13,6 +13,7 @@ import { imageRoutes } from "./shared/presentation/image.route"
 import { providerRoutes } from "./modules/provider/container"
 import { categoryRoutes } from "./modules/category/container"
 import { providerServiceRoutes } from "./modules/provider-service/container"
+import { serviceRequestRoutes } from "./modules/service-request/container"
 
 const app = express()
 
@@ -39,6 +40,7 @@ app.use('/api/image', imageRoutes)
 app.use('/api/provider', providerRoutes)
 app.use('/api/category', categoryRoutes)
 app.use('/api/provider-service', providerServiceRoutes)
+app.use('/api/service-requests', serviceRequestRoutes)
 
 app.use(errorHandler)
 

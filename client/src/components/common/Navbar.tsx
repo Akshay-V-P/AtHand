@@ -43,7 +43,7 @@ const Navbar = () => {
 
     return (
         <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
-            <div className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            <div className="text-2xl font-extrabold text-gray-900 tracking-tight mr-5">
                 At<span className="text-red-500">.</span>Hand
             </div>
 
@@ -54,6 +54,7 @@ const Navbar = () => {
                 >
                     Services
                 </Link>
+                
                 <Link to={provider.status == "ACTIVE" ? "/provider/dashboard" : "/apply-provider/business"}>
 
                     <p
@@ -80,6 +81,12 @@ const Navbar = () => {
                     </button>
                 </form>
             </div>
+            <Link
+                    to={"/service-requests"}
+                    
+                >
+                    <Button>Request service</Button>
+                </Link>
 
             <div className="flex items-center gap-4">
                 {isAuthenticated ? (
