@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, Image as ImageIcon } from 'lucide-react';
-import { api } from '../../../../services/axios';
 import toast from 'react-hot-toast';
 import { providerServiceApi } from '../apis/providerServiceApi';
+import { quoteApi } from '../apis/quoteApi';
+import { useAppSelector } from '../../../../hooks/storeHook';
 
 export default function RequestReviewQuote() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const providerId = useAppSelector(state => state.provider?.id);
     const [requestData, setRequestData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [existingQuote, setExistingQuote] = useState<any>(null);
 
     // Form state
     const [laborCost, setLaborCost] = useState('');
@@ -22,12 +25,33 @@ export default function RequestReviewQuote() {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        fetchRequestDetails();
-    }, [id]);
+        if (id) {
+            fetchRequestDetails();
+        }
+        if (providerId) {
+            quoteApi.getProviderQuotes(providerId, 1, 1000)
+                .then(res => {
+                    const quotes = res.data?.data?.data || [];
+                    const eq = quotes.find((q: any) => {
+                        const qReqId = q.requestId?._id || q.requestId?.id || q.requestId;
+                        return String(qReqId) === String(id);
+                    });
+                    if (eq) {
+                        setExistingQuote(eq);
+                        setLaborCost(eq.laborCost.toString());
+                        setPartsCost(eq.partsCost.toString());
+                        setDuration(eq.estimatedRepairTime);
+                        setNotes(eq.technicalNotes);
+                        setIncludeWarranty(eq.includeWarrenty);
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [id, providerId]);
 
     useEffect(() => {
-        const lC = parseFloat(laborCost) || 0; 
-        const pC = parseFloat(partsCost) || 0; 
+        const lC = parseFloat(laborCost) || 0;
+        const pC = parseFloat(partsCost) || 0;
         setEstimatedTotal((lC + pC).toFixed(2));
     }, [laborCost, partsCost]);
 
@@ -40,7 +64,7 @@ export default function RequestReviewQuote() {
             } else {
                 throw new Error("Unable to fetch details")
             }
-        } catch (error:any) {
+        } catch (error: any) {
             console.error(error);
             toast.error(error.message || 'Failed to load request details');
         } finally {
@@ -51,22 +75,36 @@ export default function RequestReviewQuote() {
     const handleSendQuote = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!duration) return toast.error("Please select an estimated repair time");
+        if (!id) return toast.error("Request ID is missing");
+        if (!providerId) return toast.error("Provider session expired or missing");
 
         setSubmitting(true);
         try {
-            // In a real app we'd post the quote here to a new quote endpoint
-            // await api.post(`/api/quotes`, { requestId: id, price: parseFloat(estimatedTotal), notes, duration, ... })
+            const payload = {
+                requestId: id,
+                providerId: providerId,
+                estimatedTotal: parseFloat(estimatedTotal) || 0,
+                laborCost: parseFloat(laborCost) || 0,
+                partsCost: parseFloat(partsCost) || 0,
+                estimatedRepairTime: duration,
+                technicalNotes: notes,
+                includeWarrenty: includeWarranty
+            };
 
-            // Simulate API call delay
-            await new Promise(r => setTimeout(r, 1000));
+            if (existingQuote) {
+                await quoteApi.editQuote(existingQuote.id, payload);
+                setSuccess(true);
+                toast.success('Quote Updated Successfully');
+            } else {
+                await quoteApi.createQuote(payload);
+                setSuccess(true);
+                toast.success('Quote Sent Successfully');
+            }
 
-            setSuccess(true);
-            toast.success('Quote Sent Successfully');
-
-            // Optionally redirect back after some time
             setTimeout(() => navigate('/provider/dashboard/requests'), 3000);
-        } catch (error) {
-            toast.error('Failed to send quote');
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to send quote');
         } finally {
             setSubmitting(false);
         }
@@ -94,7 +132,10 @@ export default function RequestReviewQuote() {
                 Back to Request #{id?.slice(-4).toUpperCase()}
             </button>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Submit Service Quote</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+                {existingQuote ? 'Update Service Quote' : 'Submit Service Quote'}
+                {existingQuote && <span className="ml-4 text-sm font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-widest">Quoted</span>}
+            </h1>
             <p className="text-gray-600 text-sm mb-8">
                 Review the initial summary and customer inputs before finalizing your estimate.
             </p>
@@ -278,7 +319,7 @@ export default function RequestReviewQuote() {
                                 disabled={submitting || success}
                                 className="w-full py-2.5 mt-2 bg-indigo-600 text-white font-semibold text-sm rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center disabled:bg-indigo-400 gap-2"
                             >
-                                {submitting ? 'Sending...' : success ? 'Sent!' : <><Send className="w-4 h-4" /> Send Quote</>}
+                                {submitting ? (existingQuote ? 'Updating...' : 'Sending...') : success ? (existingQuote ? 'Updated!' : 'Sent!') : <><Send className="w-4 h-4" /> {existingQuote ? 'Update Quote' : 'Send Quote'}</>}
                             </button>
 
                             <p className="text-[10px] text-center text-gray-400 mt-3 pt-2 border-t border-gray-100">

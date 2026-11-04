@@ -26,13 +26,16 @@ export class GetNearbyServiceRequestsController {
                 return;
             }
 
+            const excludeId = req.user?.id
+
             const result = await this.getNearbyServiceRequestsUseCase.execute(
                 categoryId as string,
                 latitude,
                 longitude,
                 radiusInKm,
                 pageNumber,
-                limitNumber
+                limitNumber,
+                excludeId!
             );
 
             ResponseHandler.success(res, HttpStatus.OK, "Nearby service requests fetched successfully", result);

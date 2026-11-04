@@ -14,13 +14,16 @@ import { UnblockCategoryController } from "./presentation/controllers/category-c
 import { UpdateCategoryController } from "./presentation/controllers/category-controllers/UpdateCategoryController";
 import { createAdminCategoryRoutes } from "./presentation/routes/adminCategory.routes";
 
-const categoryRepository = new CategoryRepository()
-const categoryMangementRepository = new CategoryMangementRepository()
+import { ProviderServiceRepository } from "../provider-service/infrastructure/database/repositories/ProviderServiceRepository";
+
+const categoryRepository = new CategoryRepository();
+const categoryMangementRepository = new CategoryMangementRepository();
+const providerServiceRepository = new ProviderServiceRepository();
 
 const createCategoryUsecase = new CreateCategoryUsecase(categoryRepository)
 const getCategoryUsecase = new GetCategoryUsecase(categoryRepository)
 const updateCategoryUsecase = new UpdateCategoryUsecase(categoryRepository)
-const getAllCategoriesUsecase = new GetAllCategoriesUsecase(categoryMangementRepository)
+const getAllCategoriesUsecase = new GetAllCategoriesUsecase(categoryMangementRepository, providerServiceRepository)
 const blockCategoryUsecase = new BlockCategoryUsecase(categoryRepository)
 const unblockCategoryUsecase = new UnblockCategoryUsecase(categoryRepository)
 

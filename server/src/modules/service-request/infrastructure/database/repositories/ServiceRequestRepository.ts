@@ -51,16 +51,18 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         coordinates: [number, number],
         maxDistanceInKm: number,
         page: number,
-        limit: number
+        limit: number,
+        excludeId:string,
     ): Promise<{ data: ServiceRequest[]; total: number }> {
         const query = {
             categoryId,
             status: ServiceRequestStatus.OPEN,
+            userId:{$ne:excludeId},
             "address.coordinates": {
                 $geoWithin: {
                     $centerSphere: [
                         [coordinates[0], coordinates[1]],
-                        maxDistanceInKm / 6378.1 // Convert km to radians
+                        maxDistanceInKm / 6378.1 
                     ]
                 }
             }
@@ -68,6 +70,7 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
 
         const [documents, total] = await Promise.all([
             ServiceRequestModel.find(query)
+                .sort({createdAt:-1})
                 .skip((page - 1) * limit)
                 .limit(limit)
                 .lean(),

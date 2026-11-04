@@ -10,14 +10,16 @@ export class GetNearbyServiceRequestsUseCase {
         lng: number,
         radiusInKm: number,
         page: number,
-        limit: number
+        limit: number,
+        excludeId:string,
     ): Promise<{ data: ServiceRequest[], total: number }> {
         return await this.serviceRequestRepository.findNearbyRequests(
             categoryId,
             [lat, lng],
             radiusInKm,
             page,
-            limit
+            limit,
+            excludeId
         );
     }
 }

@@ -25,5 +25,20 @@ export class S3UserProfileUrlService implements IImageUrlService {
         return { uploadUrl, key }
     }
 
-    
+    async createDisplayUrl(key: string): Promise<string | null> {
+        const command = new GetObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: key,
+        })
+
+        const url = await getSignedUrl(
+            this.client,
+            command,
+            {
+                expiresIn: 60 * 10,
+            },
+        )
+
+        return url
+    }
 }

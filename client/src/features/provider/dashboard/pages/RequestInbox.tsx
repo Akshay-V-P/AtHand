@@ -6,16 +6,23 @@ import { api } from '../../../../services/axios';
 import type { RootState } from '../../../../store/store';
 import toast from 'react-hot-toast';
 import { providerServiceApi } from '../apis/providerServiceApi';
+import { quoteApi } from '../apis/quoteApi';
 
 export default function RequestInbox() {
     const provider = useSelector((state: RootState) => state.provider);
     const [requests, setRequests] = useState<any[]>([]);
+    const [myQuotes, setMyQuotes] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         if (provider.id && provider.location?.coordinates?.coordinates && provider.serviceCategory) {
             fetchNearbyRequests();
+        }
+        if (provider.id) {
+            quoteApi.getProviderQuotes(provider.id, 1, 1000)
+                .then(res => setMyQuotes(res.data?.data?.data || []))
+                .catch(err => console.error("Could not fetch quotes", err));
         }
     }, [provider.id]);
 
@@ -29,16 +36,16 @@ export default function RequestInbox() {
                 ? provider.serviceCategory
                 : (provider.serviceCategory as any)._id || (provider.serviceCategory as any).id;
 
-            
+
             if (lat && lng) {
-                const res = await providerServiceApi.getServiceRequests({lat,lng, radius, categoryId})
+                const res = await providerServiceApi.getServiceRequests({ lat, lng, radius, categoryId })
                 setRequests(res.data?.data || []);
             } else {
                 throw new Error("Failed to fetch location")
             }
-        } catch (error:any) {
+        } catch (error: any) {
             console.error(error);
-            toast.error( error.message || 'Failed to fetch nearby requests');
+            toast.error(error.message || 'Failed to fetch nearby requests');
         } finally {
             setLoading(false);
         }
@@ -100,9 +107,14 @@ export default function RequestInbox() {
                                         <p className="text-xs text-gray-500">Client: {request.userId?.slice(-4) || 'Unknown'}</p>
                                     </div>
                                 </div>
-                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${getUrgencyBadgeColor(request.urgency)}`}>
-                                    {request.urgency === 'EMERGENCY' ? 'Emergency' : request.urgency === 'HIGH' ? 'High' : request.urgency === 'NORMAL' ? 'Normal' : 'Low'}
-                                </span>
+                                <div className="flex items-center gap-1">
+                                    {myQuotes.some(q => String(q.requestId?._id || q.requestId?.id || q.requestId) === String(request.id)) && (
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">In Review</span>
+                                    )}
+                                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${getUrgencyBadgeColor(request.urgency)}`}>
+                                        {request.urgency === 'EMERGENCY' ? 'Emergency' : request.urgency === 'HIGH' ? 'High' : request.urgency === 'NORMAL' ? 'Normal' : 'Low'}
+                                    </span>
+                                </div>
                             </div>
 
                             <p className="text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed flex-1">

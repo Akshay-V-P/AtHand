@@ -1,0 +1,5 @@
+export enum ServiceMode {
+    ONSITE = "ONSITE",
+    WORKSHOP = "WORKSHOP",
+    COLLECTION_AND_RETURN = "COLLECTION_AND_RETURN"
+}

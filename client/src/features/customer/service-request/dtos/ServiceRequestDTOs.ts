@@ -35,6 +35,7 @@ export interface ServiceRequest {
     description: string;
     urgency: ServiceRequestUrgency;
     onSite: boolean;
+    serviceMode?: 'ONSITE' | 'WORKSHOP' | 'COLLECTION_AND_RETURN';
     media: string[];
     productBrand: string;
     productModel: string;
@@ -52,10 +53,11 @@ export interface CreateServiceRequestDTO {
     description: string;
     urgency?: ServiceRequestUrgency;
     onSite?: boolean;
+    serviceMode?: 'ONSITE' | 'WORKSHOP' | 'COLLECTION_AND_RETURN';
     media?: string[];
     productBrand?: string;
     productModel?: string;
-    preferredDate?: Date;
+    preferredDate?: Date | string;
     preferredTimeSlot?: string;
 }
 
@@ -73,3 +75,18 @@ export interface ServiceRequestPaginatedResponse {
     data: ServiceRequest[];
     total: number;
 }
+
+export interface Quote {
+    id: string;
+    requestId: string;
+    providerId: string | any;
+    estimatedTotal: number;
+    laborCost: number;
+    partsCost: number;
+    estimatedRepairTime: string;
+    technicalNotes: string;
+    status: 'pending' | 'accepted' | 'rejected';
+    includeWarrenty: boolean;
+    createdAt: string;
+}
+

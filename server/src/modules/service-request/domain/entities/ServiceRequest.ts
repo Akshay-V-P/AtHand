@@ -31,6 +31,7 @@ export class ServiceRequest {
         public readonly preferredDate?: Date,
         public readonly preferredTimeSlot?: string,
         public readonly id?: string,
+        public readonly providerId?:string,
         public readonly createdAt?:Date
     ) { }
 }

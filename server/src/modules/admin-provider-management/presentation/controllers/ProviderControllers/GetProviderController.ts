@@ -8,7 +8,7 @@ import { RESPONSE_MESSAGES } from "../../constants/RESPONSE_MESSAGES"
 
 export class GetProviderController{
     constructor(
-        private readonly getProviderUsecase:IUsecase<GetProviderDto, Provider>,
+        private readonly getProviderUsecase:IUsecase<GetProviderDto, Provider | null>,
     ) { }
     
     getProvider = async (req: Request, res: Response, next: NextFunction) => {

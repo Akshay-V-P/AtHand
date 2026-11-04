@@ -22,7 +22,7 @@ const CreateServiceRequestPage = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [urgency, setUrgency] = useState<ServiceRequestUrgency>("NORMAL");
-    const [onSite, setOnSite] = useState(true);
+    const [serviceMode, setServiceMode] = useState<'ONSITE' | 'WORKSHOP' | 'COLLECTION_AND_RETURN'>('ONSITE');
     const [productBrand, setProductBrand] = useState('Apple');
     const [productModel, setProductModel] = useState('iPhone 13 Pro');
     const [serviceType, setServiceType] = useState('Others');
@@ -184,7 +184,8 @@ const CreateServiceRequestPage = () => {
                 title,
                 description,
                 urgency,
-                onSite: onSite,
+                onSite: serviceMode === 'ONSITE',
+                serviceMode: serviceMode,
                 media: uploadedKeys,
                 productBrand,
                 productModel,
@@ -395,15 +396,43 @@ const CreateServiceRequestPage = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4 pl-1">
-                                    <label className="text-sm font-semibold text-gray-600 flex-1">On-Site</label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setOnSite(!onSite)}
-                                        className={`w-12 h-6 rounded-full p-1 transition-colors relative flex items-center shadow-inner ${onSite ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${onSite ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                                    </button>
+                                <div>
+                                    <label className={labelClasses}>Service Mode</label>
+                                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-white/70 rounded-xl border border-gray-200/60">
+                                        <button
+                                            type="button"
+                                            onClick={() => setServiceMode('ONSITE')}
+                                            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
+                                                serviceMode === 'ONSITE'
+                                                    ? 'bg-blue-600 text-white shadow-xs'
+                                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/60'
+                                            }`}
+                                        >
+                                            Onsite
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setServiceMode('WORKSHOP')}
+                                            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
+                                                serviceMode === 'WORKSHOP'
+                                                    ? 'bg-blue-600 text-white shadow-xs'
+                                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/60'
+                                            }`}
+                                        >
+                                            Drop-off
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setServiceMode('COLLECTION_AND_RETURN')}
+                                            className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center ${
+                                                serviceMode === 'COLLECTION_AND_RETURN'
+                                                    ? 'bg-blue-600 text-white shadow-xs'
+                                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/60'
+                                            }`}
+                                        >
+                                            Pick & Drop
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

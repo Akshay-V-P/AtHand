@@ -1,5 +1,6 @@
 import { api } from "../../../../services/axios";
-import type { CreateServiceRequestDTO, ServiceRequest, ServiceRequestPaginatedResponse, UpdateServiceRequestDTO } from "../dtos/ServiceRequestDTOs";
+import type { CreateServiceRequestDTO, ServiceRequest, ServiceRequestPaginatedResponse, UpdateServiceRequestDTO, Quote } from "../dtos/ServiceRequestDTOs";
+
 
 
 export const serviceRequestApi = {
@@ -22,4 +23,10 @@ export const serviceRequestApi = {
 
     cancelRequest: (id: string) =>
         api.patch<{ success: boolean, message: string, data: ServiceRequest }>(`/service-requests/${id}/cancel`),
+
+    getQuotesByRequestId: (requestId: string) =>
+        api.get<{ success: boolean, message: string, data: Quote[] }>(`/quote/request/${requestId}`),
+
+    acceptQuote: (quoteId: string) =>
+        api.post<{ success: boolean, message: string, data: any }>(`/order/accept-quote`, { quoteId }),
 };

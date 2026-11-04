@@ -14,6 +14,8 @@ import { providerRoutes } from "./modules/provider/container"
 import { categoryRoutes } from "./modules/category/container"
 import { providerServiceRoutes } from "./modules/provider-service/container"
 import { serviceRequestRoutes } from "./modules/service-request/container"
+import { quoteRoutes } from "./modules/quote/container"
+import { orderRoutes } from "./modules/order/container"
 
 const app = express()
 
@@ -41,6 +43,8 @@ app.use('/api/provider', providerRoutes)
 app.use('/api/category', categoryRoutes)
 app.use('/api/provider-service', providerServiceRoutes)
 app.use('/api/service-requests', serviceRequestRoutes)
+app.use('/api/quote', quoteRoutes)
+app.use('/api/order', orderRoutes)
 
 app.use(errorHandler)
 

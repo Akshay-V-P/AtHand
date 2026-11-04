@@ -19,7 +19,8 @@ export class ServiceRequestMapper {
             raw.preferredDate,
             raw.preferredTimeSlot,
             raw._id.toString(),
-            new Date(raw.createdAt)
+            raw.providerId ? raw.providerId.toString() : undefined,
+            raw.createdAt ? new Date(raw.createdAt) : undefined
         );
     }
 

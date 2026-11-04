@@ -6,6 +6,8 @@ import AddNewService from "../pages/AddNewService";
 import EditService from "../pages/EditService";
 import RequestInbox from "../pages/RequestInbox";
 import RequestReviewQuote from "../pages/RequestReviewQuote";
+import ActiveRepairs from "../pages/ActiveRepairs";
+import ManageRepairOrder from "../pages/ManageRepairOrder";
 
 export const ProviderDashRoutes: RouteObject[] = [
     {
@@ -14,6 +16,14 @@ export const ProviderDashRoutes: RouteObject[] = [
             {
                 path: "/provider/dashboard",
                 element: <Dashboard />
+            },
+            {
+                path: "/provider/dashboard/repairs",
+                element: <ActiveRepairs />
+            },
+            {
+                path: "/provider/dashboard/repairs/:id",
+                element: <ManageRepairOrder />
             },
             {
                 path: "/provider/dashboard/services",

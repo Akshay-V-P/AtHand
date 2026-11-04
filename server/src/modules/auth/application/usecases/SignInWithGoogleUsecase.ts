@@ -56,6 +56,7 @@ export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDt
                 email: user.email,
                 role: user.role,
                 googleId: user.googleId!,
+                phone: user.phone || "",
                 profilePhotoUrl: user.profilePhotoUrl!
             }
         }
