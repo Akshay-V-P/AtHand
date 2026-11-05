@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../../../services/axios';
 import type { RootState } from '../../../../store/store';
 import toast from 'react-hot-toast';
-import { providerServiceApi } from '../apis/providerServiceApi';
-import { quoteApi } from '../apis/quoteApi';
+import { providerServiceApi } from '../api/providerServiceApi';
+import { quoteApi } from '../api/quoteApi';
 
 export default function RequestInbox() {
     const provider = useSelector((state: RootState) => state.provider);

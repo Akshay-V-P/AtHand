@@ -1,3 +1,4 @@
+import { PaginatedResult } from "../../../../../shared/application/dtos/PaginatedResultDTO";
 import { IOrder } from "../../../domain/entities/OrderEntity";
 import { OrderModel, IOrderDocument } from "../models/OrderModel";
 
@@ -45,7 +46,7 @@ export class OrderRepository {
         };
     }
 
-    async findByProviderId(providerId: string, page: number = 1, limit: number = 20, status?: string): Promise<{ data: IOrder[], total: number }> {
+    async findByProviderId(providerId: string, page: number = 1, limit: number = 20, status?: string): Promise<PaginatedResult<IOrder>> {
         const query: any = { providerId };
         if (status) {
             query.status = status;
@@ -64,8 +65,11 @@ export class OrderRepository {
         ]);
 
         return {
-            data: orders.map(o => this.mapToEntity(o)),
-            total
+            items: orders.map(o => this.mapToEntity(o)),
+            totalItems: total,
+            page,
+            limit,
+            totalPages:page
         };
     }
 

@@ -1,14 +1,14 @@
 import { Briefcase, CloudUpload, IdCard, Info } from "lucide-react";
-import FileUploadZone from "../../../../components/provider/applyProvider/FileUploadZone";
-import RequiredBadge from "../../../../components/provider/applyProvider/RequiredBadge";
+import FileUploadZone from "@/features/provider/applyAsProvider/components/FileUploadZone";
+import RequiredBadge from "@/features/provider/applyAsProvider/components/RequiredBadge";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { uploadDocumentToS3 } from "../services/imageUploadService";
 import { apiService } from "../services/apiService";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
-import { setProvider } from "../store/providerSlice";
+import { setProvider } from "@/features/provider/store/providerSlice";
 import { useNavigate } from "react-router-dom";
-import type { IDocumentDetails } from "../../intefaces/IDocumentDetails";
+import type { IDocumentDetails } from "@/shared/types/IDocumentDetails";
 
 interface IFileData {
     file?: File;

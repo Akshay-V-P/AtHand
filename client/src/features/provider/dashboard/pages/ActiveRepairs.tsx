@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { orderApi } from '../../../customer/service-request/api/orderApi';
-import type { Order } from '../../../customer/service-request/dtos/OrderDTOs';
+import { orderApi } from '@/features/orders/api/orderApi';
+import type { Order } from '@/features/orders/dtos/OrderDTOs';
 import { useAppSelector } from '../../../../hooks/storeHook';
 import {
     Wrench,
@@ -25,9 +25,9 @@ export default function ActiveRepairs() {
         try {
             setLoading(true);
             const res = await orderApi.getProviderOrders(providerId);
+           
             if (res.data.success && res.data.data) {
-                
-                setOrders(res.data.data);
+                setOrders(res.data.data.items);
             }
         } catch (error: any) {
             console.error('Failed to load orders', error);

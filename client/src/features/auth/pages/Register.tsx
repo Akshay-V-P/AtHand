@@ -1,7 +1,7 @@
 import React from 'react'
-import { InputField } from '../../../components/common/InputField'
-import { Button } from '../../../components/common/Button'
-import { Divider } from '../../../components/common/Divider'
+import { InputField } from "@/shared/components/InputField"
+import { Button } from "@/shared/components/Button"
+import { Divider } from "@/shared/components/Divider"
 import { useForm } from "react-hook-form"
 import { registerSchema, type RegisterFormData } from '../validation/registerSchema'
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -9,7 +9,7 @@ import { authService } from '../services/authService'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useTogglePassword } from '../hooks/useTogglePassword'
-import GoogleAuthButton from '../../../components/auth/GoogleAuthButton'
+import GoogleAuthButton from "@/features/auth/components/GoogleAuthButton"
 
 const Register = () => {
 

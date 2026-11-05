@@ -5,12 +5,12 @@ import AdminLayout from "../layouts/AdminLayout";
 import ProviderManagement from "../pages/ProviderManagement";
 import ProviderDetailsLayout from "../layouts/ProviderDetailsLayout";
 import EditProviderProfile from "../pages/EditProviderProfile";
-import AdminProtection from "../../../components/admin/AdminProtection";
+import AdminProtection from "@/features/admin/components/AdminProtection";
 import ProviderServiceCatalog from "../pages/ProviderServiceCatalog";
 import ProviderVerificationDocuments from "../pages/ProviderVerificationDocuments";
 import ProviderPerformanceMetrics from "../pages/ProviderPerformanceMetrics";
 import ServiceCategories from "../pages/ServiceCategories";
-import UserManagement from "../pages/UserMangement";
+import UserManagement from "@/features/admin/pages/UserManagement";
 
 const adminRoutes: RouteObject[] = [
     {

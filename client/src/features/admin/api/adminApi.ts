@@ -1,8 +1,8 @@
 import { api } from "../../../services/axios";
 import type { CreateCategoryDTO } from "../../../shared/dtos/CreateCategoryDTO";
 import type { GetCategoriesDTO } from "../../../shared/dtos/GetCategoryDTO";
-import type { LogoutDTO } from "../../customer/account/dtos/LogoutDTO";
-import type { ProviderStatus } from "../../provider/enum/ProviderStatus";
+import type { LogoutDTO } from "@/features/auth/dtos/LogoutDTO";
+import type { ProviderStatus } from "@/shared/enums/ProviderStatus";
 import type { EditCategoryFormData } from "../validation/EditCategorySchema";
 import type { IProviderUpdateData } from "../../provider/applyAsProvider/dtos/UpdateProviderDTO";
 

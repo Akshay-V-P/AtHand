@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight, FileText, Image as ImageIcon, Camera, CreditCard, Rocket, ChevronDown } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { providerServiceApi } from '../apis/providerServiceApi';
+import { providerServiceApi } from '../api/providerServiceApi';
 import toast from 'react-hot-toast';
 import { useAppSelector } from '../../../../hooks/storeHook';
 import { uploadFileToS3, getPresignedDisplayUrl } from '../../../../services/imageService';

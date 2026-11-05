@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react'
-import ProviderRow from '../../../components/admin/ProviderRow'
-import FilterSelect from '../../../components/admin/FilterSelect'
+import ProviderRow from "@/features/admin/components/ProviderRow"
+import FilterSelect from "@/features/admin/components/FilterSelect"
 import { adminServices } from '../services/adminServices'
 
 interface FetchProviderResponse {

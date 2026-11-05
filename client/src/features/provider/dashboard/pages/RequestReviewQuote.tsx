@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { providerServiceApi } from '../apis/providerServiceApi';
-import { quoteApi } from '../apis/quoteApi';
+import { providerServiceApi } from '../api/providerServiceApi';
+import { quoteApi } from '../api/quoteApi';
 import { useAppSelector } from '../../../../hooks/storeHook';
 
 export default function RequestReviewQuote() {

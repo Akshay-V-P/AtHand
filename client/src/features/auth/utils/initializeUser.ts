@@ -1,7 +1,7 @@
-import type { AppDispatch } from "../../../store/store";
+import type { AppDispatch } from "@/store/store";
 import { loginSuccess } from "../store/authSlice";
-import { setProvider } from "../../provider/applyAsProvider/store/providerSlice";
-import { apiService } from "../../provider/applyAsProvider/services/apiService";
+import { setProvider } from "@/features/provider/store/providerSlice";
+import { apiService } from "@/features/provider/applyAsProvider/services/apiService";
 
 /**
  * Initializes the authenticated user by setting their base data in Redux

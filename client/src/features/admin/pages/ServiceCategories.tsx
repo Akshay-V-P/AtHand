@@ -4,12 +4,12 @@ import toast from "react-hot-toast";
 
 import { adminServices } from "../services/adminServices";
 
-import MetricCard from "../../../components/admin/MetricCard";
-import CategoryCard from "../../../components/admin/CategoryCard";
-import { Modal } from "../../../components/common/Modal";
+import MetricCard from "@/features/admin/components/MetricCard";
+import CategoryCard from "@/features/admin/components/CategoryCard";
+import { Modal } from "@/shared/components/Modal";
 
-import { CreateCategoryForm } from "../../../components/admin/CreateCategoryForm";
-import { EditCategoryForm } from "../../../components/admin/EditCategoryForm";
+import { CreateCategoryForm } from "@/features/admin/components/CreateCategoryForm";
+import { EditCategoryForm } from "@/features/admin/components/EditCategoryForm";
 
 import type { CreateCategoryFormData } from "../validation/CreateCategorySchema";
 import type { EditCategoryFormData } from "../validation/EditCategorySchema";

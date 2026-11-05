@@ -1,9 +1,9 @@
 
-import { Button } from '../../../../components/common/Button'
-import CategoryCard from '../../../../components/user/home/CategoryCard'
-import ServiceCard from '../../../../components/user/home/ServiceCard'
-import FaqItem from '../../../../components/user/home/FaqItem'
-import ReviewCard from '../../../../components/user/home/ReviewCard'
+import { Button } from "@/shared/components/Button"
+import CategoryCard from "@/features/customer/home/components/CategoryCard"
+import ServiceCard from "@/features/customer/home/components/ServiceCard"
+import FaqItem from "@/features/customer/home/components/FaqItem"
+import ReviewCard from "@/features/customer/home/components/ReviewCard"
 
 
 const Home = () => {

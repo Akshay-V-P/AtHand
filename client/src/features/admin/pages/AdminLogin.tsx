@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
-import { InputField } from '../../../components/common/InputField'
-import { Form } from '../../../components/common/Form'
+import { InputField } from "@/shared/components/InputField"
+import { Form } from "@/shared/components/Form"
 import { useForm } from 'react-hook-form'
 import { loginSchema, type LoginFormData } from '../../auth/validation/loginSchema'
 import { zodResolver } from '@hookform/resolvers/zod'

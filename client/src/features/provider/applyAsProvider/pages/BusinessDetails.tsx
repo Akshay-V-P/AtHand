@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { InputField } from "../../../../components/common/InputField";
-import InfoCard from "../../../../components/provider/applyProvider/InfoCard";
+import { InputField } from "@/shared/components/InputField";
+import InfoCard from "@/features/provider/applyAsProvider/components/InfoCard";
 import { Locate, Shield, Zap } from "lucide-react";
-import { Form } from "../../../../components/common/Form";
-import ProgressBar from "../../../../components/provider/applyProvider/ProgressBar";
-import { Button } from "../../../../components/common/Button";
-import { getUserLocation, reverseGeocode } from "../services/locationService";
+import { Form } from "@/shared/components/Form";
+import ProgressBar from "@/features/provider/applyAsProvider/components/ProgressBar";
+import { Button } from "@/shared/components/Button";
+import { getUserLocation, reverseGeocode } from "@/shared/services/locationService";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
-import { setBusinessDetails, setLocationDetails } from "../store/appyProviderSlice";
-import LocationPicker from "../../../../components/provider/applyProvider/LocationPicker";
+import { setBusinessDetails, setLocationDetails } from "@/features/provider/applyAsProvider/store/providerApplicationSlice";
+import LocationPicker from "@/shared/components/location/LocationPicker";
 import { useForm } from "react-hook-form";
 import { businessDetailsSchema, type BusinessDetailsFormData } from "../validation/businessDetailsSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +16,7 @@ import toast from "react-hot-toast";
 import { apiService } from "../services/apiService";
 import type { BusinessDetailsDTO } from "../dtos/BusinessDetailsDTO";
 import { useNavigate } from "react-router-dom";
-import { setProvider } from "../store/providerSlice";
+import { setProvider } from "@/features/provider/store/providerSlice";
 
 const CreateAccount = () => {
     const location = useAppSelector((state) => state.providerApplication.locationDetails)

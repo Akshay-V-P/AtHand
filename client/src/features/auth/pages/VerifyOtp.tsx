@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { InputField } from '../../../components/common/InputField'
-import { Button } from '../../../components/common/Button'
+import { InputField } from "@/shared/components/InputField"
+import { Button } from "@/shared/components/Button"
 import { authService } from '../services/authService'
 import { useForm } from 'react-hook-form';
 import { verifyOtpSchema, type VerifyOtpFormData } from '../validation/verifyOtpSchema';

@@ -1,8 +1,8 @@
 import type { RouteObject } from "react-router-dom";
-import ProviderLayout from "../layout/ProviderLayout";
+import ProviderLayout from "../layouts/ProviderLayout";
 import ApplyProviderRoutes from "../applyAsProvider/routes/ApplyProviderRoutes";
-import ProtectedRoute from "../../../components/common/ProtectedRoute";
-import {ProviderDashRoutes} from "../dashboard/routes/ProviderDashRoutes"
+import ProtectedRoute from "@/features/auth/components/ProtectedRoute";
+import { ProviderDashRoutes } from "../dashboard/routes/ProviderDashRoutes";
 
 const ProviderRoutes: RouteObject[] = [
     {
@@ -16,6 +16,6 @@ const ProviderRoutes: RouteObject[] = [
             ...ProviderDashRoutes
         ]
     }
-]
+];
 
-export default ProviderRoutes
+export default ProviderRoutes;

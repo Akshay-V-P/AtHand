@@ -1,6 +1,6 @@
 import React from 'react'
-import { InputField } from '../../../components/common/InputField'
-import { Button } from '../../../components/common/Button'
+import { InputField } from "@/shared/components/InputField"
+import { Button } from "@/shared/components/Button"
 import { updatePasswordSchema, type UpdateFormData } from '../validation/updatePasswordSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
@@ -8,7 +8,7 @@ import { authService } from '../services/authService'
 import { useForm } from 'react-hook-form'
 import { useAppSelector } from '../../../hooks/storeHook'
 import type { VerifyPasswordDto } from '../dtos/VerifyPasswordDto'
-import { Form } from '../../../components/common/Form'
+import { Form } from "@/shared/components/Form"
 import { useNavigate } from 'react-router-dom'
 
 const UpdatePassword = () => {

@@ -1,8 +1,8 @@
 // components/Layout.jsx
 import React from 'react';
-import Navbar from '../../../../components/provider/dashboard/ProviderNavbar';
+import Navbar from "@/features/provider/dashboard/components/ProviderNavbar";
 import { Outlet } from 'react-router-dom';
-import Sidebar from '../../../../components/provider/dashboard/ProviderSidebar';
+import Sidebar from "@/features/provider/dashboard/components/ProviderSidebar";
 
 export default function ProviderDashLayout() {
   return (

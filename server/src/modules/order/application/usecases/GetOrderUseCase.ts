@@ -2,6 +2,7 @@ import { OrderRepository } from "../../infrastructure/database/repositories/Orde
 import { IOrder } from "../../domain/entities/OrderEntity";
 import { AppError } from "../../../../shared/errors/AppError";
 import { HttpStatus } from "../../../../shared/enums/HttpStatus";
+import { PaginatedResult } from "../../../../shared/application/dtos/PaginatedResultDTO";
 
 export class GetOrderUseCase {
     constructor(private orderRepository: OrderRepository) { }
@@ -40,7 +41,7 @@ export class GetOrderUseCase {
         return await this.orderRepository.findByCustomerId(customerId, page, limit);
     }
 
-    async getProviderOrders(providerId: string, page: number = 1, limit: number = 20, status?: string): Promise<{ data: IOrder[], total: number }> {
+    async getProviderOrders(providerId: string, page: number = 1, limit: number = 20, status?: string): Promise<PaginatedResult<IOrder>> {
         return await this.orderRepository.findByProviderId(providerId, page, limit, status);
     }
 }

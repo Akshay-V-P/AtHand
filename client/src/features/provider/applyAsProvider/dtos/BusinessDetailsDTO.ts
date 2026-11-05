@@ -1,13 +1,22 @@
-import type { Document } from "../store/appyProviderSlice";
+export interface ProviderApplicationDocument {
+    id: string;
+    providerId: string;
+    documentType: "TECHNICAL CERTIFICATE" | "BUSINESS LICENSE" | "GOVERNMENT ID FRONT" | "GOVERNMENT ID BACK";
+    documentKey: string;
+    verificationStatus: "PENDING" | "APPROVED" | "REJECTED";
+    remarks?: string;
+}
 
-export interface BusinessDetailsDTO{
+export type Document = ProviderApplicationDocument;
+
+export interface BusinessDetailsDTO {
     userId: string;
     businessDetails?: {
         businessName: string;
         contactPerson: string;
         phone: string;
         email: string;
-    },
+    };
     locationDetails?: {
         address: {
             street: string;
@@ -15,15 +24,15 @@ export interface BusinessDetailsDTO{
             district: string;
             state: string;
             pincode: string;
-        },
+        };
         coordinates: {
-            type: "Point",
-            coordinates:[number, number]
-        }
-    },
+            type: "Point";
+            coordinates: [number, number];
+        };
+    };
     serviceDetails?: {
-        serviceCategory: string,
-        serviceRadius:number
-    },
-    documents?:Document[]
+        serviceCategory: string;
+        serviceRadius: number;
+    };
+    documents?: ProviderApplicationDocument[];
 }

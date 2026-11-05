@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { Divider } from "../../../components/common/Divider";
-import { Button } from "../../../components/common/Button";
-import { InputField } from "../../../components/common/InputField";
+import { Divider } from "@/shared/components/Divider";
+import { Button } from "@/shared/components/Button";
+import { InputField } from "@/shared/components/InputField";
 import { useForm } from "react-hook-form";
 import { loginSchema, type LoginFormData } from "../validation/loginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,8 +10,8 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../hooks/storeHook";
 import { initializeAuthenticatedUser } from "../utils/initializeUser";
-import { Form } from "../../../components/common/Form";
-import GoogleAuthButton from "../../../components/auth/GoogleAuthButton";
+import { Form } from "@/shared/components/Form";
+import GoogleAuthButton from "@/features/auth/components/GoogleAuthButton";
 
 const Login = () => {
     const {

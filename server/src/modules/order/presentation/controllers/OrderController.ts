@@ -94,7 +94,7 @@ export class OrderController {
             const status = req.query.status as string;
 
             const result = await this.getOrderUseCase.getProviderOrders(providerId, page, limit, status);
-            ResponseHandler.success(res, HttpStatus.OK, "Provider orders retrieved successfully", result.data);
+            ResponseHandler.success(res, HttpStatus.OK, "Provider orders retrieved successfully", result);
         } catch (error: any) {
             next(error);
         }

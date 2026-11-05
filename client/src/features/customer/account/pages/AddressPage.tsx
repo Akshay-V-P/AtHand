@@ -4,14 +4,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { addressSchema, type AddressFormData } from '../validation/addressSchema';
 import { accountServices } from '../services/accountServices';
 import type { AddressResponseDTO } from '../dtos/AddressDTO';
-import { Modal } from '../../../../components/common/Modal';
-import { Form } from '../../../../components/common/Form';
-import { InputField } from '../../../../components/common/InputField';
-import { Button } from '../../../../components/common/Button';
+import { Modal } from "@/shared/components/Modal";
+import { Form } from "@/shared/components/Form";
+import { InputField } from "@/shared/components/InputField";
+import { Button } from "@/shared/components/Button";
 import toast from 'react-hot-toast';
 import { MapPin, Home, Briefcase, Plus, Trash2, Edit2, Locate } from 'lucide-react';
-import LocationPicker from '../../../../components/provider/applyProvider/LocationPicker';
-import { getUserLocation, reverseGeocode } from '../../../../features/provider/applyAsProvider/services/locationService';
+import LocationPicker from "@/shared/components/location/LocationPicker";
+import { getUserLocation, reverseGeocode } from "@/shared/services/locationService";
 
 const AddressPage = () => {
   const [addresses, setAddresses] = useState<AddressResponseDTO[]>([]);

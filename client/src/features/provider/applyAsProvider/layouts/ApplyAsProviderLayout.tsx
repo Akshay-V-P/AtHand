@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import SideBar from "../../../../components/provider/applyProvider/SideBar";
+import SideBar from "@/features/provider/applyAsProvider/components/SideBar";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
 import { apiService } from "../services/apiService";
@@ -8,8 +8,8 @@ import {
     setBusinessDetails,
     setLocationDetails,
     setServiceDetails,
-} from "../store/appyProviderSlice";
-import { setProvider } from "../store/providerSlice";
+} from "@/features/provider/applyAsProvider/store/providerApplicationSlice";
+import { setProvider } from "@/features/provider/store/providerSlice";
 
 const ApplyAsProviderLayout = () => {
     const user = useAppSelector((state) => state.auth.user);

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../../../../hooks/storeHook'
-import { Button } from '../../../../components/common/Button'
-import { InputField } from '../../../../components/common/InputField'
+import { Button } from "@/shared/components/Button"
+import { InputField } from "@/shared/components/InputField"
 import { accountServices } from '../services/accountServices'
 import toast from 'react-hot-toast'
 import { updateUser } from '../../../auth/store/authSlice'

@@ -1,7 +1,7 @@
 
-import Navbar from '../../../components/admin/Navbar'
+import Navbar from "@/features/admin/components/Navbar"
 import { Outlet } from 'react-router-dom'
-import SideBar from '../../../components/admin/SideBar'
+import SideBar from "@/features/admin/components/SideBar"
 const AdminLayout = () => {
   
   return (

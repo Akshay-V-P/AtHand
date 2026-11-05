@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, TrendingUp, Calendar, Filter, ChevronDown, Star, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../../../hooks/storeHook';
-import { providerServiceApi } from '../apis/providerServiceApi';
+import { providerServiceApi } from '../api/providerServiceApi';
 import toast from 'react-hot-toast';
 
 export default function MyServices() {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "../../../components/common/Button";
-import { InputField } from "../../../components/common/InputField";
-import { Form } from "../../../components/common/Form";
+import { Button } from "@/shared/components/Button";
+import { InputField } from "@/shared/components/InputField";
+import { Form } from "@/shared/components/Form";
 import { useForm } from "react-hook-form";
 import {
     resetPasswordSchema,

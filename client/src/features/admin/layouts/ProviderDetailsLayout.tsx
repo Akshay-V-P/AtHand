@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import LocationMap from '../../../components/common/LocationMap'
+import LocationMap from "@/shared/components/location/LocationMap"
 import { adminServices } from '../services/adminServices'
-import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails'
-import { Modal } from '../../../components/common/Modal'
+import type { ProviderDetails } from "@/shared/types/IProviderDetails"
+import { Modal } from "@/shared/components/Modal"
 import toast from 'react-hot-toast'
 
 const badgeColour = {

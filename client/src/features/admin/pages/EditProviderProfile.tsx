@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { useOutletContext } from 'react-router-dom'
-import ServicePill from '../../../components/admin/ServicePill'
-import { InputField } from '../../../components/common/InputField'
-import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails'
+import ServicePill from "@/features/admin/components/ServicePill"
+import { InputField } from "@/shared/components/InputField"
+import type { ProviderDetails } from "@/shared/types/IProviderDetails"
 import { adminServices } from '../services/adminServices'
 
 type BusinessDetailsForm = {

@@ -1,5 +1,5 @@
 import { api } from "../../../../services/axios";
-import type { LogoutDTO } from "../dtos/LogoutDTO";
+import type { LogoutDTO } from "@/features/auth/dtos/LogoutDTO";
 import type { CreateAddressDTO, UpdateAddressDTO } from "../dtos/AddressDTO";
 
 

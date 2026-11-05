@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import DocumentCard from '../../../components/admin/DocumentCard';
-import type { IDocumentDetails } from '../../provider/intefaces/IDocumentDetails';
+import DocumentCard from "@/features/admin/components/DocumentCard";
+import type { IDocumentDetails } from "@/shared/types/IDocumentDetails";
 import { adminServices } from '../services/adminServices';
 import { useOutletContext } from 'react-router-dom';
-import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails';
+import type { ProviderDetails } from "@/shared/types/IProviderDetails";
 import toast from 'react-hot-toast';
 
 const ProviderVerificationDocuments = () => {

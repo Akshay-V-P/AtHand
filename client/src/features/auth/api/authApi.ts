@@ -1,4 +1,4 @@
-import { api } from "../../../services/axios";
+import { api } from "@/services/axios";
 import type { AuthcontextDTO } from "../dtos/AuthcontextDTO";
 import type { ForgotDto } from "../dtos/ForgotDto";
 import type { GoogleSignDto } from "../dtos/GoogleSignDto";
@@ -7,33 +7,35 @@ import type { RegisterDto } from "../dtos/RegisterDto";
 import type { UpdatePasswordDto } from "../dtos/UpdatePasswordDto";
 import type { VerifyOtpDto } from "../dtos/VerifyOtpDto";
 import type { VerifyPasswordDto } from "../dtos/VerifyPasswordDto";
+import type { LogoutDTO } from "@/features/auth/dtos/LogoutDTO";
 
 export const authApi = {
     register: (data: RegisterDto) =>
         api.post("/auth/signup", data),
     login: (data: LoginDto) =>
         api.post("/auth/login", data),
+    logout: (data: LogoutDTO) =>
+        api.post("/auth/logout", data),
     otpStatus: () =>
         api.get("/auth/otp-status"),
-    verifyOtp: (data:VerifyOtpDto) =>
+    verifyOtp: (data: VerifyOtpDto) =>
         api.post("/auth/verify-otp", data),
     resendOtp: () =>
         api.post("/auth/resend-otp"),
-    refresh: (data:AuthcontextDTO) =>
+    refresh: (data: AuthcontextDTO) =>
         api.post("/auth/me", data),
-    forgotPassword: (data:ForgotDto) =>
+    forgotPassword: (data: ForgotDto) =>
         api.post("/auth/forgot-password", data),
-    verifyResetLink: (token:{token: string}) =>
+    verifyResetLink: (token: { token: string }) =>
         api.post("/auth/verify-reset-token", token),
     updatePassword: (data: UpdatePasswordDto) =>
         api.post("/auth/update-password", data),
-    loginWithGoogle: (data:GoogleSignDto) =>
+    loginWithGoogle: (data: GoogleSignDto) =>
         api.post("/auth/google", data),
-    verifyPassword:(data: VerifyPasswordDto) => 
+    verifyPassword: (data: VerifyPasswordDto) =>
         api.post("/auth/verify-password", data),
     adminRefresh: () =>
         api.post("/auth/admin-refresh"),
     refreshTokens: () =>
-        api.get("/auth/refresh")
-    
-}
+        api.get("/auth/refresh"),
+};

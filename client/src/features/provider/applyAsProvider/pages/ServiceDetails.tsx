@@ -1,15 +1,15 @@
 import { Car, ListPlus, MonitorSmartphone, Network, Settings, Snowflake, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import ServiceCard from "../../../../components/provider/applyProvider/ServiceCard";
-import ProgressBar from "../../../../components/provider/applyProvider/ProgressBar";
-import { Button } from "../../../../components/common/Button";
+import ServiceCard from "@/features/provider/applyAsProvider/components/ServiceCard";
+import ProgressBar from "@/features/provider/applyAsProvider/components/ProgressBar";
+import { Button } from "@/shared/components/Button";
 import { useNavigate } from "react-router-dom";
 import { providerApplicationApi } from "../api/providerApplicationApi";
-import { InputField } from "../../../../components/common/InputField";
+import { InputField } from "@/shared/components/InputField";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "../../../../hooks/storeHook";
 import { apiService } from "../services/apiService";
-import { setProvider } from "../store/providerSlice";
+import { setProvider } from "@/features/provider/store/providerSlice";
 
 interface Category {
     id: string;

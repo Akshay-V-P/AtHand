@@ -1,6 +1,6 @@
 import React, { useState} from 'react';
 import { useOutletContext } from 'react-router-dom';
-import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails';
+import type { ProviderDetails } from "@/shared/types/IProviderDetails";
 
 const ProviderPerformanceMetrics = () => {
   const [activeTab, setActiveTab] = useState('7 Days');

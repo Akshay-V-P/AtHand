@@ -1,9 +1,9 @@
-import { type RouteObject } from "react-router-dom"
-import homeRoute from "../home/HomeRoutes"
-import CustomerLayout from "../layouts/CustomerLayout"
-import accountRoutes from "../account/routes/AccountRoutes"
-import CategoryPageRoutes from "../category-page/routes/CategoryPageRoutes"
-import ServiceRequestRoutes from "../service-request/routes/ServiceRequestRoutes"
+import { type RouteObject } from "react-router-dom";
+import homeRoute from "../home/routes/homeRoutes";
+import CustomerLayout from "../layouts/CustomerLayout";
+import accountRoutes from "../account/routes/AccountRoutes";
+import CategoryPageRoutes from "@/features/categories/routes/categoryRoutes";
+import ServiceRequestRoutes from "@/features/service-requests/routes/ServiceRequestRoutes";
 
 const customerRoute: RouteObject[] = [
     {
@@ -15,6 +15,6 @@ const customerRoute: RouteObject[] = [
             ...ServiceRequestRoutes
         ]
     }
-]
+];
 
-export default customerRoute
+export default customerRoute;

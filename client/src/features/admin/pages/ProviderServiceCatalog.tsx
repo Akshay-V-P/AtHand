@@ -1,6 +1,6 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import type { ProviderDetails } from '../../provider/intefaces/IProviderDetails'; // Adjust import if needed
+import type { ProviderDetails } from "@/shared/types/IProviderDetails"; // Adjust import if needed
 
 const ProviderServiceCatalog = () => {
   // You can access the provider details passed from ProviderDetailsLayout here

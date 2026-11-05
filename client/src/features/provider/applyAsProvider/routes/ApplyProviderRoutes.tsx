@@ -4,7 +4,7 @@ import BusinessDetails from "../pages/BusinessDetails";
 import ServiceDetails from "../pages/ServiceDetails"
 import UploadDocuments from "../pages/UploadDocuments"
 import VerifyPage from "../pages/VerifyPage";
-import ProtectApplication from "../../../../components/provider/applyProvider/ProtectApplication";
+import ProtectApplication from "@/features/provider/applyAsProvider/components/ProtectApplication";
 
 const ApplyProviderRoutes: RouteObject[] = [
     {

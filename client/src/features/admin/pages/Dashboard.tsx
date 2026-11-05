@@ -1,6 +1,6 @@
 import React from 'react'
-import Badge from '../../../components/admin/Badge'
-import StatCard from '../../../components/admin/StatCard'
+import Badge from "@/features/admin/components/Badge"
+import StatCard from "@/features/admin/components/StatCard"
 
 const Dashboard = () => {
   return (

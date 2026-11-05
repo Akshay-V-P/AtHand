@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import {Form} from '../../../components/common/Form'
-import { InputField } from '../../../components/common/InputField'
-import { Button } from '../../../components/common/Button'
+import {Form} from "@/shared/components/Form"
+import { InputField } from "@/shared/components/InputField"
+import { Button } from "@/shared/components/Button"
 import { useForm } from 'react-hook-form'
 import { forgotSchema, type ForgotFormData } from '../validation/forgotSchema'
 import { zodResolver } from '@hookform/resolvers/zod'

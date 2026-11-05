@@ -1,8 +1,8 @@
 import React from 'react'
 
 import Profile from '../pages/Profile'
-import Navbar from '../../../../components/common/Navbar'
-import Sidebar from '../../../../components/account/Sidebar'
+import Navbar from "@/features/customer/components/Navbar"
+import Sidebar from "@/features/customer/account/components/Sidebar"
 import { Outlet } from 'react-router-dom'
 
 const AccountLayout = () => {

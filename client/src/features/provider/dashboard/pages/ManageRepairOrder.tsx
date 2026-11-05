@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { orderApi } from '../../../customer/service-request/api/orderApi';
-import type { Order, IEstimateItem, IWorkProofPhoto } from '../../../customer/service-request/dtos/OrderDTOs';
+import { orderApi } from '@/features/orders/api/orderApi';
+import type { Order, IEstimateItem, IWorkProofPhoto } from '@/features/orders/dtos/OrderDTOs';
 import { uploadFileToS3 } from '../../../../services/imageService';
 import {
     ArrowLeft,
