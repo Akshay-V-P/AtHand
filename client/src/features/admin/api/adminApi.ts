@@ -5,6 +5,10 @@ import type { LogoutDTO } from "@/features/auth/dtos/LogoutDTO";
 import type { ProviderStatus } from "@/shared/enums/ProviderStatus";
 import type { EditCategoryFormData } from "../validation/EditCategorySchema";
 import type { IProviderUpdateData } from "../../provider/applyAsProvider/dtos/UpdateProviderDTO";
+import type {
+    IAdminUpdateProviderServicePayload,
+    IGetProviderServicesParams,
+} from "../types/providerService";
 
 export const adminApi = {
     getProviders: (query: string) =>
@@ -13,6 +17,14 @@ export const adminApi = {
         api.get(`/admin/provider/${id}`),
     updateProvider: (id: string, data: IProviderUpdateData) =>
         api.patch(`/admin/provider/${id}`, data),
+    getProviderServices: (providerId: string, params: IGetProviderServicesParams) =>
+        api.get(`/admin/provider/${providerId}/services`, { params }),
+    updateProviderService: (serviceId: string, data: IAdminUpdateProviderServicePayload) =>
+        api.patch(`/admin/provider-service/${serviceId}`, data),
+    blockProviderService: (serviceId: string, reason: string) =>
+        api.patch(`/admin/provider-service/${serviceId}/block`, { reason }),
+    unblockProviderService: (serviceId: string) =>
+        api.patch(`/admin/provider-service/${serviceId}/unblock`),
     logout: (data: LogoutDTO) =>
         api.post("/auth/logout", data),
     getDocuments: (id: string) =>

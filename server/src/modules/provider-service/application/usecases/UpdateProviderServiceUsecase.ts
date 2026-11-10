@@ -23,7 +23,8 @@ export class UpdateProviderServiceUsecase {
             dto.pricingType || existingService.pricingType,
             dto.isAvailable !== undefined ? dto.isAvailable : existingService.isAvailable,
             existingService.status,
-            existingService.id
+            existingService.id,
+            existingService.blockReason
         );
 
         return this.providerServiceRepository.update(updatedService);

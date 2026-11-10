@@ -7,4 +7,8 @@ export const RESPONSE_MESSAGES = {
     DOCUMENT_ID_NEEDED: "Document ID is required in the URL",
     DOCUMENT_UPDATED: "Document updated successfully",
     UPDATED_PROVIDER: "Provider updated successfully",
-}as const
+    FETCHED_PROVIDER_SERVICES: "Provider services fetched successfully",
+    UPDATED_PROVIDER_SERVICE: "Provider service updated successfully",
+    BLOCKED_PROVIDER_SERVICE: "Provider service blocked successfully",
+    UNBLOCKED_PROVIDER_SERVICE: "Provider service unblocked successfully",
+} as const;

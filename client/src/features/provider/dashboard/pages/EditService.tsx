@@ -19,6 +19,7 @@ export default function EditService() {
     const [existingMediaPreviews, setExistingMediaPreviews] = useState<string[]>([]);
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [serviceStatusInfo, setServiceStatusInfo] = useState<{ status: string; blockReason?: string | null } | null>(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -48,6 +49,7 @@ export default function EditService() {
                     const serviceRes = await providerServiceApi.getProviderServiceById(id);
                     if (serviceRes.success && serviceRes.data) {
                         const s = serviceRes.data;
+                        setServiceStatusInfo({ status: s.status, blockReason: s.blockReason });
                         setFormData({
                             name: s.name,
                             categoryId: s.categoryId,
@@ -191,6 +193,12 @@ export default function EditService() {
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Capability</h1>
                 <p className="text-gray-500 text-sm">Update the technical specifications and pricing for your professional service.</p>
+                {serviceStatusInfo?.status === 'BLOCKED' && (
+                    <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                        <span className="font-bold">This service has been blocked by an administrator.</span>
+                        {serviceStatusInfo.blockReason ? ` Reason: ${serviceStatusInfo.blockReason}` : ''}
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

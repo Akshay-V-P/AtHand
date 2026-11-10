@@ -17,5 +17,9 @@ export class ProviderService {
         public readonly isAvailable: boolean,
         public readonly status: ProviderServiceStatus,
         public readonly id?: string,
+        public readonly blockReason?: string | null,
+        public readonly categoryName?: string,
+        public readonly createdAt?: Date,
+        public readonly updatedAt?: Date,
     ) { }
 }

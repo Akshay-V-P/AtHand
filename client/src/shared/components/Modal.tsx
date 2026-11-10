@@ -1,14 +1,15 @@
 // components/ui/Modal.jsx
-import React, { type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
-interface ModalProps{
+interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title: string;
-    children:ReactNode
+    children: ReactNode;
+    maxWidth?: string;
 }
 
-export const Modal = ({ isOpen, onClose, title, children }:ModalProps) => {
+export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-md' }: ModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -22,10 +23,10 @@ export const Modal = ({ isOpen, onClose, title, children }:ModalProps) => {
       ></div>
 
       {/* Modal Card */}
-      <div className="relative bg-white w-full max-w-md rounded-[2rem] shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className={`relative bg-white w-full ${maxWidth} max-h-[90vh] rounded-[2rem] shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200`}>
         
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100">
+        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0">
           <h3 className="text-xl font-bold text-gray-900 tracking-tight">
             {title}
           </h3>
@@ -41,14 +42,11 @@ export const Modal = ({ isOpen, onClose, title, children }:ModalProps) => {
         </div>
 
         {/* Modal Body */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto">
           {children}
         </div>
 
       </div>
     </div>
-
   );
-  
-
 };

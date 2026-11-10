@@ -56,6 +56,11 @@ const ProviderServiceSchema = new mongoose.Schema({
         type: String,
         enum: ["ACTIVE", "INACTIVE", "BLOCKED"],
         default: "ACTIVE"
+    },
+    blockReason: {
+        type: String,
+        trim: true,
+        default: null
     }
 }, {
     timestamps: true,

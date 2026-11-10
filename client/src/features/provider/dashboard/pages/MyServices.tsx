@@ -172,7 +172,7 @@ export default function MyServices() {
                             <div className="flex justify-between items-start mb-2">
                                 <h3 className="font-bold text-lg text-gray-900 leading-tight w-2/3">{service.name}</h3>
                                 <div className="flex items-center">
-                                    <span className="text-xs font-semibold mr-2">{service.status === 'ACTIVE' ? 'Active' : 'Draft'}</span>
+                                    <span className={`text-xs font-semibold mr-2 ${service.status === 'BLOCKED' ? 'text-rose-600' : ''}`}>{service.status === 'ACTIVE' ? 'Active' : service.status === 'BLOCKED' ? 'Blocked' : 'Draft'}</span>
                                     <div className={`w-9 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors ${service.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-gray-300'}`}>
                                         <div className={`bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-300 ${service.status === 'ACTIVE' ? 'translate-x-4' : ''}`}></div>
                                     </div>
@@ -185,6 +185,11 @@ export default function MyServices() {
                             <p className="text-sm text-gray-500 mb-6 flex-grow line-clamp-3">
                                 {service.description || "No description provided."}
                             </p>
+                            {service.status === 'BLOCKED' && service.blockReason && (
+                                <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                                    <span className="font-semibold">Blocked by admin:</span> {service.blockReason}
+                                </div>
+                            )}
 
                             <div className="flex justify-between items-end border-t border-gray-100 pt-4 mt-auto">
                                 <div className="flex flex-col">

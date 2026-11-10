@@ -4,6 +4,10 @@ import type { LogoutDTO } from "@/features/auth/dtos/LogoutDTO";
 import { adminApi } from "../api/adminApi";
 import type { EditCategoryFormData } from "../validation/EditCategorySchema";
 import type { IProviderUpdateData } from "@/features/provider/applyAsProvider/dtos/UpdateProviderDTO";
+import type {
+    IAdminUpdateProviderServicePayload,
+    IGetProviderServicesParams,
+} from "../types/providerService";
 
 export const adminServices = {
     async getProviders(query?: object) {
@@ -23,6 +27,19 @@ export const adminServices = {
     },
     async updateProvider(id: string, data: IProviderUpdateData) {
         return adminApi.updateProvider(id, data);
+    },
+
+    async getProviderServices(providerId: string, params: IGetProviderServicesParams) {
+        return adminApi.getProviderServices(providerId, params);
+    },
+    async updateProviderService(serviceId: string, data: IAdminUpdateProviderServicePayload) {
+        return adminApi.updateProviderService(serviceId, data);
+    },
+    async blockProviderService(serviceId: string, reason: string) {
+        return adminApi.blockProviderService(serviceId, reason);
+    },
+    async unblockProviderService(serviceId: string) {
+        return adminApi.unblockProviderService(serviceId);
     },
 
     async logout(data: LogoutDTO) {

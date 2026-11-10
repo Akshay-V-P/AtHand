@@ -1,4 +1,5 @@
 import { PricingType } from "../../domain/enums/PricingType";
+import { ProviderServiceStatus } from "../../domain/enums/ProviderServiceStatus";
 
 export interface CreateProviderServiceDTO {
     providerId: string;
@@ -28,6 +29,7 @@ export interface UpdateProviderServiceDTO {
     startingPrice?: number;
     pricingType?: PricingType;
     isAvailable?: boolean;
+    status?: ProviderServiceStatus;
 }
 
 export interface GetProviderServicesDTO {
@@ -37,6 +39,17 @@ export interface GetProviderServicesDTO {
     categoryId?: string;
     providerId?: string;
     status?: string;
+}
+
+export interface ProviderServiceStats {
+    totalServices: number;
+    activeServices: number;
+    inactiveServices: number;
+    blockedServices: number;
+    averagePrice: number;
+    maxServiceRadius: number;
+    onSiteCount: number;
+    instantBookingCount: number;
 }
 
 export interface NearbyServicesFilter {

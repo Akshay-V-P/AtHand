@@ -7,7 +7,7 @@ import { ProviderServiceMapper } from "../../mappers/ProviderServiceMapper";
 import ProviderServiceModel, { ProviderServiceSchemaType } from "../models/ProviderServiceModel";
 import ProviderModel from "../../../../../modules/provider/infrastructure/database/models/ProviderModel";
 import mongoose from "mongoose";
-import { NearbyServicesFilter } from "../../../application/dtos/ProviderServiceDTOs";
+import { NearbyServicesFilter, ProviderServiceStats } from "../../../application/dtos/ProviderServiceDTOs";
 import { NearbyProviderDto } from "../../../application/dtos/NearbyServiceDto";
 
 export class ProviderServiceRepository extends BaseRepository<ProviderServiceSchemaType> implements IProviderServiceRepository {
@@ -35,15 +35,19 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
     }
 
     async findById(id: string): Promise<ProviderService | null> {
-        const document = await this.findDocumentById(id);
+        if (!mongoose.Types.ObjectId.isValid(id)) return null;
+        const document = await this.model.findById(id).populate("categoryId", "name");
         if (!document) return null;
         return ProviderServiceMapper.toDomain(document);
     }
 
     async findByProviderId(providerId: string, page: number, limit: number): Promise<PaginatedResult<ProviderService>> {
+        if (!mongoose.Types.ObjectId.isValid(providerId)) {
+            return { items: [], totalItems: 0, page, limit, totalPages: 0 };
+        }
         const skip = (page - 1) * limit;
         const [documents, totalItems] = await Promise.all([
-            this.model.find({ providerId }).skip(skip).limit(limit).sort({ createdAt: -1 }),
+            this.model.find({ providerId }).populate("categoryId", "name").skip(skip).limit(limit).sort({ createdAt: -1 }),
             this.model.countDocuments({ providerId })
         ]);
 
@@ -62,14 +66,22 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
 
         const filter: any = {};
         if (status) filter.status = status;
-        if (categoryId) filter.categoryId = new mongoose.Types.ObjectId(categoryId);
-        if (providerId) filter.providerId = new mongoose.Types.ObjectId(providerId);
-        if (search) {
-            filter.name = { $regex: search, $options: "i" };
+        if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
+            filter.categoryId = new mongoose.Types.ObjectId(categoryId);
+        }
+        if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
+            filter.providerId = new mongoose.Types.ObjectId(providerId);
+        }
+        if (search && search.trim()) {
+            const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            filter.$or = [
+                { name: { $regex: escapedSearch, $options: "i" } },
+                { description: { $regex: escapedSearch, $options: "i" } }
+            ];
         }
 
         const [documents, totalItems] = await Promise.all([
-            this.model.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+            this.model.find(filter).populate("categoryId", "name").skip(skip).limit(limit).sort({ createdAt: -1 }),
             this.model.countDocuments(filter)
         ]);
 
@@ -85,28 +97,101 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
     async update(service: ProviderService): Promise<ProviderService | null> {
         if (!service.id) throw new Error("Service ID is required");
 
-        const document = await this.updateDocument(service.id, {
-            categoryId: service.categoryId as any,
-            name: service.name,
-            description: service.description,
-            media: service.media,
-            onSite: service.onSite,
-            acceptUrgent: service.acceptUrgent,
-            instantBooking: service.instantBooking,
-            serviceRadius: service.serviceRadius,
-            startingPrice: service.startingPrice,
-            pricingType: service.pricingType,
-            isAvailable: service.isAvailable
-        });
+        const document = await this.model.findByIdAndUpdate(
+            service.id,
+            {
+                categoryId: service.categoryId as any,
+                name: service.name,
+                description: service.description,
+                media: service.media,
+                onSite: service.onSite,
+                acceptUrgent: service.acceptUrgent,
+                instantBooking: service.instantBooking,
+                serviceRadius: service.serviceRadius,
+                startingPrice: service.startingPrice,
+                pricingType: service.pricingType,
+                isAvailable: service.isAvailable,
+                status: service.status
+            },
+            { new: true }
+        ).populate("categoryId", "name");
 
         if (!document) return null;
         return ProviderServiceMapper.toDomain(document);
     }
 
-    async updateStatus(id: string, status: ProviderServiceStatus): Promise<ProviderService | null> {
-        const document = await this.updateDocument(id, { status });
+    async updateStatus(id: string, status: ProviderServiceStatus, blockReason?: string | null): Promise<ProviderService | null> {
+        const updatePayload: Record<string, any> = {
+            status,
+            blockReason: status === ProviderServiceStatus.BLOCKED ? (blockReason ?? null) : null
+        };
+        const document = await this.model
+            .findByIdAndUpdate(id, updatePayload, { new: true })
+            .populate("categoryId", "name");
         if (!document) return null;
         return ProviderServiceMapper.toDomain(document);
+    }
+
+    async getStatsByProviderId(providerId: string): Promise<ProviderServiceStats> {
+        if (!mongoose.Types.ObjectId.isValid(providerId)) {
+            return {
+                totalServices: 0,
+                activeServices: 0,
+                inactiveServices: 0,
+                blockedServices: 0,
+                averagePrice: 0,
+                maxServiceRadius: 0,
+                onSiteCount: 0,
+                instantBookingCount: 0,
+            };
+        }
+
+        const [result] = await this.model.aggregate([
+            { $match: { providerId: new mongoose.Types.ObjectId(providerId) } },
+            {
+                $group: {
+                    _id: null,
+                    totalServices: { $sum: 1 },
+                    activeServices: {
+                        $sum: { $cond: [{ $eq: ["$status", ProviderServiceStatus.ACTIVE] }, 1, 0] }
+                    },
+                    inactiveServices: {
+                        $sum: { $cond: [{ $eq: ["$status", ProviderServiceStatus.INACTIVE] }, 1, 0] }
+                    },
+                    blockedServices: {
+                        $sum: { $cond: [{ $eq: ["$status", ProviderServiceStatus.BLOCKED] }, 1, 0] }
+                    },
+                    averagePrice: { $avg: "$startingPrice" },
+                    maxServiceRadius: { $max: "$serviceRadius" },
+                    onSiteCount: { $sum: { $cond: ["$onSite", 1, 0] } },
+                    instantBookingCount: { $sum: { $cond: ["$instantBooking", 1, 0] } }
+                }
+            }
+        ]);
+
+        if (!result) {
+            return {
+                totalServices: 0,
+                activeServices: 0,
+                inactiveServices: 0,
+                blockedServices: 0,
+                averagePrice: 0,
+                maxServiceRadius: 0,
+                onSiteCount: 0,
+                instantBookingCount: 0,
+            };
+        }
+
+        return {
+            totalServices: result.totalServices || 0,
+            activeServices: result.activeServices || 0,
+            inactiveServices: result.inactiveServices || 0,
+            blockedServices: result.blockedServices || 0,
+            averagePrice: Number((result.averagePrice || 0).toFixed(2)),
+            maxServiceRadius: result.maxServiceRadius || 0,
+            onSiteCount: result.onSiteCount || 0,
+            instantBookingCount: result.instantBookingCount || 0,
+        };
     }
 
     async countServiceByCategoryId(categoryId: string): Promise<number> {
@@ -141,8 +226,15 @@ export class ProviderServiceRepository extends BaseRepository<ProviderServiceSch
         pipeline.push({
             $lookup: {
                 from: "providerservices",
-                localField: "_id",
-                foreignField: "providerId",
+                let: { pid: "$_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ["$providerId", "$$pid"] },
+                            status: ProviderServiceStatus.ACTIVE
+                        }
+                    }
+                ],
                 as: "services"
             }
         });
