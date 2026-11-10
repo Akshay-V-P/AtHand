@@ -22,7 +22,7 @@ export const categoryServices = {
     },
 
     async fetchCategories() {
-        const response = await categoryPageApi.fetchCategories();
+        const response = await categoryApi.fetchCategories();
         return response.data;
     }
 };

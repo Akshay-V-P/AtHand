@@ -3,6 +3,7 @@ import { IOrder } from "../../domain/entities/OrderEntity";
 import { OrderStatus } from "../../domain/enums/OrderStatus";
 import { AppError } from "../../../../shared/errors/AppError";
 import { HttpStatus } from "../../../../shared/enums/HttpStatus";
+import ProviderModel from "../../../provider/infrastructure/database/models/ProviderModel";
 
 export class SubmitDiagnosisUseCase {
     constructor(private orderRepository: OrderRepository) { }
@@ -20,7 +21,10 @@ export class SubmitDiagnosisUseCase {
             (order.providerId as any)?._id?.toString() ||
             order.providerId?.toString();
 
-        if (providerUserId !== data.providerUserId) {
+        const rawProvId = (order.providerId as any)?._id?.toString() || order.providerId?.toString();
+        const isProvider = rawProvId ? await ProviderModel.exists({ _id: rawProvId, userId: data.providerUserId }) : false;
+
+        if (providerUserId !== data.providerUserId && !isProvider) {
             throw new AppError("Unauthorized: Only the assigned technician can record diagnosis", HttpStatus.FORBIDDEN);
         }
 

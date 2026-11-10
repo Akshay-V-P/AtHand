@@ -1,6 +1,8 @@
+import mongoose from "mongoose";
 import { PaginatedResult } from "../../../../../shared/application/dtos/PaginatedResultDTO";
 import { IOrder } from "../../../domain/entities/OrderEntity";
 import { OrderModel, IOrderDocument } from "../models/OrderModel";
+import ProviderModel from "../../../../provider/infrastructure/database/models/ProviderModel";
 
 export class OrderRepository {
     async create(orderData: Partial<IOrder>): Promise<IOrder> {
@@ -47,7 +49,30 @@ export class OrderRepository {
     }
 
     async findByProviderId(providerId: string, page: number = 1, limit: number = 20, status?: string): Promise<PaginatedResult<IOrder>> {
-        const query: any = { providerId };
+        const targetProviderIds: any[] = [];
+        if (mongoose.isValidObjectId(providerId)) {
+            targetProviderIds.push(new mongoose.Types.ObjectId(providerId));
+            try {
+                const providerDoc = await ProviderModel.findOne({
+                    $or: [
+                        { _id: new mongoose.Types.ObjectId(providerId) },
+                        { userId: new mongoose.Types.ObjectId(providerId) }
+                    ]
+                }).exec();
+                if (providerDoc) {
+                    targetProviderIds.push(providerDoc._id);
+                    if (providerDoc.userId) {
+                        targetProviderIds.push(providerDoc.userId);
+                    }
+                }
+            } catch (err) {
+                // Ignore lookup errors
+            }
+        } else {
+            targetProviderIds.push(providerId);
+        }
+
+        const query: any = { providerId: { $in: targetProviderIds } };
         if (status) {
             query.status = status;
         }
@@ -60,6 +85,7 @@ export class OrderRepository {
                 .limit(limit)
                 .populate('requestId')
                 .populate('customerId')
+                .populate('providerId')
                 .exec(),
             OrderModel.countDocuments(query)
         ]);
@@ -69,7 +95,7 @@ export class OrderRepository {
             totalItems: total,
             page,
             limit,
-            totalPages:page
+            totalPages: Math.ceil(total / limit) || 1
         };
     }
 
@@ -101,6 +127,7 @@ export class OrderRepository {
             isAmountRevised: doc.isAmountRevised,
             revisionNotes: doc.revisionNotes,
             status: doc.status,
+            workStage: doc.workStage,
             appointment: doc.appointment,
             diagnosis: doc.diagnosis,
             repairEstimate: doc.repairEstimate,

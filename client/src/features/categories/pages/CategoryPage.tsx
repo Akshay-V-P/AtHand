@@ -31,7 +31,7 @@ export default function CategoryPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await categoryPageServices.fetchCategories()
+        const response = await categoryServices.fetchCategories()
         setCategories(response.data || [])
       } catch (error) {
         console.log(error)
@@ -104,7 +104,7 @@ export default function CategoryPage() {
           params.search = activeFilters.search;
         }
 
-        const res = await categoryPageServices.fetchServicesApi(params);
+        const res = await categoryServices.fetchServicesApi(params);
         if (res.success) {
           setProviders(res.data.items || []);
           setPagination(prev => ({

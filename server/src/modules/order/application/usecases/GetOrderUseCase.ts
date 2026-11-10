@@ -3,9 +3,27 @@ import { IOrder } from "../../domain/entities/OrderEntity";
 import { AppError } from "../../../../shared/errors/AppError";
 import { HttpStatus } from "../../../../shared/enums/HttpStatus";
 import { PaginatedResult } from "../../../../shared/application/dtos/PaginatedResultDTO";
+import ProviderModel from "../../../provider/infrastructure/database/models/ProviderModel";
 
 export class GetOrderUseCase {
     constructor(private orderRepository: OrderRepository) { }
+
+    private async verifyOrderAccess(order: IOrder, userId: string): Promise<boolean> {
+        const customerId = (order.customerId as any)?._id?.toString() || order.customerId?.toString();
+        const providerUserId = (order.providerId as any)?.userId?.toString() || (order.providerId as any)?._id?.toString() || order.providerId?.toString();
+
+        if (customerId === userId || providerUserId === userId) {
+            return true;
+        }
+
+        const rawProvId = (order.providerId as any)?._id?.toString() || order.providerId?.toString();
+        if (rawProvId) {
+            const exists = await ProviderModel.exists({ _id: rawProvId, userId });
+            if (exists) return true;
+        }
+
+        return false;
+    }
 
     async getById(orderId: string, userId: string): Promise<IOrder> {
         const order = await this.orderRepository.findById(orderId);
@@ -13,10 +31,8 @@ export class GetOrderUseCase {
             throw new AppError("Order not found", HttpStatus.NOT_FOUND);
         }
 
-        const customerId = (order.customerId as any)?._id?.toString() || order.customerId?.toString();
-        const providerUserId = (order.providerId as any)?.userId?.toString() || (order.providerId as any)?._id?.toString() || order.providerId?.toString();
-
-        if (customerId !== userId && providerUserId !== userId) {
+        const isAuthorized = await this.verifyOrderAccess(order, userId);
+        if (!isAuthorized) {
             throw new AppError("Unauthorized to view this order", HttpStatus.FORBIDDEN);
         }
 
@@ -27,10 +43,8 @@ export class GetOrderUseCase {
         const order = await this.orderRepository.findByRequestId(requestId);
         if (!order) return null;
 
-        const customerId = (order.customerId as any)?._id?.toString() || order.customerId?.toString();
-        const providerUserId = (order.providerId as any)?.userId?.toString() || (order.providerId as any)?._id?.toString() || order.providerId?.toString();
-
-        if (customerId !== userId && providerUserId !== userId) {
+        const isAuthorized = await this.verifyOrderAccess(order, userId);
+        if (!isAuthorized) {
             throw new AppError("Unauthorized to view this order", HttpStatus.FORBIDDEN);
         }
 

@@ -30,7 +30,7 @@ export interface IRepairEstimate {
     estimatedRepairTime?: string;
     warranty?: string;
     notes?: string;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_REQUIRED';
     rejectionReason?: string;
     submittedAt?: Date;
     decidedAt?: Date;
@@ -51,7 +51,7 @@ export interface IPaymentDetails {
     diagnosisFee?: number;
     repairFee?: number;
     totalAmount?: number;
-    status: 'PENDING' | 'PAID' | 'REFUNDED';
+    status: 'PENDING' | 'PAID' | 'REFUNDED' | 'FAILED' | 'UNPAID' ;
     paymentMethod?: string;
     paidAt?: Date;
     transactionReference?: string;
@@ -61,6 +61,16 @@ export interface IOrderReview {
     rating: number;
     comment?: string;
     reviewedAt?: Date;
+}
+
+
+
+export enum WorkStage {
+    IN_TRANSIT = 'IN_TRANSIT',
+  DIAGNOSIS = "DIAGNOSIS",
+  REPAIR = "REPAIR",
+  TESTING = "TESTING",
+  READY_FOR_DELIVERY = "READY_FOR_DELIVERY",
 }
 
 export interface IOrder {
@@ -76,6 +86,7 @@ export interface IOrder {
     isAmountRevised: boolean;
     revisionNotes?: string;
     status: OrderStatus;
+    workStage: WorkStage;
     appointment?: IAppointmentDetails;
     diagnosis?: IDiagnosisDetails;
     repairEstimate?: IRepairEstimate;
@@ -85,3 +96,4 @@ export interface IOrder {
     createdAt?: Date;
     updatedAt?: Date;
 }
+

@@ -89,6 +89,7 @@ export class OrderController {
             const providerId = (req.query.providerId as string) || req.user?.id;
             if (!providerId) throw new AppError("Provider identifier required", HttpStatus.BAD_REQUEST);
 
+            
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 20;
             const status = req.query.status as string;

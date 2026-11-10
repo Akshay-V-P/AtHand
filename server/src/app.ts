@@ -16,8 +16,11 @@ import { providerServiceRoutes } from "./modules/provider-service/container"
 import { serviceRequestRoutes } from "./modules/service-request/container"
 import { quoteRoutes } from "./modules/quote/container"
 import { orderRoutes } from "./modules/order/container"
+import logger from "./shared/middleware/RequestLogger"
 
 const app = express()
+
+app.use(logger)
 
 app.disable('x-powered-by')
 

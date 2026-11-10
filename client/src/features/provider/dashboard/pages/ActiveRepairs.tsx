@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderApi } from '@/features/orders/api/orderApi';
-import type { Order } from '@/features/orders/dtos/OrderDTOs';
-import { useAppSelector } from '../../../../hooks/storeHook';
+import type { Order, OrderStatus, WorkStage } from '@/features/orders/dtos/OrderDTOs';
+import { useAppSelector } from '@/hooks/storeHook';
 import {
     Wrench,
     MapPin,
     Calendar,
     Search,
     ChevronRight,
-    RefreshCw
+    RefreshCw,
+    User,
+    AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -24,10 +26,9 @@ export default function ActiveRepairs() {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const res = await orderApi.getProviderOrders(providerId);
-           
+            const res = await orderApi.getProviderOrders(providerId || undefined);
             if (res.data.success && res.data.data) {
-                setOrders(res.data.data.items);
+                setOrders(res.data.data.items || []);
             }
         } catch (error: any) {
             console.error('Failed to load orders', error);
@@ -39,46 +40,91 @@ export default function ActiveRepairs() {
 
     useEffect(() => {
         fetchOrders();
-        
     }, [providerId]);
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: OrderStatus | string) => {
         const map: Record<string, { label: string; bg: string; text: string }> = {
+            REQUESTED: { label: 'Requested', bg: 'bg-gray-100', text: 'text-gray-700' },
+            ACCEPTED: { label: 'Accepted', bg: 'bg-blue-100', text: 'text-blue-800' },
+            SCHEDULED: { label: 'Scheduled', bg: 'bg-blue-100', text: 'text-blue-800' },
+            DIAGNOSIS_IN_PROGRESS: { label: 'Diagnosing', bg: 'bg-amber-100', text: 'text-amber-800' },
+            ESTIMATE_PENDING_APPROVAL: { label: 'Estimate Sent', bg: 'bg-purple-100', text: 'text-purple-800' },
+            REPAIR_IN_PROGRESS: { label: 'Repairing', bg: 'bg-cyan-100', text: 'text-cyan-800' },
+            WAITING_FOR_PAYMENT: { label: 'Waiting for Payment', bg: 'bg-orange-100', text: 'text-orange-800' },
+            IN_PROGRESS: { label: 'In Progress', bg: 'bg-cyan-100', text: 'text-cyan-800' },
+            AWAITING_CUSTOMER: { label: 'Awaiting Customer', bg: 'bg-purple-100', text: 'text-purple-800' },
+            COMPLETED: { label: 'Completed', bg: 'bg-emerald-100', text: 'text-emerald-800' },
+            CLOSED_WITHOUT_REPAIR: { label: 'Declined by User', bg: 'bg-rose-100', text: 'text-rose-800' },
+            CANCELLED: { label: 'Cancelled', bg: 'bg-rose-100', text: 'text-rose-800' },
+            // Fallbacks for backwards compatibility
             pending: { label: 'Pending Acceptance', bg: 'bg-gray-100', text: 'text-gray-700' },
             scheduled: { label: 'Scheduled', bg: 'bg-blue-100', text: 'text-blue-800' },
-            device_received: { label: 'Device Received', bg: 'bg-indigo-100', text: 'text-indigo-800' },
-            diagnosis_in_progress: { label: 'Diagnosing', bg: 'bg-amber-100', text: 'text-amber-800' },
-            estimate_pending_approval: { label: 'Bill Approval Pending', bg: 'bg-purple-100', text: 'text-purple-800' },
-            estimate_rejected: { label: 'Bill Declined', bg: 'bg-red-100', text: 'text-red-800' },
-            repair_in_progress: { label: 'Repair in Progress', bg: 'bg-cyan-100', text: 'text-cyan-800' },
+            repair_in_progress: { label: 'In Progress', bg: 'bg-cyan-100', text: 'text-cyan-800' },
+            estimate_pending_approval: { label: 'Estimate Sent', bg: 'bg-purple-100', text: 'text-purple-800' },
             waiting_for_payment: { label: 'Waiting for Payment', bg: 'bg-orange-100', text: 'text-orange-800' },
-            completed: { label: 'Completed & Paid', bg: 'bg-emerald-100', text: 'text-emerald-800' },
-            closed_without_repair: { label: 'Closed (No Repair)', bg: 'bg-slate-100', text: 'text-slate-700' },
+            completed: { label: 'Completed', bg: 'bg-emerald-100', text: 'text-emerald-800' },
+            closed_without_repair: { label: 'Declined', bg: 'bg-rose-100', text: 'text-rose-800' },
             cancelled: { label: 'Cancelled', bg: 'bg-rose-100', text: 'text-rose-800' },
         };
-        const config = map[status] || { label: status, bg: 'bg-gray-100', text: 'text-gray-700' };
+        const config = map[status] || { label: String(status).replace(/_/g, ' '), bg: 'bg-gray-100', text: 'text-gray-700' };
         return (
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${config.bg} ${config.text}`}>
+            <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${config.bg} ${config.text}`}>
                 {config.label}
             </span>
         );
     };
 
+    const getWorkStageBadge = (stage?: WorkStage | string) => {
+        if (!stage) return null;
+        const map: Record<string, { label: string; bg: string; text: string }> = {
+            IN_TRANSIT: { label: 'In Transit', bg: 'bg-amber-50', text: 'text-amber-800' },
+            DIAGNOSIS: { label: 'Diagnosing', bg: 'bg-orange-50', text: 'text-orange-800' },
+            REPAIR: { label: 'Repairing', bg: 'bg-indigo-50', text: 'text-indigo-800' },
+            TESTING: { label: 'Testing', bg: 'bg-teal-50', text: 'text-teal-800' },
+            READY_FOR_DELIVERY: { label: 'Ready for Delivery', bg: 'bg-emerald-50', text: 'text-emerald-800' },
+        };
+        const config = map[stage] || { label: String(stage).replace(/_/g, ' '), bg: 'bg-gray-50', text: 'text-gray-700' };
+        return (
+            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${config.bg} ${config.text} border border-current/15`}>
+                {config.label}
+            </span>
+        );
+    };
+
+    const filterTabs: { id: string; label: string }[] = [
+        { id: 'all', label: 'All' },
+        { id: 'ACCEPTED', label: 'Accepted / Scheduled' },
+        { id: 'DIAGNOSIS_IN_PROGRESS', label: 'Diagnosing' },
+        { id: 'ESTIMATE_PENDING_APPROVAL', label: 'Estimate Approval' },
+        { id: 'REPAIR_IN_PROGRESS', label: 'Repairing' },
+        { id: 'WAITING_FOR_PAYMENT', label: 'Payment Due' },
+        { id: 'COMPLETED', label: 'Completed' },
+    ];
+
     const filteredOrders = orders.filter((order) => {
         // Status filter
-        if (statusFilter === 'scheduled' && !['scheduled', 'device_received'].includes(order.status)) return false;
-        if (statusFilter === 'diagnosis' && !['diagnosis_in_progress', 'estimate_pending_approval'].includes(order.status)) return false;
-        if (statusFilter === 'repair' && order.status !== 'repair_in_progress') return false;
-        if (statusFilter === 'payment' && order.status !== 'waiting_for_payment') return false;
-        if (statusFilter === 'completed' && !['completed', 'closed_without_repair'].includes(order.status)) return false;
+        if (statusFilter !== 'all') {
+            const matchesDirect = order.status === statusFilter;
+            const matchesLegacy =
+                (statusFilter === 'ACCEPTED' && ((order.status as any) === 'scheduled' || order.status === 'SCHEDULED' || order.status === 'ACCEPTED' || (order.status as any) === 'pending')) ||
+                (statusFilter === 'DIAGNOSIS_IN_PROGRESS' && (order.status === 'DIAGNOSIS_IN_PROGRESS' || (order.status as any) === 'diagnosis_in_progress')) ||
+                (statusFilter === 'ESTIMATE_PENDING_APPROVAL' && (order.status === 'ESTIMATE_PENDING_APPROVAL' || order.status === 'AWAITING_CUSTOMER' || (order.status as any) === 'estimate_pending_approval')) ||
+                (statusFilter === 'REPAIR_IN_PROGRESS' && (order.status === 'REPAIR_IN_PROGRESS' || order.status === 'IN_PROGRESS' || (order.status as any) === 'repair_in_progress')) ||
+                (statusFilter === 'WAITING_FOR_PAYMENT' && (order.status === 'WAITING_FOR_PAYMENT' || (order.status as any) === 'waiting_for_payment')) ||
+                (statusFilter === 'COMPLETED' && (order.status === 'COMPLETED' || (order.status as any) === 'completed'));
+            if (!matchesDirect && !matchesLegacy) return false;
+        }
 
         // Search query
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             const orderNum = (order.orderNumber || '').toLowerCase();
             const customerName = (order.customerId?.name || '').toLowerCase();
+            const reqTitle = ((order.requestId as any)?.title || '').toLowerCase();
+            const product = `${(order.requestId as any)?.productBrand || ''} ${(order.requestId as any)?.productModel || ''}`.toLowerCase();
             const serviceMode = (order.serviceMode || '').toLowerCase();
-            return orderNum.includes(q) || customerName.includes(q) || serviceMode.includes(q);
+            const workStage = (order.workStage || '').toLowerCase();
+            return orderNum.includes(q) || customerName.includes(q) || reqTitle.includes(q) || product.includes(q) || serviceMode.includes(q) || workStage.includes(q);
         }
 
         return true;
@@ -94,7 +140,7 @@ export default function ActiveRepairs() {
                         Active Repairs & Service Orders
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        Manage diagnosis, submit itemized bills, upload proof photos, and track service closures.
+                        View customer service requests, record diagnosis, send updated estimates, and complete repairs.
                     </p>
                 </div>
 
@@ -111,14 +157,7 @@ export default function ActiveRepairs() {
             {/* Filter Tabs & Search Bar */}
             <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 bg-gray-100/80 p-1.5 rounded-2xl border border-gray-200/60">
-                    {[
-                        { id: 'all', label: 'All' },
-                        { id: 'scheduled', label: 'Scheduled' },
-                        { id: 'diagnosis', label: 'Diagnosis & Bills' },
-                        { id: 'repair', label: 'In Repair' },
-                        { id: 'payment', label: 'Payment Due' },
-                        { id: 'completed', label: 'Completed' },
-                    ].map(tab => (
+                    {filterTabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setStatusFilter(tab.id)}
@@ -139,7 +178,7 @@ export default function ActiveRepairs() {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search by order #, customer..."
+                        placeholder="Search order #, customer, device..."
                         className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-100"
                     />
                 </div>
@@ -159,7 +198,7 @@ export default function ActiveRepairs() {
                     <p className="text-xs text-gray-500 max-w-sm mx-auto">
                         {statusFilter === 'all'
                             ? 'Accepted quotes and customer bookings will appear here.'
-                            : `There are currently no orders in the "${statusFilter}" state.`}
+                            : `There are currently no orders in the "${filterTabs.find(t => t.id === statusFilter)?.label || statusFilter}" state.`}
                     </p>
                 </div>
             ) : (
@@ -167,6 +206,7 @@ export default function ActiveRepairs() {
                     {filteredOrders.map((order) => {
                         const orderId = order.id || order._id;
                         const customer = order.customerId;
+                        const requestData = typeof order.requestId === 'object' ? order.requestId : null;
                         const totalAmount = order.finalAmount || order.repairEstimate?.totalAmount || order.initialQuoteAmount || 0;
 
                         return (
@@ -177,20 +217,42 @@ export default function ActiveRepairs() {
                                 {/* Top Header */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between gap-2">
-                                        <span className="text-xs font-black tracking-wider text-gray-900 bg-gray-100 px-2.5 py-1 rounded-lg">
-                                            #{order.orderNumber}
-                                        </span>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="text-xs font-black tracking-wider text-gray-900 bg-gray-100 px-2.5 py-1 rounded-lg">
+                                                #{order.orderNumber}
+                                            </span>
+                                            {getWorkStageBadge(order.workStage)}
+                                        </div>
                                         {getStatusBadge(order.status)}
                                     </div>
 
+                                    {/* Service Request Title & Device */}
                                     <div>
-                                        <h3 className="text-base font-bold text-gray-900">
-                                            {customer?.name || 'Customer'}
+                                        <h3 className="text-base font-bold text-gray-900 line-clamp-1">
+                                            {requestData?.title || 'Repair Service'}
                                         </h3>
-                                        <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                                        {requestData?.productBrand && (
+                                            <p className="text-xs font-semibold text-blue-600 mt-0.5">
+                                                {requestData.productBrand} {requestData.productModel || ''}
+                                            </p>
+                                        )}
+                                        {requestData?.description && (
+                                            <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                                                {requestData.description}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Customer & Location */}
+                                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
+                                        <span className="font-semibold text-gray-800 flex items-center gap-1">
+                                            <User size={13} className="text-gray-400" />
+                                            {customer?.name || 'Customer'}
+                                        </span>
+                                        <span className="flex items-center gap-1 text-gray-500">
                                             <MapPin size={12} className="text-gray-400" />
-                                            {order.appointment?.serviceAddress?.city || 'Customer Location'}
-                                        </p>
+                                            {order.appointment?.serviceAddress?.city || 'Local Address'}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -216,12 +278,29 @@ export default function ActiveRepairs() {
                                                     month: 'short',
                                                     day: 'numeric'
                                                 })}
+                                                {order.appointment.timeSlot && ` (${order.appointment.timeSlot})`}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Diagnosis / Problem Status */}
+                                    {order.diagnosis?.completedAt && (
+                                        <div className="flex justify-between items-center text-amber-700">
+                                            <span className="flex items-center gap-1">
+                                                <AlertCircle size={12} /> Diagnosis:
+                                            </span>
+                                            <span className="font-medium truncate max-w-[160px]">
+                                                {order.diagnosis.identifiedIssues?.length
+                                                    ? `${order.diagnosis.identifiedIssues.length} issues identified`
+                                                    : 'Completed'}
                                             </span>
                                         </div>
                                     )}
 
                                     <div className="flex justify-between items-center pt-1 border-t border-gray-200">
-                                        <span className="font-semibold text-gray-700">Total Amount:</span>
+                                        <span className="font-semibold text-gray-700">
+                                            {order.isAmountRevised ? 'Revised Total:' : 'Quote Amount:'}
+                                        </span>
                                         <span className="font-black text-blue-700 text-sm">₹{totalAmount.toLocaleString()}</span>
                                     </div>
                                 </div>
@@ -231,7 +310,7 @@ export default function ActiveRepairs() {
                                     onClick={() => navigate(`/provider/dashboard/repairs/${orderId}`)}
                                     className="w-full bg-gray-900 hover:bg-black text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer"
                                 >
-                                    <span>Manage Repair</span>
+                                    <span>Manage Repair & Update Job</span>
                                     <ChevronRight size={14} />
                                 </button>
                             </div>

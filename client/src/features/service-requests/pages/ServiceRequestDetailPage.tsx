@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { serviceRequestApi } from '../api/serviceRequestApi';
 import { orderApi } from '@/features/orders/api/orderApi';
 import type { ServiceRequest, Quote } from '../dtos/ServiceRequestDTOs';
-import type { Order } from '@/features/orders/dtos/OrderDTOs';
+import type { Order, OrderStatus } from '@/features/orders/dtos/OrderDTOs';
 import {
     ArrowLeft,
     Clock,
@@ -72,6 +72,52 @@ const formatRepairDuration = (duration: string | undefined): string => {
         'multi_day': '2 - 3 days'
     };
     return mapping[duration] || duration;
+};
+
+const getOrderStatusBadgeClass = (status: OrderStatus | string) => {
+    switch (status) {
+        case 'REQUESTED':
+        case 'pending':
+            return 'bg-amber-100 text-amber-800';
+        case 'ACCEPTED':
+        case 'scheduled':
+            return 'bg-blue-100 text-blue-800';
+        case 'IN_PROGRESS':
+        case 'repair_in_progress':
+            return 'bg-cyan-100 text-cyan-800';
+        case 'AWAITING_CUSTOMER':
+        case 'estimate_pending_approval':
+        case 'waiting_for_payment':
+            return 'bg-purple-100 text-purple-800';
+        case 'COMPLETED':
+        case 'completed':
+            return 'bg-emerald-100 text-emerald-800';
+        case 'CANCELLED':
+        case 'cancelled':
+        case 'closed_without_repair':
+            return 'bg-rose-100 text-rose-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+};
+
+const formatOrderStatus = (status: OrderStatus | string) => {
+    switch (status) {
+        case 'REQUESTED':
+            return 'Requested';
+        case 'ACCEPTED':
+            return 'Accepted';
+        case 'IN_PROGRESS':
+            return 'In Progress';
+        case 'AWAITING_CUSTOMER':
+            return 'Awaiting Customer';
+        case 'COMPLETED':
+            return 'Completed';
+        case 'CANCELLED':
+            return 'Cancelled';
+        default:
+            return String(status).replace(/_/g, ' ');
+    }
 };
 
 // Generate initials for avatar fallback
@@ -157,6 +203,8 @@ const ServiceRequestDetailPage = () => {
                     const orderRes = await orderApi.getOrderByRequestId(id);
                     if (orderRes.data.success && orderRes.data.data) {
                         setOrder(orderRes.data.data);
+                    } else {
+                        setOrder(null);
                     }
                 } catch (orderErr) {
                     // Order might not exist yet if request is still OPEN/QUOTING
@@ -243,7 +291,9 @@ const ServiceRequestDetailPage = () => {
             setIsSubmittingDecision(true);
             const res = await orderApi.submitEstimateDecision(orderId, {
                 action,
-                reason: action === 'DECLINE' ? declineReason : undefined
+                reason: action === 'DECLINE' ? declineReason : undefined,
+                decision: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+                rejectionReason: action === 'DECLINE' ? declineReason : undefined
             });
             if (res.data.success) {
                 toast.success(action === 'APPROVE' ? 'Repair estimate approved!' : 'Repair declined. Service closed.');
@@ -394,42 +444,76 @@ const ServiceRequestDetailPage = () => {
     const selectedQuote = quotes.find(q => q.id === selectedQuoteId);
     const activePhoto = mediaUrls[activeImageIndex] || mediaUrls[0];
 
-    // Determine current order state
-    const isWaitingForBillApproval = order?.status === 'estimate_pending_approval';
-    const isWaitingForPayment = order?.status === 'waiting_for_payment';
-    const isCompleted = order?.status === 'completed';
-    const isRepairInProgress = order?.status === 'repair_in_progress';
-    const isClosedWithoutRepair = order?.status === 'closed_without_repair';
+    // Determine current order state matching backend OrderStatus & WorkStage
+    const isWaitingForBillApproval =
+        order?.repairEstimate?.status === 'PENDING' ||
+        order?.status === 'ESTIMATE_PENDING_APPROVAL' ||
+        (order?.status === 'AWAITING_CUSTOMER' && !order?.completionDetails?.completedAt) ||
+        (order?.status as any) === 'estimate_pending_approval';
+
+    const isWaitingForPayment =
+        order?.status === 'WAITING_FOR_PAYMENT' ||
+        (order?.payment?.status !== 'PAID' && !!order?.completionDetails?.completedAt) ||
+        (order?.status === 'AWAITING_CUSTOMER' && !!order?.completionDetails?.completedAt) ||
+        (order?.status as any) === 'waiting_for_payment';
+
+    const isCompleted =
+        order?.status === 'COMPLETED' ||
+        order?.payment?.status === 'PAID' ||
+        (order?.status as any) === 'completed';
+
+    const isRepairInProgress =
+        order?.status === 'IN_PROGRESS' ||
+        order?.status === 'REPAIR_IN_PROGRESS' ||
+        order?.repairEstimate?.status === 'APPROVED' ||
+        order?.workStage === 'REPAIR' ||
+        order?.workStage === 'TESTING' ||
+        (order?.status as any) === 'repair_in_progress';
+
+    const isClosedWithoutRepair =
+        order?.status === 'CANCELLED' ||
+        order?.status === 'CLOSED_WITHOUT_REPAIR' ||
+        order?.repairEstimate?.status === 'REJECTED' ||
+        (order?.status as any) === 'closed_without_repair';
+
+    const isDiagnoseCompleted =
+        !!order?.diagnosis?.completedAt ||
+        order?.status === 'DIAGNOSIS_IN_PROGRESS' ||
+        isWaitingForBillApproval ||
+        isRepairInProgress ||
+        isWaitingForPayment ||
+        isCompleted ||
+        (order && order.status !== 'REQUESTED' && order.status !== 'ACCEPTED' && (order.status as any) !== 'pending' && (order.status as any) !== 'scheduled');
 
     // Provider details
     const activeProvider = order?.providerId || (order?.quoteId ? quotes.find(q => q.id === order.quoteId)?.providerId : null);
-    const providerName = activeProvider?.businessName || 'TechFix Solutions';
+    const providerName = activeProvider?.businessName || 'Verified Technician';
     const providerAddress = activeProvider?.location?.address?.city || activeProvider?.location?.address?.street || request.address.city;
-    const providerRating = activeProvider?.averageRating ? Number(activeProvider.averageRating).toFixed(1) : '4.9';
-    const providerReviews = activeProvider?.totalReviews ? `${activeProvider.totalReviews}+` : '4k+';
-    const providerPhone = activeProvider?.phone || activeProvider?.contactNumber || '+91 98765 43210';
+    const providerRating = activeProvider?.averageRating ? Number(activeProvider.averageRating).toFixed(1) : '5.0';
+    const providerReviews = activeProvider?.totalReviews ? `${activeProvider.totalReviews}+` : '10+';
+    const providerPhone = activeProvider?.phone || activeProvider?.contactNumber || '';
 
     // Bill line items
-    const estimateItems = order?.repairEstimate?.items && order.repairEstimate.items.length > 0
-        ? order.repairEstimate.items
+    const hasItemizedEstimate = !!(order?.repairEstimate?.items && order.repairEstimate.items.length > 0);
+    const estimateItems = hasItemizedEstimate
+        ? order!.repairEstimate!.items
         : [
-            { title: 'Diagnosis / Service Charge', amount: order?.initialQuoteAmount || 500 }
+            { title: 'Baseline Inspection & Diagnostic Quote', amount: order?.initialQuoteAmount || 0 }
         ];
 
+    const laborFee = order?.repairEstimate?.laborCost || 0;
+    const otherCharges = order?.repairEstimate?.otherCharges || 0;
     const totalBillAmount = order?.repairEstimate?.totalAmount || order?.finalAmount || order?.initialQuoteAmount || 0;
 
-    // Updated issues list
-    const updatedIssuesList = order?.diagnosis?.identifiedIssues && order.diagnosis.identifiedIssues.length > 0
-        ? order.diagnosis.identifiedIssues
-        : ['Screen replacement required', 'Battery replacement'];
+    // Diagnosis & Updated issues list
+    const diagnosisSummaryText = order?.diagnosis?.summary || '';
+    const hasDiagnosisIssues = !!(order?.diagnosis?.identifiedIssues && order.diagnosis.identifiedIssues.length > 0);
+    const updatedIssuesList = order?.diagnosis?.identifiedIssues || [];
 
     // Proof photos
     const workProofPhotos = order?.completionDetails?.workProofPhotos && order.completionDetails.workProofPhotos.length > 0
         ? order.completionDetails.workProofPhotos
-        : [
-            { url: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=500&auto=format&fit=crop&q=60', caption: 'Strip Changed' },
-            { url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=500&auto=format&fit=crop&q=60', caption: 'Display replaced' }
-        ];
+        : [];
 
     return (
         <div className="w-full py-4 sm:py-6">
@@ -454,8 +538,13 @@ const ServiceRequestDetailPage = () => {
                             <div className="relative w-full aspect-square bg-[#D9D9D9] rounded-3xl overflow-hidden shadow-xs border border-white/60 flex items-center justify-center group">
                                 {/* Order Number Badge (e.g. #REP-4902) or Status Badge */}
                                 {order?.orderNumber ? (
-                                    <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-md px-4 py-1.5 rounded-full shadow-xs text-xs sm:text-sm font-extrabold text-gray-900 tracking-wide">
-                                        #{order.orderNumber}
+                                    <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                                        <div className="bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-xs text-xs sm:text-sm font-extrabold text-gray-900 tracking-wide">
+                                            #{order.orderNumber}
+                                        </div>
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-xs ${getOrderStatusBadgeClass(order.status)}`}>
+                                            {formatOrderStatus(order.status)}
+                                        </span>
                                     </div>
                                 ) : (
                                     <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-md px-4 py-1.5 rounded-full shadow-xs text-xs font-bold text-gray-800 tracking-wide">
@@ -538,16 +627,24 @@ const ServiceRequestDetailPage = () => {
                                             {/* Stepper Step 1: Diagnose */}
                                             <div className="flex items-center gap-1.5 z-10">
                                                 <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${
-                                                    order.status !== 'pending' && order.status !== 'scheduled'
+                                                    isDiagnoseCompleted
                                                         ? 'bg-black text-white'
                                                         : 'border-2 border-black bg-white'
                                                 }`}>
-                                                    {order.status !== 'pending' && order.status !== 'scheduled' && (
+                                                    {isDiagnoseCompleted && (
                                                         <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                                                     )}
                                                 </div>
                                                 <span className="font-bold text-gray-900">
-                                                    {isWaitingForPayment || isCompleted ? 'Repair completed' : 'Diagnose completed'}
+                                                    {isWaitingForPayment || isCompleted
+                                                        ? 'Repair completed'
+                                                        : isRepairInProgress
+                                                        ? 'Repairing'
+                                                        : isWaitingForBillApproval
+                                                        ? 'Bill Pending Approval'
+                                                        : (order.diagnosis?.completedAt || order.status === 'DIAGNOSIS_IN_PROGRESS')
+                                                        ? 'Diagnose completed'
+                                                        : 'Diagnosing'}
                                                 </span>
                                             </div>
 
@@ -695,13 +792,15 @@ const ServiceRequestDetailPage = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1.5 shrink-0 pl-1 border-l border-gray-100">
-                                                <a
-                                                    href={`tel:${providerPhone}`}
-                                                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors cursor-pointer"
-                                                    title={`Call ${providerPhone}`}
-                                                >
-                                                    <Phone size={15} />
-                                                </a>
+                                                {providerPhone && (
+                                                    <a
+                                                        href={`tel:${providerPhone}`}
+                                                        className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors cursor-pointer"
+                                                        title={`Call ${providerPhone}`}
+                                                    >
+                                                        <Phone size={15} />
+                                                    </a>
+                                                )}
                                                 <button
                                                     onClick={() => toast.success(`Chatting with ${providerName}`)}
                                                     className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors cursor-pointer"
@@ -713,13 +812,78 @@ const ServiceRequestDetailPage = () => {
                                         </div>
                                     </div>
 
+                                    {/* Action Required Banner for Estimate Approval */}
+                                    {isWaitingForBillApproval && (
+                                        <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-start gap-3.5">
+                                            <div className="p-2 bg-amber-100 text-amber-700 rounded-xl shrink-0 mt-0.5">
+                                                <AlertCircle size={20} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-bold text-amber-950">
+                                                    Action Required: Review Updated Repair Bill & Problems
+                                                </h4>
+                                                <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                                                    The technician has completed physical diagnosis and submitted an updated itemized repair bill with identified problems. Review the updated findings and price below to <strong>Approve</strong> and start repair, or <strong>Decline</strong>.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Technician Physical Diagnosis & Problem Findings Card */}
+                                    {(diagnosisSummaryText || hasDiagnosisIssues) && (
+                                        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-xs border border-white/90 space-y-3.5">
+                                            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Wrench size={18} className="text-blue-600" />
+                                                    <h3 className="text-sm sm:text-base font-extrabold text-gray-900 tracking-tight">
+                                                        Technician Physical Diagnosis & Problem Findings
+                                                    </h3>
+                                                </div>
+                                                {order.diagnosis?.completedAt && (
+                                                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-emerald-100">
+                                                        <CheckCircle2 size={13} />
+                                                        Recorded {formatTimeAgo(order.diagnosis.completedAt)}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {diagnosisSummaryText && (
+                                                <div className="bg-blue-50/60 rounded-xl p-3.5 border border-blue-100/70">
+                                                    <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block mb-1">
+                                                        Diagnostic Summary
+                                                    </span>
+                                                    <p className="text-xs sm:text-sm text-gray-800 leading-relaxed font-medium">
+                                                        {diagnosisSummaryText}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {hasDiagnosisIssues && (
+                                                <div className="space-y-2 pt-1">
+                                                    <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                                                        <AlertCircle size={14} className="text-amber-500" />
+                                                        Identified Problems / Component Issues ({updatedIssuesList.length})
+                                                    </span>
+                                                    <div className="space-y-1.5">
+                                                        {updatedIssuesList.map((issue, idx) => (
+                                                            <div key={idx} className="flex items-center gap-2.5 text-xs sm:text-sm text-gray-800 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/60">
+                                                                <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></div>
+                                                                <span className="font-semibold">{issue}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* Main Bill Container */}
                                     <div className="relative bg-white/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-xs border border-white/90">
                                         {/* Bill Header with Title & Action Buttons */}
                                         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-gray-100">
                                             <div className="flex items-baseline gap-2">
                                                 <h3 className="text-base sm:text-lg font-extrabold text-gray-900 tracking-tight underline underline-offset-8 decoration-gray-900 decoration-2">
-                                                    {isWaitingForBillApproval ? 'UPDATED BILL' : 'ESTIMATED BILLING'}
+                                                    {isWaitingForBillApproval ? 'UPDATED REPAIR BILL' : isWaitingForPayment ? 'FINAL BILL' : isCompleted ? 'SERVICE INVOICE' : 'ESTIMATED BILLING'}
                                                 </h3>
                                                 <span className="text-xs sm:text-sm font-medium text-gray-500">
                                                     {isWaitingForBillApproval && '(Waiting for Bill Approval)'}
@@ -747,7 +911,7 @@ const ServiceRequestDetailPage = () => {
                                                             className="px-5 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-black hover:bg-gray-800 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
                                                         >
                                                             {isSubmittingDecision ? <RefreshCw size={13} className="animate-spin" /> : <Check size={14} />}
-                                                            Approve
+                                                            Approve Updated Bill
                                                         </button>
                                                     </>
                                                 )}
@@ -790,7 +954,7 @@ const ServiceRequestDetailPage = () => {
                                             <table className="w-full text-xs sm:text-sm">
                                                 <thead>
                                                     <tr className="text-gray-400 font-medium text-left border-b border-gray-100">
-                                                        <th className="pb-2.5 font-semibold">Items</th>
+                                                        <th className="pb-2.5 font-semibold">Parts / Service Items</th>
                                                         <th className="pb-2.5 text-right font-semibold">Amount</th>
                                                     </tr>
                                                 </thead>
@@ -801,41 +965,72 @@ const ServiceRequestDetailPage = () => {
                                                             <td className="py-2.5 text-right font-semibold">₹{item.amount.toLocaleString()}</td>
                                                         </tr>
                                                     ))}
+                                                    {hasItemizedEstimate && laborFee > 0 && (
+                                                        <tr className="text-gray-800">
+                                                            <td className="py-2.5 font-medium">Labor & Workmanship Fee</td>
+                                                            <td className="py-2.5 text-right font-semibold">₹{laborFee.toLocaleString()}</td>
+                                                        </tr>
+                                                    )}
+                                                    {hasItemizedEstimate && otherCharges > 0 && (
+                                                        <tr className="text-gray-800">
+                                                            <td className="py-2.5 font-medium">Other Charges</td>
+                                                            <td className="py-2.5 text-right font-semibold">₹{otherCharges.toLocaleString()}</td>
+                                                        </tr>
+                                                    )}
                                                     <tr className="border-t-2 border-gray-900/10 font-bold text-sm sm:text-base text-gray-900">
-                                                        <td className="pt-3">Total quote:</td>
+                                                        <td className="pt-3">
+                                                            <span>Total quote:</span>
+                                                            {order?.isAmountRevised && order.initialQuoteAmount !== totalBillAmount && (
+                                                                <span className="block text-[11px] font-medium text-blue-600">
+                                                                    (Revised from initial ₹{order.initialQuoteAmount?.toLocaleString()})
+                                                                </span>
+                                                            )}
+                                                        </td>
                                                         <td className="pt-3 text-right font-extrabold text-blue-700">₹{totalBillAmount.toLocaleString()}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
+
+                                            {(order?.repairEstimate?.warranty || order?.repairEstimate?.notes) && (
+                                                <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                                                    {order.repairEstimate.warranty && (
+                                                        <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                                                            <ShieldCheck size={14} />
+                                                            <span>Warranty: {order.repairEstimate.warranty}</span>
+                                                        </div>
+                                                    )}
+                                                    {order.repairEstimate.notes && (
+                                                        <div className="text-gray-500 italic">
+                                                            Technician Note: "{order.repairEstimate.notes}"
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Bottom Dynamic Section: Differs by State */}
-
-                                    {/* 1. STATE: Waiting for Bill Approval -> Updated Issues List */}
-                                    {isWaitingForBillApproval && (
-                                        <div className="bg-white/90 backdrop-blur-xs rounded-2xl p-5 shadow-xs border border-white">
-                                            <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                                <AlertCircle size={16} className="text-amber-500" />
-                                                Updated Issues
-                                            </h4>
-                                            <div className="space-y-2">
-                                                {updatedIssuesList.map((issue, idx) => (
-                                                    <div key={idx} className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100/60">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></div>
-                                                        <span className="font-medium">{issue}</span>
-                                                    </div>
-                                                ))}
+                                    {/* Closed / Declined Notice */}
+                                    {isClosedWithoutRepair && (
+                                        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 shadow-2xs flex items-start gap-3">
+                                            <XCircle className="text-rose-600 shrink-0 mt-0.5" size={20} />
+                                            <div>
+                                                <h4 className="text-sm font-bold text-rose-900">Repair Estimate Declined</h4>
+                                                <p className="text-xs text-rose-700 mt-0.5">
+                                                    You declined the updated repair estimate. This service order has been closed without repair.
+                                                    {order?.repairEstimate?.rejectionReason && (
+                                                        <span className="block italic mt-1 font-medium">Reason: "{order.repairEstimate.rejectionReason}"</span>
+                                                    )}
+                                                </p>
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* 2. STATE: Waiting for payment -> Proof of Work Photos */}
-                                    {isWaitingForPayment && (
+                                    {/* Proof of Work Photos if waiting for payment */}
+                                    {isWaitingForPayment && workProofPhotos.length > 0 && (
                                         <div className="bg-white/90 backdrop-blur-xs rounded-2xl p-5 shadow-xs border border-white">
                                             <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
                                                 <CheckCircle2 size={16} className="text-emerald-600" />
-                                                Work Completion Proof
+                                                Work Completion Proof ({workProofPhotos.length})
                                             </h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 {workProofPhotos.map((proof, idx) => (

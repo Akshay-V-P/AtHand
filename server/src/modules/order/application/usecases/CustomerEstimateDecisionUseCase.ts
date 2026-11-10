@@ -1,11 +1,16 @@
 import { OrderRepository } from "../../infrastructure/database/repositories/OrderRepository";
 import { IOrder } from "../../domain/entities/OrderEntity";
 import { OrderStatus } from "../../domain/enums/OrderStatus";
+import { ServiceRequestStatus } from "../../../service-request/domain/enums/ServiceRequestStatus";
+import { IServiceRequestRepository } from "../../../service-request/domain/repositories/IServiceRequestRepository";
 import { AppError } from "../../../../shared/errors/AppError";
 import { HttpStatus } from "../../../../shared/enums/HttpStatus";
 
 export class CustomerEstimateDecisionUseCase {
-    constructor(private orderRepository: OrderRepository) { }
+    constructor(
+        private orderRepository: OrderRepository,
+        private serviceRequestRepository?: IServiceRequestRepository
+    ) { }
 
     async execute(data: {
         orderId: string;
@@ -30,6 +35,7 @@ export class CustomerEstimateDecisionUseCase {
         }
 
         const now = new Date();
+        const requestId = (order.requestId as any)?._id?.toString() || order.requestId?.toString();
 
         if (data.action === 'APPROVE') {
             const updated = await this.orderRepository.update(data.orderId, {
@@ -41,6 +47,17 @@ export class CustomerEstimateDecisionUseCase {
                 }
             });
             if (!updated) throw new AppError("Failed to approve estimate", HttpStatus.INTERNAL_SERVER_ERROR);
+
+            if (requestId && this.serviceRequestRepository) {
+                try {
+                    await this.serviceRequestRepository.update(requestId, {
+                        status: ServiceRequestStatus.IN_PROGRESS
+                    });
+                } catch (e) {
+                    // Non-fatal
+                }
+            }
+
             return updated;
         } else {
             // Customer declined repair estimate
@@ -54,6 +71,7 @@ export class CustomerEstimateDecisionUseCase {
                 }
             });
             if (!updated) throw new AppError("Failed to decline estimate", HttpStatus.INTERNAL_SERVER_ERROR);
+
             return updated;
         }
     }

@@ -1,15 +1,32 @@
 export type OrderStatus =
+    | 'PENDING'
+    | 'REQUESTED'
+    | 'ACCEPTED'
+    | 'SCHEDULED'
+    | 'DIAGNOSIS_IN_PROGRESS'
+    | 'ESTIMATE_PENDING_APPROVAL'
+    | 'REPAIR_IN_PROGRESS'
+    | 'WAITING_FOR_PAYMENT'
+    | 'IN_PROGRESS'
+    | 'AWAITING_CUSTOMER'
+    | 'COMPLETED'
+    | 'CLOSED_WITHOUT_REPAIR'
+    | 'CANCELLED'
     | 'pending'
     | 'scheduled'
-    | 'device_received'
-    | 'diagnosis_in_progress'
-    | 'estimate_pending_approval'
-    | 'estimate_rejected'
     | 'repair_in_progress'
+    | 'estimate_pending_approval'
     | 'waiting_for_payment'
     | 'completed'
     | 'closed_without_repair'
     | 'cancelled';
+
+export type WorkStage =
+    | 'IN_TRANSIT'
+    | 'DIAGNOSIS'
+    | 'REPAIR'
+    | 'TESTING'
+    | 'READY_FOR_DELIVERY';
 
 export type ServiceMode = 'ONSITE' | 'WORKSHOP' | 'COLLECTION_AND_RETURN';
 
@@ -42,7 +59,7 @@ export interface IRepairEstimate {
     estimatedRepairTime?: string;
     warranty?: string;
     notes?: string;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_REQUIRED';
     rejectionReason?: string;
     submittedAt?: string | Date;
     decidedAt?: string | Date;
@@ -63,7 +80,7 @@ export interface IPaymentDetails {
     diagnosisFee?: number;
     repairFee?: number;
     totalAmount?: number;
-    status: 'PENDING' | 'PAID' | 'REFUNDED';
+    status: 'PENDING' | 'PAID' | 'REFUNDED' | 'FAILED' | 'UNPAID';
     paymentMethod?: string;
     paidAt?: string | Date;
     transactionReference?: string;
@@ -89,6 +106,7 @@ export interface Order {
     isAmountRevised: boolean;
     revisionNotes?: string;
     status: OrderStatus;
+    workStage?: WorkStage;
     appointment?: IAppointmentDetails;
     diagnosis?: IDiagnosisDetails;
     repairEstimate?: IRepairEstimate;
@@ -124,8 +142,10 @@ export interface SubmitRepairEstimateDTO {
 }
 
 export interface CustomerEstimateDecisionDTO {
-    action: 'APPROVE' | 'DECLINE';
+    action?: 'APPROVE' | 'DECLINE';
     reason?: string;
+    decision?: 'APPROVED' | 'REJECTED';
+    rejectionReason?: string;
 }
 
 export interface CompleteRepairDTO {
@@ -134,7 +154,8 @@ export interface CompleteRepairDTO {
 }
 
 export interface ProcessPaymentDTO {
-    paymentMethod?: string;
+    paymentMethod: 'ONLINE' | 'CASH' | 'UPI';
+    transactionReference?: string;
 }
 
 export interface SubmitReviewDTO {

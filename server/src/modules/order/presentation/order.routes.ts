@@ -12,8 +12,8 @@ export const createOrderRoutes = (controller: OrderController, authMiddleware: A
     router.post('/accept-quote', controller.acceptQuote);
 
     // Order queries
-    router.get('/customer/my-orders', controller.getCustomerOrders);
-    router.get('/provider/my-orders', controller.getProviderOrders);
+    router.get('/customer/orders', controller.getCustomerOrders);
+    router.get('/provider/orders', controller.getProviderOrders);
     router.get('/by-request/:requestId', controller.getOrderByRequestId);
     router.get('/:id', controller.getOrderById);
 
