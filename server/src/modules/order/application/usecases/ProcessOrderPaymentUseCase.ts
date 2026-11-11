@@ -41,7 +41,7 @@ export class ProcessOrderPaymentUseCase {
 
         if (!updated) throw new AppError("Failed to update payment", HttpStatus.INTERNAL_SERVER_ERROR);
 
-        // Update underlying ServiceRequest to COMPLETED
+        
         const requestId = (order.requestId as any)?._id?.toString() || order.requestId?.toString();
         if (requestId) {
             await this.serviceRequestRepository.update(requestId, {

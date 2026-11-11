@@ -40,7 +40,7 @@ export class SubmitOrderReviewUseCase {
 
         if (!updated) throw new AppError("Failed to submit review", HttpStatus.INTERNAL_SERVER_ERROR);
 
-        // Update provider ratings
+       
         const providerId = (order.providerId as any)?._id?.toString() || order.providerId?.toString();
         if (providerId) {
             const provider = await ProviderModel.findById(providerId);

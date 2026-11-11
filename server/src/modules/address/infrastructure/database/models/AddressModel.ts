@@ -26,7 +26,7 @@ const AddressSchema = new Schema({
     timestamps: true
 });
 
-// Create geospatial index
+
 AddressSchema.index({ coordinates: "2dsphere" });
 
 export type AddressSchemaType = InferSchemaType<typeof AddressSchema>;

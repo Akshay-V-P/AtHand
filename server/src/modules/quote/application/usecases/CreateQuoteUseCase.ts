@@ -8,7 +8,7 @@ export class CreateQuoteUseCase implements IUsecase<CreateQuoteDto, Quote> {
     constructor(private quoteRepository: IQuoteRepository) { }
 
     async execute(dto: CreateQuoteDto): Promise<Quote> {
-        // Here we default the status to PENDING
+        
         const quote = new Quote(
             dto.requestId,
             dto.providerId,

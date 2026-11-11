@@ -16,12 +16,12 @@ export class UpdateServiceRequestUseCase {
             throw new Error("UnauthorizedServiceRequestAccess");
         }
 
-        // Only allow updates if OPEN
+       
         if (request.status !== "OPEN") {
             throw new Error("InvalidServiceRequestStatus");
         }
 
-        // Build partial updates
+        
         const updates: any = {};
         if (dto.title) updates.title = dto.title;
         if (dto.description) updates.description = dto.description;

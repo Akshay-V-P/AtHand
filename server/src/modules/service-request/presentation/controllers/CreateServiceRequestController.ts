@@ -9,7 +9,7 @@ export class CreateServiceRequestController {
 
     create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            // Assume authentication middleware sets req.user
+            
             const userId = req.user?.id;
             if (!userId) {
                 ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, "User not authenticated");

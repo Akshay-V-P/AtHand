@@ -10,7 +10,7 @@
 - **Repository Type**: Decoupled Monorepo (`client/` for Vite/React frontend, `server/` for Express backend).
 - **Core Domain**: On-demand equipment and appliance repair marketplace connecting customers with verified local technicians.
 
----
+---\
 
 ## 2. Business Purpose
 Solves trust and pricing opacity issues in local appliance/equipment repairs through:

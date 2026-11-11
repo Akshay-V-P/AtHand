@@ -54,13 +54,13 @@ export class CustomerEstimateDecisionUseCase {
                         status: ServiceRequestStatus.IN_PROGRESS
                     });
                 } catch (e) {
-                    // Non-fatal
+                    
                 }
             }
 
             return updated;
         } else {
-            // Customer declined repair estimate
+            
             const updated = await this.orderRepository.update(data.orderId, {
                 status: OrderStatus.CLOSED_WITHOUT_REPAIR,
                 repairEstimate: {
