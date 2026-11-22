@@ -37,4 +37,5 @@ const orderController = new OrderController(
     submitOrderReviewUseCase
 );
 
+export { orderRepository, processOrderPaymentUseCase };
 export const orderRoutes = createOrderRoutes(orderController, authMiddleware);

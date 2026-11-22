@@ -149,10 +149,13 @@ export default function CategoryPage() {
               {providers.map((provider) => (
                 <ProviderCard
                   key={provider.id}
+                  id={provider.id}
                   providerName={provider.providerName}
                   distance={provider.distanceKm ? provider.distanceKm.toFixed(1) : ''}
+                  location={provider.providerLocation || ''}
                   startingPrice={provider.startingPrice?.toString() || '0'}
                   rating={provider.providerRating ? provider.providerRating.toFixed(1) : '0.0'}
+                  totalReviews={provider.providerTotalReviews}
                   serviceNames={provider.serviceNames || []}
                 />
               ))}

@@ -7,22 +7,27 @@ import { ProviderStatus } from "../../../provider/domain/enums/ProviderStatus";
 import { IProviderDocumentRepository } from "../../../provider/domain/repositories/IProviderDocumentRepository";
 import { IProviderRepository } from "../../../provider/domain/repositories/IProviderRepository";
 import { UpdateProviderStatusDTO } from "../dtos/UpdateProviderStatusDTO";
+import { IWalletRepository } from "../../../wallet/domain/repositories/IWalletRepository";
+import { WalletStatus, WalletType } from "../../../wallet/domain/entities/Wallet";
 
 export class UpdateProviderStatusUsecase implements IUsecase<UpdateProviderStatusDTO, Provider>{
     constructor(
         private readonly providerRepository: IProviderRepository,
-        private readonly documentRepository:IProviderDocumentRepository,
+        private readonly documentRepository: IProviderDocumentRepository,
+        private readonly walletRepository?: IWalletRepository,
     ) { }
     
     async execute(data: UpdateProviderStatusDTO): Promise<Provider> {
         const payload = {
-            status:data.status
+            status: data.status
         }
 
         const provider = await this.providerRepository.findById(data.id)
         if(!provider) throw new NotFoundError("Provider not found")
 
-        if (data.status == ProviderStatus.ACTIVE) {
+        const isApprovedStatus = data.status === ProviderStatus.ACTIVE || (data.status as string) === "APPROVED";
+
+        if (isApprovedStatus) {
             const documents = await this.documentRepository.findByProviderId(data.id)
             if (!documents || documents.length <= 0) throw new BadRequestError("Cannot approve provider, No documents uploaded")
             
@@ -30,9 +35,19 @@ export class UpdateProviderStatusUsecase implements IUsecase<UpdateProviderStatu
             if(!allVerified) throw new BadRequestError("Cannot approve provider, documents not verified")
         }
 
-        console.log(payload)
         const updatedProvider = await this.providerRepository.update(data.id, payload)
         if (!updatedProvider) throw new NotFoundError("Provider not found")
+
+        // Automatically create PROVIDER wallet upon successful approval
+        if (isApprovedStatus && this.walletRepository && updatedProvider.userId) {
+            await this.walletRepository.create({
+                userId: updatedProvider.userId,
+                balance: 0,
+                currency: "INR",
+                status: WalletStatus.ACTIVE,
+                type: WalletType.PROVIDER,
+            });
+        }
         
         return updatedProvider
     }

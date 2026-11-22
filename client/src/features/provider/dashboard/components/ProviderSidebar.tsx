@@ -9,8 +9,9 @@ export default function Sidebar() {
     { name: 'Active Repairs', icon: Wrench, to: '/provider/dashboard/repairs' },
     { name: 'My Services', icon: Briefcase, to: '/provider/dashboard/services' },
     { name: 'Reviews', icon: Star, to: '/provider/dashboard/reviews' },
-    { name: 'Earnings', icon: DollarSign, to: '/provider/dashboard/earnings' },
+    { name: 'Wallet & Earnings', icon: DollarSign, to: '/provider/dashboard/wallet' },
     { name: 'Account', icon: User, to: '/provider/dashboard/account' },
+
   ];
 
   return (

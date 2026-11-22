@@ -8,6 +8,7 @@ import RequestInbox from "../pages/RequestInbox";
 import RequestReviewQuote from "../pages/RequestReviewQuote";
 import ActiveRepairs from "../pages/ActiveRepairs";
 import ManageRepairOrder from "../pages/ManageRepairOrder";
+import ProviderWalletPage from "../pages/ProviderWalletPage";
 
 export const ProviderDashRoutes: RouteObject[] = [
     {
@@ -44,6 +45,14 @@ export const ProviderDashRoutes: RouteObject[] = [
             {
                 path: "/provider/dashboard/services/edit/:id",
                 element: <EditService />
+            },
+            {
+                path: "/provider/dashboard/wallet",
+                element: <ProviderWalletPage />
+            },
+            {
+                path: "/provider/dashboard/earnings",
+                element: <ProviderWalletPage />
             }
         ]
     }

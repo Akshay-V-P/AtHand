@@ -1,7 +1,7 @@
 import { BaseRepository } from "../../../../../shared/infrastructure/database/BaseRepository";
 import { IProviderUpdateData } from "../../../application/dtos/UpdateProviderDto";
 import { Provider } from "../../../domain/entities/Provider";
-import { IProviderRepository } from "../../../domain/repositories/IProviderRepository";
+import { IProviderRepository, NearbyPublicProviderQuery } from "../../../domain/repositories/IProviderRepository";
 import { ProviderFilter } from "../../../domain/types/ProviderFilter";
 import ProviderMapper from "../mappers/ProviderMapper";
 import ProviderModel, { ProviderSchemaType } from "../models/ProviderModel";
@@ -19,9 +19,78 @@ export class ProviderRepository extends BaseRepository<ProviderSchemaType> imple
     }
 
     async findById(id: string): Promise<Provider | null> {
+        if (!mongoose.Types.ObjectId.isValid(id)) return null;
         const provider = await this.findDocumentById(id)
         if (!provider) return null
         return ProviderMapper.toDomain(provider)
+    }
+
+    async findPublicById(id: string): Promise<Provider | null> {
+        if (!mongoose.Types.ObjectId.isValid(id)) return null;
+        const provider = await ProviderModel.findById(id).populate("serviceCategory", "name");
+        if (!provider) return null;
+        return ProviderMapper.toDomain(provider);
+    }
+
+    async findNearbyPublicProviders(options: NearbyPublicProviderQuery): Promise<Provider[]> {
+        const limit = options.limit ?? 6;
+        const baseMatch: any = {
+            _id: { $ne: new mongoose.Types.ObjectId(options.excludeProviderId) },
+            status: { $in: ["ACTIVE", "APPROVED"] }
+        };
+
+        if (options.coordinates && options.coordinates.length === 2) {
+            const radiusKm = options.radiusKm ?? 30;
+            const geoQuery: any = {
+                ...baseMatch,
+                "location.coordinates": {
+                    $geoWithin: {
+                        $centerSphere: [options.coordinates, radiusKm / 6378.1]
+                    }
+                }
+            };
+            if (options.categoryId && mongoose.Types.ObjectId.isValid(options.categoryId)) {
+                geoQuery.serviceCategory = new mongoose.Types.ObjectId(options.categoryId);
+            }
+
+            const nearbySameCategory = await ProviderModel.find(geoQuery)
+                .populate("serviceCategory", "name")
+                .sort({ averageRating: -1, totalReviews: -1 })
+                .limit(limit);
+
+            if (nearbySameCategory.length >= limit) {
+                return nearbySameCategory.map(ProviderMapper.toDomain);
+            }
+
+            const excludeIds = [
+                new mongoose.Types.ObjectId(options.excludeProviderId),
+                ...nearbySameCategory.map((p) => p._id)
+            ];
+            const fallbackNearbyQuery: any = {
+                _id: { $nin: excludeIds },
+                status: { $in: ["ACTIVE", "APPROVED"] },
+                "location.coordinates": {
+                    $geoWithin: {
+                        $centerSphere: [options.coordinates, radiusKm / 6378.1]
+                    }
+                }
+            };
+            const fallbackNearby = await ProviderModel.find(fallbackNearbyQuery)
+                .populate("serviceCategory", "name")
+                .sort({ averageRating: -1, totalReviews: -1 })
+                .limit(limit - nearbySameCategory.length);
+
+            const combined = [...nearbySameCategory, ...fallbackNearby];
+            if (combined.length > 0) {
+                return combined.map(ProviderMapper.toDomain);
+            }
+        }
+
+        const fallback = await ProviderModel.find(baseMatch)
+            .populate("serviceCategory", "name")
+            .sort({ averageRating: -1, totalReviews: -1 })
+            .limit(limit);
+        return fallback.map(ProviderMapper.toDomain);
     }
 
     async findByUserId(userId: string): Promise<Provider | null> {

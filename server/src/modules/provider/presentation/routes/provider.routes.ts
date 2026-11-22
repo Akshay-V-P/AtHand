@@ -5,6 +5,7 @@ export const createProviderRoutes = (controllers: ProviderControllerType): Route
     const router = Router();
 
     router.get('/', controllers.fetchPublicProvidersController.handler);
+    router.get('/:id', controllers.getPublicProviderProfileController.handler);
 
     return router;
 }

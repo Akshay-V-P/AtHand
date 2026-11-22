@@ -7,6 +7,8 @@ import { IAuthService } from "../../domain/services/IAuthService";
 import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginResponseDto } from "../dto/LoginResponseDto";
 import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
+import { IWalletRepository } from "../../../wallet/domain/repositories/IWalletRepository";
+import { WalletStatus, WalletType } from "../../../wallet/domain/entities/Wallet";
 
 export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDto> {
     constructor(
@@ -14,6 +16,7 @@ export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDt
         private readonly userRepository: IUserRepository,
         private readonly tokenService: ITokenService,
         private readonly refreshTokenService: IRefreshTokenRepository,
+        private readonly walletRepository?: IWalletRepository,
     ) { }
 
     async execute(token: string): Promise<LoginResponseDto> {
@@ -32,7 +35,18 @@ export class SignInWithGoogleUsecase implements IUsecase<string, LoginResponseDt
                 googleId: googleUser.googleId,
                 profilePhotoUrl: googleUser.picture,
             })
+
+            if (user?.id && this.walletRepository) {
+                await this.walletRepository.create({
+                    userId: user.id,
+                    balance: 0,
+                    currency: "INR",
+                    status: WalletStatus.ACTIVE,
+                    type: WalletType.CUSTOMER,
+                });
+            }
         }
+
 
         if (!user.id) throw new NotFoundError("User creation failed")
         const sessionId = crypto.randomUUID()

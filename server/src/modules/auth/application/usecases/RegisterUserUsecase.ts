@@ -10,6 +10,8 @@ import { ITokenService, RegTokenPayload } from "../../domain/services/ITokenServ
 import { RegisterDto } from "../dto/RegisterDto";
 import { RegisterResponseDto } from "../dto/RegisterResponseDto";
 import { IUsecase } from "../../../../shared/application/interfaces/IUsecase";
+import { IWalletRepository } from "../../../wallet/domain/repositories/IWalletRepository";
+import { WalletStatus, WalletType } from "../../../wallet/domain/entities/Wallet";
 
 export class RegisterUserUsecase implements IUsecase<RegisterDto, RegisterResponseDto>{
     constructor(
@@ -17,17 +19,17 @@ export class RegisterUserUsecase implements IUsecase<RegisterDto, RegisterRespon
         private readonly passwordService: IPasswordService,
         private readonly otpService: IOtpService,
         private readonly emailService: IEmailService,
-        private readonly tokenService :ITokenService
+        private readonly tokenService: ITokenService,
+        private readonly walletRepository?: IWalletRepository
     ) { }
     
     async execute(dto: RegisterDto): Promise<RegisterResponseDto>{
         const user = await this.userRepository.findByEmail(dto.email)
         if(user && user?.isVerified) throw new BadRequestError("User already exist")
         let newRegister = false
-        let newUser
         if (!user) {
             const hashedPassword = await this.passwordService.hash(dto.password)
-            newUser = new User(
+            const newUser = new User(
                 undefined,
                 dto.name,
                 dto.email,
@@ -37,8 +39,18 @@ export class RegisterUserUsecase implements IUsecase<RegisterDto, RegisterRespon
                 dto.phone,
                 hashedPassword,
             )
-            await this.userRepository.create(newUser)
+            const createdUser = await this.userRepository.create(newUser)
             newRegister = true
+
+            if (createdUser.id && this.walletRepository) {
+                await this.walletRepository.create({
+                    userId: createdUser.id,
+                    balance: 0,
+                    currency: "INR",
+                    status: WalletStatus.ACTIVE,
+                    type: WalletType.CUSTOMER,
+                });
+            }
         }
         
         const otp = await this.otpService.generate(dto.email)

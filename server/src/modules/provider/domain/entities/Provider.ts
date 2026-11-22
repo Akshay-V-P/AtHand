@@ -19,6 +19,12 @@ export interface Location{
     coordinates: Coordinates;
 }
 
+export interface ProviderAvailability {
+    days: string[];
+    startTime: string;
+    endTime: string;
+}
+
 export class Provider{
     constructor(
         public readonly userId: string,
@@ -35,6 +41,8 @@ export class Provider{
         public readonly totalReview?: number,
         public readonly completedJobs?:number,
         public readonly id?: string,
-
+        public readonly about?: string,
+        public readonly availability?: ProviderAvailability,
+        public readonly avgResponseTime?: string,
     ){}
 }

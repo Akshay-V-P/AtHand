@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, TrendingUp, Calendar, Filter, ChevronDown, Star, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
+import { Plus, TrendingUp, Calendar, Filter, ChevronDown, Star, ChevronLeft, ChevronRight, Edit, Wrench } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../../../../hooks/storeHook';
 import { providerServiceApi } from '../api/providerServiceApi';
 import toast from 'react-hot-toast';
+import PresignedImage from '../../../../shared/components/PresignedImage';
 
 export default function MyServices() {
     const [activeTab, setActiveTab] = useState('All Services');
@@ -163,8 +164,24 @@ export default function MyServices() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                     {services.map((service) => (
                         <div key={service.id || service._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col">
-                            <div className="relative mb-4 h-40 bg-gray-600 rounded-lg overflow-hidden shrink-0">
-                                <div className="absolute top-3 left-3 bg-white text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                            <div className="relative mb-4 h-40 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                                {service.media && service.media.length > 0 ? (
+                                    <PresignedImage
+                                        src={service.media[0]}
+                                        alt={service.name}
+                                        className="w-full h-full object-cover"
+                                        fallbackIcon={
+                                            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center text-gray-400">
+                                                <Wrench className="w-8 h-8" />
+                                            </div>
+                                        }
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-slate-100 to-gray-200 flex items-center justify-center text-gray-400">
+                                        <Wrench className="w-8 h-8" />
+                                    </div>
+                                )}
+                                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-xs text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-10">
                                     Service
                                 </div>
                             </div>

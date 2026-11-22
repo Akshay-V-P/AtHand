@@ -41,7 +41,7 @@ const ProviderSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum:["DRAFT", "PENDING", "APPROVED", "BLOCKED"],
+        enum:["DRAFT", "PENDING", "APPROVED", "ACTIVE", "BLOCKED"],
         default: ProviderStatus.PENDING,
         required:true
     },
@@ -88,6 +88,31 @@ const ProviderSchema = new mongoose.Schema({
     completedJobs: {
         type: Number,
         default:0
+    },
+
+    about: {
+        type: String,
+        trim: true
+    },
+
+    availability: {
+        days: {
+            type: [String],
+            default: ["M", "T", "W", "T2", "F", "S"]
+        },
+        startTime: {
+            type: String,
+            default: "9:00 am"
+        },
+        endTime: {
+            type: String,
+            default: "6:00 pm"
+        }
+    },
+
+    avgResponseTime: {
+        type: String,
+        default: "15 Min"
     }
 
 }, {

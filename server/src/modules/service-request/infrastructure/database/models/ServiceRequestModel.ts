@@ -26,6 +26,17 @@ const ServiceRequestSchema = new mongoose.Schema({
         required: true,
         index: true
     },
+    providerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Provider",
+        default: null,
+        index: true
+    },
+    providerServiceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ProviderServices",
+        default: null
+    },
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Categories",
@@ -53,6 +64,11 @@ const ServiceRequestSchema = new mongoose.Schema({
     onSite: {
         type: Boolean,
         default: true
+    },
+    serviceMode: {
+        type: String,
+        enum: ["ONSITE", "WORKSHOP", "COLLECTION_AND_RETURN"],
+        default: "ONSITE"
     },
     media: [{
         type: String

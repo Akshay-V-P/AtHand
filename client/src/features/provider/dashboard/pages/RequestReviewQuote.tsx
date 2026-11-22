@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Send, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { Send, ArrowLeft, Image as ImageIcon, ZoomIn, X, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { providerServiceApi } from '../api/providerServiceApi';
 import { quoteApi } from '../api/quoteApi';
 import { useAppSelector } from '../../../../hooks/storeHook';
+import PresignedImage from '../../../../shared/components/PresignedImage';
 
 export default function RequestReviewQuote() {
     const { id } = useParams();
@@ -13,6 +14,7 @@ export default function RequestReviewQuote() {
     const [requestData, setRequestData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [existingQuote, setExistingQuote] = useState<any>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     // Form state
     const [laborCost, setLaborCost] = useState('');
@@ -132,12 +134,15 @@ export default function RequestReviewQuote() {
                 Back to Request #{id?.slice(-4).toUpperCase()}
             </button>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center flex-wrap gap-2">
                 {existingQuote ? 'Update Service Quote' : 'Submit Service Quote'}
-                {existingQuote && <span className="ml-4 text-sm font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-widest">Quoted</span>}
+                {requestData.providerId && <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 uppercase tracking-wider">Direct Request</span>}
+                {existingQuote && <span className="text-sm font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-widest">Quoted</span>}
             </h1>
             <p className="text-gray-600 text-sm mb-8">
-                Review the initial summary and customer inputs before finalizing your estimate.
+                {requestData.providerId
+                    ? `This customer sent a direct request specifically to your profile${requestData.targetService?.name ? ` for "${requestData.targetService.name}"` : ''}. Review the details and send your quote.`
+                    : 'Review the initial summary and customer inputs before finalizing your estimate.'}
             </p>
 
             <div className="flex flex-col lg:flex-row gap-6">
@@ -184,12 +189,23 @@ export default function RequestReviewQuote() {
                         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
                                 <ImageIcon className="w-5 h-5 text-gray-700" />
-                                <h3 className="text-lg font-bold text-gray-900">Customer Media</h3>
+                                <h3 className="text-lg font-bold text-gray-900">Customer Media ({requestData.media.length})</h3>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {requestData.media.map((imgUrl: string, idx: number) => (
-                                    <div key={idx} className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                                        <img src={imgUrl} alt={`Customer upload ${idx}`} className="w-full h-full object-cover" />
+                                {requestData.media.map((imgKeyOrUrl: string, idx: number) => (
+                                    <div
+                                        key={idx}
+                                        onClick={() => setPreviewImage(imgKeyOrUrl)}
+                                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 cursor-pointer group relative hover:border-indigo-400 transition-all"
+                                    >
+                                        <PresignedImage
+                                            src={imgKeyOrUrl}
+                                            alt={`Customer upload ${idx + 1}`}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                            <ZoomIn size={18} />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -210,12 +226,12 @@ export default function RequestReviewQuote() {
                 {/* Right Column - Form */}
                 <div className="lg:w-[400px]">
 
-                    {/* Map context header */}
-                    <div className="h-24 bg-gray-200 rounded-xl mb-6 relative overflow-hidden flex items-end p-3 border border-gray-300">
-                        {/* Map placeholder */}
-                        <div className="absolute inset-0 opacity-40 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=Kerala&zoom=10&size=400x120&sensor=false')] bg-cover bg-center"></div>
-                        <span className="relative z-10 text-sm font-bold text-gray-800 bg-white/80 px-2 py-1 rounded shadow-sm">
-                            {requestData.address?.area || requestData.address?.city}
+                    {/* Location context header */}
+                    <div className="h-24 bg-gradient-to-r from-blue-100 via-indigo-100 to-sky-100 rounded-xl mb-6 relative overflow-hidden flex items-end p-3 border border-indigo-100">
+                        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        <span className="relative z-10 text-sm font-bold text-gray-800 bg-white/90 backdrop-blur-xs px-3 py-1 rounded-lg shadow-xs flex items-center gap-1.5 border border-gray-200/50">
+                            <MapPin size={14} className="text-indigo-600 shrink-0" />
+                            <span className="line-clamp-1">{requestData.address?.area || requestData.address?.city || 'Local Service Area'}</span>
                         </span>
                     </div>
 
@@ -343,6 +359,35 @@ export default function RequestReviewQuote() {
 
                 </div>
             </div>
+
+            {/* Enlarged Image Preview Modal */}
+            {previewImage && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <div
+                        className="relative max-w-4xl max-h-[90vh] flex flex-col items-center cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setPreviewImage(null)}
+                            className="absolute -top-11 right-0 text-white hover:text-gray-300 transition-colors cursor-pointer p-1.5 rounded-full bg-white/10 hover:bg-white/20"
+                            title="Close"
+                        >
+                            <X size={22} />
+                        </button>
+                        <div className="rounded-2xl overflow-hidden shadow-2xl bg-black/40 border border-white/10 flex items-center justify-center">
+                            <PresignedImage
+                                src={previewImage}
+                                alt="Enlarged customer photo"
+                                className="max-w-full max-h-[85vh] object-contain rounded-2xl"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

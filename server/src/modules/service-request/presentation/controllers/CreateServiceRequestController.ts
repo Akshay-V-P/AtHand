@@ -21,7 +21,7 @@ export class CreateServiceRequestController {
                 userId
             };
 
-            if (!dto.categoryId || !dto.title || !dto.description || !dto.address) {
+            if ((!dto.categoryId && !dto.providerId) || !dto.title || !dto.description || !dto.address) {
                 ResponseHandler.error(res, HttpStatus.BAD_REQUEST, "Missing required fields");
                 return;
             }

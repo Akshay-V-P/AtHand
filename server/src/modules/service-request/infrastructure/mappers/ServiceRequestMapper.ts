@@ -4,6 +4,38 @@ import { ServiceRequestUrgency } from "../../domain/enums/ServiceRequestUrgency"
 
 export class ServiceRequestMapper {
     static toDomain(raw: any): ServiceRequest {
+        const isPopulatedProvider =
+            raw.providerId && typeof raw.providerId === "object" && "_id" in raw.providerId;
+        const providerId = isPopulatedProvider
+            ? raw.providerId._id.toString()
+            : raw.providerId
+                ? raw.providerId.toString()
+                : undefined;
+        const targetProvider = isPopulatedProvider
+            ? {
+                id: raw.providerId._id.toString(),
+                businessName: raw.providerId.businessName,
+                location: raw.providerId.location,
+                averageRating: raw.providerId.averageRating,
+                totalReviews: raw.providerId.totalReviews,
+            }
+            : undefined;
+
+        const isPopulatedService =
+            raw.providerServiceId && typeof raw.providerServiceId === "object" && "_id" in raw.providerServiceId;
+        const providerServiceId = isPopulatedService
+            ? raw.providerServiceId._id.toString()
+            : raw.providerServiceId
+                ? raw.providerServiceId.toString()
+                : undefined;
+        const targetService = isPopulatedService
+            ? {
+                id: raw.providerServiceId._id.toString(),
+                name: raw.providerServiceId.name,
+                startingPrice: raw.providerServiceId.startingPrice,
+            }
+            : undefined;
+
         return new ServiceRequest(
             raw.userId.toString(),
             raw.categoryId.toString(),
@@ -19,8 +51,12 @@ export class ServiceRequestMapper {
             raw.preferredDate,
             raw.preferredTimeSlot,
             raw._id.toString(),
-            raw.providerId ? raw.providerId.toString() : undefined,
-            raw.createdAt ? new Date(raw.createdAt) : undefined
+            providerId,
+            raw.createdAt ? new Date(raw.createdAt) : undefined,
+            raw.serviceMode,
+            providerServiceId,
+            targetProvider,
+            targetService
         );
     }
 
@@ -43,6 +79,7 @@ export class ServiceRequestMapper {
             description: entity.description,
             urgency: entity.urgency,
             onSite: entity.onSite,
+            serviceMode: entity.serviceMode || (entity.onSite ? "ONSITE" : "WORKSHOP"),
             media: entity.media,
             productBrand: entity.productBrand,
             productModel: entity.productModel,
@@ -50,6 +87,12 @@ export class ServiceRequestMapper {
             preferredDate: entity.preferredDate,
             preferredTimeSlot: entity.preferredTimeSlot
         };
+        if (entity.providerId) {
+            doc.providerId = entity.providerId;
+        }
+        if (entity.providerServiceId) {
+            doc.providerServiceId = entity.providerServiceId;
+        }
         if (entity.id) {
             doc._id = entity.id;
         }

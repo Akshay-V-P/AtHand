@@ -230,16 +230,22 @@ export {};
 
 export const single = {
   controller: `
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 
 export class {{pascal}}Controller {
-  async handle(req: Request, res: Response, next: NextFunction) {
+  constructor() {}
+
+  readonly handler = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      res.status(200).json({ data: null });
+
     } catch (error) {
       next(error);
     }
-  }
+  };
 }
 `,
 

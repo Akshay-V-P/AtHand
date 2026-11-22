@@ -4,6 +4,8 @@ import { ServiceRequestStatus } from "../../domain/enums/ServiceRequestStatus";
 export interface CreateServiceRequestDTO {
     userId: string;
     categoryId: string;
+    providerId?: string;
+    providerServiceId?: string;
     address: {
         houseName: string;
         area: string;
@@ -19,6 +21,7 @@ export interface CreateServiceRequestDTO {
     description: string;
     urgency?: ServiceRequestUrgency;
     onSite?: boolean;
+    serviceMode?: string;
     media?: string[];
     productBrand?: string;
     productModel?: string;

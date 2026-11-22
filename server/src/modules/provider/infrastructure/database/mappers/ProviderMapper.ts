@@ -15,9 +15,12 @@ class ProviderMapper{
             data.status,
             data.experience,
             data.averageRating,
-            data.totalReview,
+            data.totalReviews ?? data.totalReview ?? 0,
             data.completedJobs,
-            data._id.toString()
+            data._id.toString(),
+            data.about,
+            data.availability,
+            data.avgResponseTime,
         )
     }
 

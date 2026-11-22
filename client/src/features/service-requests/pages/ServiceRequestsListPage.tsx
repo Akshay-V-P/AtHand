@@ -85,9 +85,14 @@ const ServiceRequestsListPage = () => {
                             className="bg-white/90 hover:bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 border border-white"
                         >
                             <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
+                                <div className="flex flex-wrap items-center gap-2.5 mb-2">
                                     <h3 className="text-xl font-semibold text-gray-900">{req.title}</h3>
                                     {getStatusBadge(req.status)}
+                                    {req.providerId && (
+                                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
+                                            Direct • {req.targetProvider?.businessName || 'Specific Provider'}
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="text-gray-600 line-clamp-2 max-w-2xl text-sm mb-4">
                                     {req.description}

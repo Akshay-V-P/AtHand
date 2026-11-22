@@ -17,6 +17,8 @@ import { serviceRequestRoutes } from "./modules/service-request/container"
 import { quoteRoutes } from "./modules/quote/container"
 import { orderRoutes } from "./modules/order/container"
 import logger from "./shared/middleware/RequestLogger"
+import { walletRoutes } from "./modules/wallet/container"
+import { paymentRoutes } from "./modules/payment/container"
 
 const app = express()
 
@@ -32,7 +34,11 @@ app.use(cors({
 
 
 app.use(cookieParser())
-app.use(express.json())
+app.use(express.json({
+    verify: (req: any, _res, buf) => {
+        req.rawBody = buf;
+    }
+}))
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/auth', authRoute)
@@ -48,6 +54,8 @@ app.use('/api/provider-service', providerServiceRoutes)
 app.use('/api/service-requests', serviceRequestRoutes)
 app.use('/api/quote', quoteRoutes)
 app.use('/api/order', orderRoutes)
+app.use('/api/wallet', walletRoutes)
+app.use('/api/payment', paymentRoutes)
 
 app.use(errorHandler)
 

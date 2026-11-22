@@ -1,21 +1,36 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { serviceRequestApi } from '../api/serviceRequestApi';
 import toast from 'react-hot-toast';
 import { api } from '@/services/axios';
 import type { ServiceRequestUrgency } from '../dtos/ServiceRequestDTOs';
-import { Camera } from 'lucide-react';
+import { BadgeCheck, Camera, Lock, MapPin, Star } from 'lucide-react';
 import { uploadFileToS3 } from '@/services/imageService';
 import LocationPicker from "@/shared/components/location/LocationPicker";
 import { getUserLocation, reverseGeocode } from "@/shared/services/locationService";
 import { accountServices } from '@/features/customer/account/services/accountServices';
+import {
+    categoryServices,
+    type PublicProviderInfo,
+    type PublicProviderServiceItem,
+} from '@/features/categories/services/categoryServices';
 
 const CreateServiceRequestPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const directProviderId = searchParams.get('providerId') || '';
+    const preselectedServiceId = searchParams.get('serviceId') || '';
+
     const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
     const [userAddresses, setUserAddresses] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Direct-to-provider state
+    const [targetProvider, setTargetProvider] = useState<PublicProviderInfo | null>(null);
+    const [providerServices, setProviderServices] = useState<PublicProviderServiceItem[]>([]);
+    const [selectedProviderServiceId, setSelectedProviderServiceId] = useState<string>(preselectedServiceId);
+    const [loadingTargetProvider, setLoadingTargetProvider] = useState<boolean>(false);
 
     // Form state
     const [categoryId, setCategoryId] = useState('');
@@ -23,8 +38,8 @@ const CreateServiceRequestPage = () => {
     const [description, setDescription] = useState('');
     const [urgency, setUrgency] = useState<ServiceRequestUrgency>("NORMAL");
     const [serviceMode, setServiceMode] = useState<'ONSITE' | 'WORKSHOP' | 'COLLECTION_AND_RETURN'>('ONSITE');
-    const [productBrand, setProductBrand] = useState('Apple');
-    const [productModel, setProductModel] = useState('iPhone 13 Pro');
+    const [productBrand, setProductBrand] = useState('');
+    const [productModel, setProductModel] = useState('');
     const [serviceType, setServiceType] = useState('Others');
     const [preferredDate, setPreferredDate] = useState<string>('');
 
@@ -77,6 +92,72 @@ const CreateServiceRequestPage = () => {
         fetchCategories();
         fetchAddresses();
     }, []);
+
+    useEffect(() => {
+        let active = true;
+
+        Promise.resolve().then(() => {
+            if (!active) return;
+            if (!directProviderId) {
+                setTargetProvider(null);
+                setProviderServices([]);
+                setSelectedProviderServiceId('');
+                return;
+            }
+
+            setLoadingTargetProvider(true);
+            categoryServices
+                .fetchProviderProfile(directProviderId)
+                .then((res) => {
+                    if (!active || !res.success || !res.data) return;
+                    const { provider, services } = res.data;
+                    setTargetProvider(provider);
+                    setProviderServices(services || []);
+
+                    const matched = preselectedServiceId
+                        ? (services || []).find((s) => s.id === preselectedServiceId)
+                        : undefined;
+
+                    if (matched) {
+                        setSelectedProviderServiceId(matched.id);
+                        setCategoryId(matched.categoryId || provider.serviceCategory || '');
+                        setServiceMode(matched.onSite ? 'ONSITE' : 'WORKSHOP');
+                    } else {
+                        setSelectedProviderServiceId('');
+                        if (provider.serviceCategory) {
+                            setCategoryId(provider.serviceCategory);
+                        }
+                    }
+                })
+                .catch((err) => {
+                    if (!active) return;
+                    console.error('Failed to load target provider:', err);
+                    toast.error('Could not load selected provider details');
+                })
+                .finally(() => {
+                    if (active) setLoadingTargetProvider(false);
+                });
+        });
+
+        return () => {
+            active = false;
+        };
+    }, [directProviderId, preselectedServiceId]);
+
+    const handleDirectServiceSelect = (svcId: string) => {
+        setSelectedProviderServiceId(svcId);
+        if (!svcId) {
+            if (targetProvider?.serviceCategory) {
+                setCategoryId(targetProvider.serviceCategory);
+            }
+            return;
+        }
+        const svc = providerServices.find((s) => s.id === svcId);
+        if (svc) {
+            if (svc.categoryId) setCategoryId(svc.categoryId);
+            setServiceMode(svc.onSite ? 'ONSITE' : 'WORKSHOP');
+        }
+    };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -180,15 +261,17 @@ const CreateServiceRequestPage = () => {
             }
 
             const payload = {
-                categoryId: categoryId || (categories.length > 0 ? categories[0].id : ''),
+                categoryId: categoryId || targetProvider?.serviceCategory || (categories.length > 0 ? categories[0].id : ''),
+                ...(directProviderId ? { providerId: directProviderId } : {}),
+                ...(directProviderId && selectedProviderServiceId ? { providerServiceId: selectedProviderServiceId } : {}),
                 title,
                 description,
                 urgency,
                 onSite: serviceMode === 'ONSITE',
                 serviceMode: serviceMode,
                 media: uploadedKeys,
-                productBrand,
-                productModel,
+                productBrand: productBrand || 'Generic',
+                productModel: productModel || 'Standard',
                 ...(preferredDate ? { preferredDate } : {}),
                 address: {
                     ...finalAddressDetails,
@@ -201,8 +284,14 @@ const CreateServiceRequestPage = () => {
 
             const response = await serviceRequestApi.createRequest(payload);
             if (response.data.success) {
-                toast.success('Service Request created successfully!', { id: "create-req" });
-                navigate('/service-requests');
+                const createdId = response.data?.data?.id;
+                toast.success(
+                    directProviderId && targetProvider
+                        ? `Direct request sent to ${targetProvider.businessName}!`
+                        : 'Service Request created successfully!',
+                    { id: "create-req" }
+                );
+                navigate(createdId ? `/service-requests/${createdId}` : '/service-requests');
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || error.message || 'Failed to create request', { id: "create-req" });
@@ -216,9 +305,75 @@ const CreateServiceRequestPage = () => {
 
     return (
         <div className="flex-1 bg-gradient-to-br from-[#d4f0ff] via-[#e4f6fb] to-[#fcfceb] rounded-[2.5rem] p-6 md:p-10 shadow-sm min-h-screen">
-            <h1 className="text-3xl font-[800] text-gray-900 tracking-tight mb-8 ml-2">
-                Create Quote
-            </h1>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 ml-2">
+                <h1 className="text-3xl font-[800] text-gray-900 tracking-tight">
+                    {directProviderId ? 'Make Direct Service Request' : 'Create Quote'}
+                </h1>
+                {directProviderId && (
+                    <button
+                        type="button"
+                        onClick={() => navigate('/service-requests/new')}
+                        className="text-xs font-semibold text-gray-600 hover:text-gray-900 bg-white/80 hover:bg-white px-4 py-2 rounded-xl border border-white shadow-2xs transition-colors cursor-pointer"
+                    >
+                        Switch to open request (all nearby providers)
+                    </button>
+                )}
+            </div>
+
+            {directProviderId && (
+                <div className="bg-white/85 backdrop-blur-md rounded-2xl p-4 sm:p-5 mb-6 border border-white shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    {loadingTargetProvider ? (
+                        <div className="text-xs font-medium text-gray-500">Loading provider details...</div>
+                    ) : targetProvider ? (
+                        <>
+                            <div className="flex items-center gap-4">
+                                <div className="relative w-12 h-12 shrink-0">
+                                    {targetProvider.profilePhotoUrl ? (
+                                        <img
+                                            src={targetProvider.profilePhotoUrl}
+                                            alt={targetProvider.businessName}
+                                            className="w-full h-full rounded-full object-cover border border-white shadow-xs"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold text-sm flex items-center justify-center">
+                                            {targetProvider.businessName.slice(0, 2).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center ring-2 ring-white">
+                                        <BadgeCheck size={10} />
+                                    </span>
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h2 className="text-base font-bold text-gray-900">
+                                            {targetProvider.businessName}
+                                        </h2>
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                                            <Lock size={10} /> Exclusive Direct Request
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
+                                        <span className="flex items-center gap-1">
+                                            <MapPin size={12} className="text-gray-400" />
+                                            {targetProvider.location?.address?.city || 'Local Provider'}
+                                        </span>
+                                        <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                                            <Star size={12} className="fill-emerald-500 text-emerald-500" />
+                                            {targetProvider.totalReviews > 0
+                                                ? `${targetProvider.averageRating.toFixed(1)} (${targetProvider.totalReviews})`
+                                                : 'New'}
+                                        </span>
+                                        <span>{targetProvider.categoryName}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-600 max-w-xs leading-relaxed">
+                                Only <strong>{targetProvider.businessName}</strong> will receive this request and send you a quote.
+                            </p>
+                        </>
+                    ) : null}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="bg-white/40 backdrop-blur-md rounded-[2rem] p-8 md:p-10 shadow-sm border border-white/60">
                 <div className="grid md:grid-cols-2 gap-10">
@@ -232,7 +387,11 @@ const CreateServiceRequestPage = () => {
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="My iPhone is not turning on"
+                                placeholder={
+                                    selectedProviderServiceId
+                                        ? `Need ${providerServices.find((s) => s.id === selectedProviderServiceId)?.name || 'repair service'}`
+                                        : 'My iPhone is not turning on'
+                                }
                                 className={inputClasses}
                             />
                         </div>
@@ -259,17 +418,34 @@ const CreateServiceRequestPage = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className={labelClasses}>Service</label>
+                                <label className={labelClasses}>
+                                    {directProviderId && providerServices.length > 0 ? 'Provider Service' : 'Service'}
+                                </label>
                                 <div className="relative">
-                                    <select
-                                        value={serviceType}
-                                        onChange={(e) => setServiceType(e.target.value)}
-                                        className={`${inputClasses} appearance-none cursor-pointer`}
-                                    >
-                                        <option value="Others">Others</option>
-                                        <option value="Repair">Repair</option>
-                                        <option value="Maintenance">Maintenance</option>
-                                    </select>
+                                    {directProviderId && providerServices.length > 0 ? (
+                                        <select
+                                            value={selectedProviderServiceId}
+                                            onChange={(e) => handleDirectServiceSelect(e.target.value)}
+                                            className={`${inputClasses} appearance-none cursor-pointer`}
+                                        >
+                                            <option value="">General / Custom Request</option>
+                                            {providerServices.map((svc) => (
+                                                <option key={svc.id} value={svc.id}>
+                                                    {svc.name} (₹{svc.startingPrice})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <select
+                                            value={serviceType}
+                                            onChange={(e) => setServiceType(e.target.value)}
+                                            className={`${inputClasses} appearance-none cursor-pointer`}
+                                        >
+                                            <option value="Others">Others</option>
+                                            <option value="Repair">Repair</option>
+                                            <option value="Maintenance">Maintenance</option>
+                                        </select>
+                                    )}
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -281,42 +457,41 @@ const CreateServiceRequestPage = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className={labelClasses}>Company</label>
-                                <div className="relative">
-                                    <select
-                                        value={productBrand}
-                                        onChange={(e) => setProductBrand(e.target.value)}
-                                        className={`${inputClasses} appearance-none cursor-pointer`}
-                                    >
-                                        <option value="Apple">Apple</option>
-                                        <option value="Samsung">Samsung</option>
-                                        <option value="Sony">Sony</option>
-                                    </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                    </div>
-                                </div>
+                                <label className={labelClasses}>Company / Brand</label>
+                                <input
+                                    type="text"
+                                    list="brand-suggestions"
+                                    value={productBrand}
+                                    onChange={(e) => setProductBrand(e.target.value)}
+                                    placeholder="e.g. Apple, Samsung, LG"
+                                    className={inputClasses}
+                                />
+                                <datalist id="brand-suggestions">
+                                    <option value="Apple" />
+                                    <option value="Samsung" />
+                                    <option value="Sony" />
+                                    <option value="LG" />
+                                    <option value="Dell" />
+                                    <option value="HP" />
+                                    <option value="OnePlus" />
+                                </datalist>
                             </div>
                             <div>
                                 <label className={labelClasses}>Model</label>
-                                <div className="relative">
-                                    <select
-                                        value={productModel}
-                                        onChange={(e) => setProductModel(e.target.value)}
-                                        className={`${inputClasses} appearance-none cursor-pointer`}
-                                    >
-                                        <option value="iPhone 13 Pro">iPhone 13 Pro</option>
-                                        <option value="iPhone 14">iPhone 14</option>
-                                        <option value="Galaxy S22">Galaxy S22</option>
-                                    </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                    </div>
-                                </div>
+                                <input
+                                    type="text"
+                                    list="model-suggestions"
+                                    value={productModel}
+                                    onChange={(e) => setProductModel(e.target.value)}
+                                    placeholder="e.g. iPhone 13 Pro, Galaxy S22"
+                                    className={inputClasses}
+                                />
+                                <datalist id="model-suggestions">
+                                    <option value="iPhone 13 Pro" />
+                                    <option value="iPhone 14" />
+                                    <option value="Galaxy S22" />
+                                    <option value="MacBook Pro" />
+                                </datalist>
                             </div>
                         </div>
 

@@ -29,11 +29,17 @@ import {
     AlertTriangle,
     CreditCard,
     DollarSign,
-    CheckCircle2
+    CheckCircle2,
+    RotateCcw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getPresignedDisplayUrl } from '@/services/imageService';
+import { resolveMultipleDisplayUrls } from '@/services/imageService';
+import PresignedImage from '@/shared/components/PresignedImage';
 import { Modal } from "@/shared/components/Modal";
+import { useAppSelector } from '@/hooks/storeHook';
+import { paymentApi } from '@/features/payment/api/paymentApi';
+import { loadRazorpayScript } from '@/features/payment/utils/loadRazorpay';
+import type { RazorpayCheckoutOptions } from '@/features/payment/dtos/PaymentDTOs';
 
 // Format relative time (e.g. "2h ago", "1d ago")
 const formatTimeAgo = (dateString: string | Date | undefined): string => {
@@ -134,6 +140,7 @@ const getInitials = (name: string | undefined): string => {
 const ServiceRequestDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const user = useAppSelector((state) => state.auth.user);
 
     // Data States
     const [request, setRequest] = useState<ServiceRequest | null>(null);
@@ -166,6 +173,12 @@ const ServiceRequestDetailPage = () => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'UPI' | 'CASH'>('ONLINE');
     const [isPaying, setIsPaying] = useState(false);
+    const [paymentFailure, setPaymentFailure] = useState<{
+        hasFailed: boolean;
+        reason: string;
+        code?: string;
+        failedAt?: Date;
+    } | null>(null);
 
     // Review States
     const [userRating, setUserRating] = useState<number>(5);
@@ -186,13 +199,8 @@ const ServiceRequestDetailPage = () => {
                 // Fetch media URLs
                 if (reqData.media && reqData.media.length > 0) {
                     try {
-                        const urls = await Promise.all(
-                            reqData.media.map(async (key: string) => {
-                                const res = await getPresignedDisplayUrl(key);
-                                return res.data?.data || '';
-                            })
-                        );
-                        setMediaUrls(urls.filter(Boolean));
+                        const urls = await resolveMultipleDisplayUrls(reqData.media);
+                        setMediaUrls(urls);
                     } catch (mediaError) {
                         console.error('Failed to fetch image URLs', mediaError);
                     }
@@ -202,7 +210,33 @@ const ServiceRequestDetailPage = () => {
                 try {
                     const orderRes = await orderApi.getOrderByRequestId(id);
                     if (orderRes.data.success && orderRes.data.data) {
-                        setOrder(orderRes.data.data);
+                        const fetchedOrder = orderRes.data.data;
+                        setOrder(fetchedOrder);
+
+                        // Check if latest payment attempt for this order failed
+                        const orderDbId = fetchedOrder.id || fetchedOrder._id;
+                        if (orderDbId && (fetchedOrder.status === 'WAITING_FOR_PAYMENT' || (fetchedOrder.status as any) === 'waiting_for_payment')) {
+                            try {
+                                const payRes = await paymentApi.getPaymentsByOrder(orderDbId);
+                                if (payRes.data.success && Array.isArray(payRes.data.data) && payRes.data.data.length > 0) {
+                                    const sorted = [...payRes.data.data].sort((a: any, b: any) =>
+                                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                                    );
+                                    const latest = sorted[0];
+                                    if (latest.status === 'FAILED') {
+                                        setPaymentFailure({
+                                            hasFailed: true,
+                                            reason: latest.failureReason || 'Previous payment attempt was declined or failed',
+                                            failedAt: new Date(latest.updatedAt || latest.createdAt),
+                                        });
+                                    } else if (latest.status === 'COMPLETED') {
+                                        setPaymentFailure(null);
+                                    }
+                                }
+                            } catch {
+                                // Non-blocking if payment history lookup fails
+                            }
+                        }
                     } else {
                         setOrder(null);
                     }
@@ -309,23 +343,173 @@ const ServiceRequestDetailPage = () => {
     };
 
     // Process Payment
-    const handleProcessPayment = async () => {
+    const handleProcessPayment = async (overrideMethod?: 'ONLINE' | 'UPI' | 'CASH') => {
         if (!order?.id && !order?._id) return;
         const orderId = order.id || order._id!;
+        const activeMethod = overrideMethod || paymentMethod;
+
+        // Handle Cash on Delivery
+        if (activeMethod === 'CASH') {
+            try {
+                setIsPaying(true);
+                const res = await orderApi.processPayment(orderId, { paymentMethod: 'CASH' });
+                if (res.data.success) {
+                    toast.success('Cash payment option confirmed! Order updated.');
+                    setPaymentFailure(null);
+                    setIsPaymentModalOpen(false);
+                    setOrder(res.data.data);
+                    await loadDetails();
+                }
+            } catch (error: any) {
+                const errMsg = error.response?.data?.message || 'Failed to process payment';
+                toast.error(errMsg);
+                setPaymentFailure({
+                    hasFailed: true,
+                    reason: errMsg,
+                    failedAt: new Date(),
+                });
+            } finally {
+                setIsPaying(false);
+            }
+            return;
+        }
+
+        // Handle Razorpay Online / UPI Gateway Checkout
         try {
             setIsPaying(true);
-            const res = await orderApi.processPayment(orderId, { paymentMethod });
-            if (res.data.success) {
-                toast.success('Payment completed successfully!');
-                setIsPaymentModalOpen(false);
-                setOrder(res.data.data);
-                await loadDetails();
+
+            // 1. Ensure Razorpay Checkout SDK is loaded
+            const isLoaded = await loadRazorpayScript();
+            if (!isLoaded) {
+                const failMsg = 'Unable to load payment gateway. Please check your internet connection and try again.';
+                toast.error(failMsg);
+                setPaymentFailure({
+                    hasFailed: true,
+                    reason: failMsg,
+                    failedAt: new Date(),
+                });
+                setIsPaying(false);
+                return;
             }
+
+            // 2. Initiate Payment on Backend
+            toast.loading('Initiating secure payment...', { id: 'payment-init' });
+            const initRes = await paymentApi.initiatePayment({
+                purpose: 'ORDER_PAYMENT',
+                referenceId: orderId,
+            });
+
+            if (!initRes.data.success || !initRes.data.data) {
+                throw new Error(initRes.data.message || 'Payment initiation failed');
+            }
+
+            const checkoutData = initRes.data.data;
+            toast.dismiss('payment-init');
+
+            // 3. Open Razorpay Checkout Modal
+            const options: RazorpayCheckoutOptions = {
+                key: checkoutData.keyId || (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || '',
+                amount: checkoutData.amountInPaise,
+                currency: checkoutData.currency || 'INR',
+                name: 'AtHand Repair Services',
+                description: `Payment for Order #${order.orderNumber}`,
+                order_id: checkoutData.razorpayOrderId,
+                prefill: {
+                    name: user?.name || undefined,
+                    email: user?.email || undefined,
+                    contact: user?.phone || undefined,
+                },
+                theme: {
+                    color: '#2563EB',
+                },
+                modal: {
+                    ondismiss: () => {
+                        setIsPaying(false);
+                        toast('Payment window closed');
+                        setPaymentFailure(prev => prev?.hasFailed ? prev : {
+                            hasFailed: true,
+                            reason: 'Payment window was closed before transaction was completed.',
+                            failedAt: new Date(),
+                        });
+                    },
+                },
+                handler: async (response) => {
+                    try {
+                        setIsPaying(true);
+                        toast.loading('Verifying payment signature with server...', { id: 'verify-payment' });
+                        const verifyRes = await paymentApi.verifyPayment({
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpaySignature: response.razorpay_signature,
+                        });
+
+                        if (verifyRes.data.success) {
+                            toast.success('Payment verified successfully! Repair order completed.', { id: 'verify-payment' });
+                            setPaymentFailure(null);
+                            setIsPaymentModalOpen(false);
+                            await loadDetails();
+                        } else {
+                            const failMsg = verifyRes.data.message || 'Payment verification failed';
+                            toast.error(failMsg, { id: 'verify-payment' });
+                            setPaymentFailure({
+                                hasFailed: true,
+                                reason: failMsg,
+                                failedAt: new Date(),
+                            });
+                        }
+                    } catch (verifyError: any) {
+                        const failMsg = verifyError.response?.data?.message || verifyError.message || 'Payment verification failed';
+                        toast.error(failMsg, { id: 'verify-payment' });
+                        setPaymentFailure({
+                            hasFailed: true,
+                            reason: failMsg,
+                            failedAt: new Date(),
+                        });
+                    } finally {
+                        setIsPaying(false);
+                    }
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (resp: any) {
+                setIsPaying(false);
+                const desc = resp.error?.description || resp.error?.reason || 'Payment was declined or cancelled';
+                toast.error(desc);
+                setPaymentFailure({
+                    hasFailed: true,
+                    reason: desc,
+                    code: resp.error?.code,
+                    failedAt: new Date(),
+                });
+
+                // Asynchronously report payment failure to server
+                paymentApi.reportPaymentFailure({
+                    razorpayOrderId: resp.error?.metadata?.order_id || checkoutData.razorpayOrderId,
+                    razorpayPaymentId: resp.error?.metadata?.payment_id,
+                    reason: desc,
+                    code: resp.error?.code,
+                }).catch(() => {});
+            });
+            rzp.open();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to process payment');
-        } finally {
+            toast.dismiss('payment-init');
+            const errDesc = error.response?.data?.message || error.message || 'Failed to initiate payment';
+            toast.error(errDesc);
+            setPaymentFailure({
+                hasFailed: true,
+                reason: errDesc,
+                failedAt: new Date(),
+            });
             setIsPaying(false);
         }
+    };
+
+    // Retry Razorpay Online Payment directly
+    const handleRetryRazorpayPayment = async () => {
+        setIsPaymentModalOpen(false);
+        setPaymentMethod('ONLINE');
+        await handleProcessPayment('ONLINE');
     };
 
     // Submit Review
@@ -542,8 +726,14 @@ const ServiceRequestDetailPage = () => {
                                         <div className="bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-xs text-xs sm:text-sm font-extrabold text-gray-900 tracking-wide">
                                             #{order.orderNumber}
                                         </div>
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-xs ${getOrderStatusBadgeClass(order.status)}`}>
-                                            {formatOrderStatus(order.status)}
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-xs ${
+                                            isWaitingForPayment && paymentFailure?.hasFailed
+                                                ? 'bg-red-100 text-red-800 border border-red-300'
+                                                : getOrderStatusBadgeClass(order.status)
+                                        }`}>
+                                            {isWaitingForPayment && paymentFailure?.hasFailed
+                                                ? 'Payment Failed'
+                                                : formatOrderStatus(order.status)}
                                         </span>
                                     </div>
                                 ) : (
@@ -721,6 +911,26 @@ const ServiceRequestDetailPage = () => {
                                         </div>
                                     </div>
 
+                                    {/* Direct Provider & Selected Catalog Service Info (if direct request) */}
+                                    {request.providerId && (
+                                        <div className="pt-2 border-t border-gray-100 flex flex-col gap-1.5">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="text-gray-500 font-medium">Direct Provider</span>
+                                                <span className="font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">
+                                                    {request.targetProvider?.businessName || 'Selected Provider'}
+                                                </span>
+                                            </div>
+                                            {request.targetService?.name && (
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <span className="text-gray-500 font-medium">Requested Service</span>
+                                                    <span className="font-semibold text-gray-900">
+                                                        {request.targetService.name}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* Address Details */}
                                     <div className="pt-2 border-t border-gray-100">
                                         <div className="flex items-start gap-2">
@@ -877,6 +1087,51 @@ const ServiceRequestDetailPage = () => {
                                         </div>
                                     )}
 
+                                    {/* Payment Failed / Declined Alert Banner */}
+                                    {isWaitingForPayment && paymentFailure?.hasFailed && (
+                                        <div className="bg-red-50/95 border-2 border-red-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                            <div className="flex items-start gap-3.5">
+                                                <div className="p-2.5 bg-red-100 text-red-600 rounded-xl shrink-0 mt-0.5">
+                                                    <AlertCircle size={22} />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="text-sm font-extrabold text-red-950">
+                                                            Payment Failed / Declined
+                                                        </h4>
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-200/90 text-red-800 uppercase tracking-wide">
+                                                            Declined
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-red-800 mt-1 leading-relaxed">
+                                                        {paymentFailure.reason || 'Your payment attempt was declined or was not completed. Please retry using Razorpay.'}
+                                                    </p>
+                                                    {paymentFailure.failedAt && (
+                                                        <p className="text-[11px] text-red-600/80 mt-1 font-medium">
+                                                            Attempted {formatTimeAgo(paymentFailure.failedAt)}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+                                                <button
+                                                    onClick={() => setIsPaymentModalOpen(true)}
+                                                    className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 transition-all cursor-pointer shadow-2xs"
+                                                >
+                                                    Other Methods
+                                                </button>
+                                                <button
+                                                    onClick={handleRetryRazorpayPayment}
+                                                    disabled={isPaying}
+                                                    className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                                                >
+                                                    {isPaying ? <RefreshCw size={15} className="animate-spin" /> : <RotateCcw size={15} />}
+                                                    Retry Payment
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Main Bill Container */}
                                     <div className="relative bg-white/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-xs border border-white/90">
                                         {/* Bill Header with Title & Action Buttons */}
@@ -885,12 +1140,21 @@ const ServiceRequestDetailPage = () => {
                                                 <h3 className="text-base sm:text-lg font-extrabold text-gray-900 tracking-tight underline underline-offset-8 decoration-gray-900 decoration-2">
                                                     {isWaitingForBillApproval ? 'UPDATED REPAIR BILL' : isWaitingForPayment ? 'FINAL BILL' : isCompleted ? 'SERVICE INVOICE' : 'ESTIMATED BILLING'}
                                                 </h3>
-                                                <span className="text-xs sm:text-sm font-medium text-gray-500">
-                                                    {isWaitingForBillApproval && '(Waiting for Bill Approval)'}
-                                                    {isWaitingForPayment && '(Waiting for payment)'}
-                                                    {isCompleted && '(Completed)'}
-                                                    {isRepairInProgress && '(Repair in progress)'}
-                                                    {isClosedWithoutRepair && '(Closed without repair)'}
+                                                <span className="text-xs sm:text-sm font-medium">
+                                                    {isWaitingForBillApproval && <span className="text-gray-500">(Waiting for Bill Approval)</span>}
+                                                    {isWaitingForPayment && (
+                                                        paymentFailure?.hasFailed ? (
+                                                            <span className="text-red-600 font-bold flex items-center gap-1 inline-flex">
+                                                                <AlertCircle size={13} />
+                                                                (Payment Failed - Action Required)
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-500">(Waiting for payment)</span>
+                                                        )
+                                                    )}
+                                                    {isCompleted && <span className="text-gray-500">(Completed)</span>}
+                                                    {isRepairInProgress && <span className="text-gray-500">(Repair in progress)</span>}
+                                                    {isClosedWithoutRepair && <span className="text-gray-500">(Closed without repair)</span>}
                                                 </span>
                                             </div>
 
@@ -916,15 +1180,26 @@ const ServiceRequestDetailPage = () => {
                                                     </>
                                                 )}
 
-                                                {/* State: Waiting for payment -> [Continue to pay] */}
+                                                {/* State: Waiting for payment -> [Retry Payment] or [Continue to pay] */}
                                                 {isWaitingForPayment && (
-                                                    <button
-                                                        onClick={() => setIsPaymentModalOpen(true)}
-                                                        className="px-6 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-black hover:bg-gray-800 transition-all shadow-xs cursor-pointer flex items-center gap-2"
-                                                    >
-                                                        <CreditCard size={15} />
-                                                        Continue to pay
-                                                    </button>
+                                                    paymentFailure?.hasFailed ? (
+                                                        <button
+                                                            onClick={handleRetryRazorpayPayment}
+                                                            disabled={isPaying}
+                                                            className="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                                                        >
+                                                            {isPaying ? <RefreshCw size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+                                                            Retry Payment
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => setIsPaymentModalOpen(true)}
+                                                            className="px-6 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-black hover:bg-gray-800 transition-all shadow-xs cursor-pointer flex items-center gap-2"
+                                                        >
+                                                            <CreditCard size={15} />
+                                                            Continue to pay
+                                                        </button>
+                                                    )
                                                 )}
 
                                                 {/* State: Completed -> [Download Invoice] */}
@@ -1006,6 +1281,26 @@ const ServiceRequestDetailPage = () => {
                                                     )}
                                                 </div>
                                             )}
+
+                                            {isWaitingForPayment && paymentFailure?.hasFailed && (
+                                                <div className="mt-4 pt-3 border-t border-red-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-red-50/80 p-3.5 rounded-xl border border-red-200">
+                                                    <div className="flex items-center gap-2.5 text-xs text-red-800">
+                                                        <AlertTriangle size={16} className="text-red-600 shrink-0" />
+                                                        <div>
+                                                            <span className="font-bold">Payment Attempt Failed:</span>
+                                                            <span className="ml-1 text-red-700">{paymentFailure.reason}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={handleRetryRazorpayPayment}
+                                                        disabled={isPaying}
+                                                        className="text-xs font-bold text-red-700 hover:text-red-900 underline underline-offset-4 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto shrink-0"
+                                                    >
+                                                        {isPaying ? <RefreshCw size={12} className="animate-spin" /> : <RotateCcw size={12} />}
+                                                        Retry with Razorpay
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -1036,7 +1331,7 @@ const ServiceRequestDetailPage = () => {
                                                 {workProofPhotos.map((proof, idx) => (
                                                     <div key={idx} className="space-y-1.5">
                                                         <div className="w-full aspect-video rounded-xl overflow-hidden bg-gray-100 border border-gray-200/80 shadow-2xs">
-                                                            <img src={proof.url} alt={proof.caption} className="w-full h-full object-cover" />
+                                                            <PresignedImage src={proof.url} alt={proof.caption} className="w-full h-full object-cover" />
                                                         </div>
                                                         <p className="text-xs font-semibold text-gray-700 text-center">{proof.caption}</p>
                                                     </div>
@@ -1177,10 +1472,14 @@ const ServiceRequestDetailPage = () => {
                                                 <Clock size={22} className="animate-pulse" />
                                             </div>
                                             <h4 className="text-base font-bold text-gray-800">
-                                                Waiting for technician quotes
+                                                {request.providerId
+                                                    ? `Waiting for quote from ${request.targetProvider?.businessName || 'selected provider'}`
+                                                    : 'Waiting for technician quotes'}
                                             </h4>
                                             <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-                                                Verified service technicians in your area ({request.address.city}) have been notified. Quotes will appear here as soon as they review your issue.
+                                                {request.providerId
+                                                    ? `This direct request was sent exclusively to ${request.targetProvider?.businessName || 'your chosen provider'}. Only they can review your issue and send a quote.`
+                                                    : `Verified service technicians in your area (${request.address.city}) have been notified. Quotes will appear here as soon as they review your issue.`}
                                             </p>
                                         </div>
                                     ) : (
@@ -1499,6 +1798,16 @@ const ServiceRequestDetailPage = () => {
                         </div>
                     </div>
 
+                    {paymentFailure?.hasFailed && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-red-800">
+                            <AlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <span className="font-bold block text-red-900">Previous Attempt Failed</span>
+                                <span>{paymentFailure.reason}</span>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <label className="block text-xs font-bold text-gray-700">Select Payment Method</label>
                         <div className="grid grid-cols-3 gap-2">
@@ -1549,12 +1858,18 @@ const ServiceRequestDetailPage = () => {
                             Cancel
                         </button>
                         <button
-                            onClick={handleProcessPayment}
+                            onClick={() => handleProcessPayment()}
                             disabled={isPaying}
                             className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-white bg-black hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer text-sm shadow-xs"
                         >
-                            {isPaying ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-                            Pay ₹{totalBillAmount.toLocaleString()}
+                            {isPaying ? (
+                                <RefreshCw size={16} className="animate-spin" />
+                            ) : paymentFailure?.hasFailed ? (
+                                <RotateCcw size={16} />
+                            ) : (
+                                <CheckCircle size={16} />
+                            )}
+                            {paymentFailure?.hasFailed ? 'Retry Payment' : `Pay ₹${totalBillAmount.toLocaleString()}`}
                         </button>
                     </div>
                 </div>

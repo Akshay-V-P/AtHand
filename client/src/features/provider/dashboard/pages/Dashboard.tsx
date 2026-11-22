@@ -188,7 +188,7 @@ export default function Dashboard() {
               <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-bl-full -z-0"></div>
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
-                  <img src="/api/placeholder/40/40" alt="Elena" className="w-10 h-10 rounded-full bg-gray-200" />
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">ER</div>
                   <div>
                     <h4 className="text-sm font-semibold text-gray-900">Elena Rodriguez</h4>
                     <div className="flex text-emerald-500">
@@ -207,7 +207,7 @@ export default function Dashboard() {
                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/50 rounded-bl-full -z-0"></div>
                <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
-                  <img src="/api/placeholder/40/40" alt="Jameson" className="w-10 h-10 rounded-full bg-gray-200" />
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">JB</div>
                   <div>
                     <h4 className="text-sm font-semibold text-gray-900">Jameson Blake</h4>
                     <div className="flex text-emerald-500">

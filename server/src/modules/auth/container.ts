@@ -43,10 +43,12 @@ import { CreateProfileUploadUrlController } from "./presentation/controllers/Cre
 import { UpdateUserProfileController } from "./presentation/controllers/UpdateUserProfileController";
 import { S3UserProfileUrlService } from "./infrastructure/services/S3UserProfileUrlService";
 import { s3client } from "../../config/s3";
+import { WalletRepositoryImpl } from "../wallet/infrastructure/database/repositories/WalletRepositoryImpl";
 
 const userRepository = new UserRepository()
 const redisRefreshTokenRepo = new RedisRefreshTokenRepository()
 const passwordResetTokenRepo = new PasswordResetTokenRepository()
+const walletRepository = new WalletRepositoryImpl()
 
 const passwordService = new PasswordService()
 const emailService = new EmailService()
@@ -55,8 +57,8 @@ const jwtService = new JwtService()
 const cryptoService = new CryptoService()
 const authService = new GoogleAuthService()
 
-const registerUserUsecase = new RegisterUserUsecase(userRepository, passwordService, otpService, emailService, jwtService)
-const verifyOtpUsecase = new VerifyOtpUsecase(userRepository, otpService)
+const registerUserUsecase = new RegisterUserUsecase(userRepository, passwordService, otpService, emailService, jwtService, walletRepository)
+const verifyOtpUsecase = new VerifyOtpUsecase(userRepository, otpService, walletRepository)
 const resendOtpUsecase = new ResendOtpUsecase(userRepository, otpService, emailService)
 const loginUserUsecase = new LoginUserUsecase(userRepository, passwordService, jwtService, redisRefreshTokenRepo)
 const logoutUserUsecase = new LogoutUserUseCase(redisRefreshTokenRepo)
@@ -66,7 +68,8 @@ const getProfileUseCase = new GetProfileUsecase(userRepository)
 const forgotPasswordUsecase = new ForgotPasswordUsecase(userRepository, emailService, cryptoService, passwordResetTokenRepo)
 const updatePasswordUsecase = new UpdatePasswordUsecase(userRepository, passwordService, passwordResetTokenRepo, cryptoService)
 const verifyResetTokenUsecase = new VerifyResetTokenUsecase(cryptoService, passwordResetTokenRepo)
-const signInWithGoogle = new SignInWithGoogleUsecase(authService, userRepository, jwtService, redisRefreshTokenRepo)
+const signInWithGoogle = new SignInWithGoogleUsecase(authService, userRepository, jwtService, redisRefreshTokenRepo, walletRepository)
+
 const verifyPasswordUsecase = new VerifyPasswordUsecase(userRepository, emailService, cryptoService, passwordResetTokenRepo, passwordService)
 
 const s3UserProfileUrlService = new S3UserProfileUrlService(s3client)

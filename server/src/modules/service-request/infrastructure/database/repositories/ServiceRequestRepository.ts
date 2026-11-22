@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { IServiceRequestRepository } from "../../../domain/repositories/IServiceRequestRepository";
 import { ServiceRequest } from "../../../domain/entities/ServiceRequest";
 import ServiceRequestModel from "../models/ServiceRequestModel";
@@ -8,11 +9,19 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
     async save(serviceRequest: ServiceRequest): Promise<ServiceRequest> {
         const persistenceModel = ServiceRequestMapper.toPersistence(serviceRequest);
         const created = await ServiceRequestModel.create(persistenceModel);
-        return ServiceRequestMapper.toDomain(created);
+        const populated = await ServiceRequestModel.findById(created._id)
+            .populate("providerId", "businessName location averageRating totalReviews")
+            .populate("providerServiceId", "name startingPrice")
+            .lean();
+        return ServiceRequestMapper.toDomain(populated || created);
     }
 
     async findById(id: string): Promise<ServiceRequest | null> {
-        const document = await ServiceRequestModel.findById(id).lean();
+        if (!mongoose.Types.ObjectId.isValid(id)) return null;
+        const document = await ServiceRequestModel.findById(id)
+            .populate("providerId", "businessName location averageRating totalReviews")
+            .populate("providerServiceId", "name startingPrice")
+            .lean();
         if (!document) return null;
         return ServiceRequestMapper.toDomain(document);
     }
@@ -23,6 +32,8 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
 
         const [documents, total] = await Promise.all([
             ServiceRequestModel.find(query)
+                .populate("providerId", "businessName location averageRating totalReviews")
+                .populate("providerServiceId", "name startingPrice")
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit)
@@ -41,7 +52,10 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
             id,
             { $set: updates },
             { new: true }
-        ).lean();
+        )
+            .populate("providerId", "businessName location averageRating totalReviews")
+            .populate("providerServiceId", "name startingPrice")
+            .lean();
         if (!document) return null;
         return ServiceRequestMapper.toDomain(document);
     }
@@ -52,12 +66,17 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         maxDistanceInKm: number,
         page: number,
         limit: number,
-        excludeId:string,
+        excludeId: string,
+        providerId?: string,
     ): Promise<{ data: ServiceRequest[]; total: number }> {
-        const query = {
+        const broadcastQuery: any = {
             categoryId,
             status: ServiceRequestStatus.OPEN,
-            userId:{$ne:excludeId},
+            userId: { $ne: excludeId },
+            $or: [
+                { providerId: { $exists: false } },
+                { providerId: null }
+            ],
             "address.coordinates": {
                 $geoWithin: {
                     $centerSphere: [
@@ -68,9 +87,24 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
             }
         };
 
+        const query: any =
+            providerId && mongoose.Types.ObjectId.isValid(providerId)
+                ? {
+                    $or: [
+                        broadcastQuery,
+                        {
+                            providerId: new mongoose.Types.ObjectId(providerId),
+                            status: { $in: [ServiceRequestStatus.OPEN, ServiceRequestStatus.QUOTING] },
+                            userId: { $ne: excludeId }
+                        }
+                    ]
+                }
+                : broadcastQuery;
+
         const [documents, total] = await Promise.all([
             ServiceRequestModel.find(query)
-                .sort({createdAt:-1})
+                .populate("providerServiceId", "name startingPrice")
+                .sort({ createdAt: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit)
                 .lean(),

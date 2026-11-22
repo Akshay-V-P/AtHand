@@ -1,3 +1,4 @@
+import { ProviderRepository } from "../provider/infrastructure/database/repositories/ProviderRepository";
 import { ServiceRequestRepository } from "./infrastructure/database/repositories/ServiceRequestRepository";
 import { CreateServiceRequestUseCase } from "./application/usecases/CreateServiceRequestUseCase";
 import { UpdateServiceRequestUseCase } from "./application/usecases/UpdateServiceRequestUseCase";
@@ -16,13 +17,14 @@ import { GetNearbyServiceRequestsController } from "./presentation/controllers/G
 import { createServiceRequestRoutes } from "./presentation/routes/serviceRequestRoutes";
 
 const serviceRequestRepository = new ServiceRequestRepository();
+const providerRepository = new ProviderRepository();
 
-const createServiceRequestUseCase = new CreateServiceRequestUseCase(serviceRequestRepository);
+const createServiceRequestUseCase = new CreateServiceRequestUseCase(serviceRequestRepository, providerRepository);
 const updateServiceRequestUseCase = new UpdateServiceRequestUseCase(serviceRequestRepository);
 const cancelServiceRequestUseCase = new CancelServiceRequestUseCase(serviceRequestRepository);
-const getServiceRequestUseCase = new GetServiceRequestUseCase(serviceRequestRepository);
+const getServiceRequestUseCase = new GetServiceRequestUseCase(serviceRequestRepository, providerRepository);
 const getUserServiceRequestsUseCase = new GetUserServiceRequestsUseCase(serviceRequestRepository);
-const getNearbyServiceRequestsUseCase = new GetNearbyServiceRequestsUseCase(serviceRequestRepository);
+const getNearbyServiceRequestsUseCase = new GetNearbyServiceRequestsUseCase(serviceRequestRepository, providerRepository);
 
 const createController = new CreateServiceRequestController(createServiceRequestUseCase);
 const updateController = new UpdateServiceRequestController(updateServiceRequestUseCase);

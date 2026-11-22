@@ -26,9 +26,27 @@ export interface AddressType {
     };
 }
 
+export interface TargetProviderSummary {
+    id: string;
+    businessName: string;
+    location?: any;
+    averageRating?: number;
+    totalReviews?: number;
+}
+
+export interface TargetServiceSummary {
+    id: string;
+    name: string;
+    startingPrice?: number;
+}
+
 export interface ServiceRequest {
     id: string;
     userId: string;
+    providerId?: string;
+    providerServiceId?: string;
+    targetProvider?: TargetProviderSummary;
+    targetService?: TargetServiceSummary;
     categoryId: string;
     address: AddressType;
     title: string;
@@ -48,6 +66,8 @@ export interface ServiceRequest {
 
 export interface CreateServiceRequestDTO {
     categoryId: string;
+    providerId?: string;
+    providerServiceId?: string;
     address: AddressType;
     title: string;
     description: string;

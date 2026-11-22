@@ -1,5 +1,6 @@
-import { CheckCircle, Pencil, Lock } from "lucide-react";
+import { Pencil, Lock } from "lucide-react";
 import React, { useEffect, useRef, useState, type ElementType, type InputHTMLAttributes} from "react";
+import { resolveDisplayUrl } from "@/services/imageService";
 
 interface FileUploadZoneProps extends InputHTMLAttributes<HTMLInputElement>{
     id: string;
@@ -29,20 +30,39 @@ const FileUploadZone = ({
   const [previewUrl, setPreviewUrl] = useState<string|null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     if (!file) {
       setPreviewUrl(null);
       return;
     }
 
     if (typeof file === 'string') {
-      setPreviewUrl(file);
+      const trimmed = file.trim();
+      if (
+        trimmed.startsWith('http://') ||
+        trimmed.startsWith('https://') ||
+        trimmed.startsWith('blob:') ||
+        trimmed.startsWith('data:')
+      ) {
+        setPreviewUrl(trimmed);
+        return;
+      }
+
+      // If it's an S3 key, resolve display URL
+      resolveDisplayUrl(trimmed).then((url) => {
+        if (isMounted) setPreviewUrl(url || trimmed);
+      });
       return;
     }
 
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
 
-    return () => URL.revokeObjectURL(objectUrl);
+    return () => {
+      isMounted = false;
+      URL.revokeObjectURL(objectUrl);
+    };
   }, [file]);
 
   const handleClick = () => {

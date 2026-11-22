@@ -15,6 +15,20 @@ type AddressType = {
     coordinates: Coordinates
 }
 
+export interface TargetProviderSummary {
+    id: string;
+    businessName: string;
+    location?: any;
+    averageRating?: number;
+    totalReviews?: number;
+}
+
+export interface TargetServiceSummary {
+    id: string;
+    name: string;
+    startingPrice?: number;
+}
+
 export class ServiceRequest {
     constructor(
         public readonly userId: string,
@@ -32,6 +46,10 @@ export class ServiceRequest {
         public readonly preferredTimeSlot?: string,
         public readonly id?: string,
         public readonly providerId?:string,
-        public readonly createdAt?:Date
+        public readonly createdAt?:Date,
+        public readonly serviceMode?: string,
+        public readonly providerServiceId?: string,
+        public readonly targetProvider?: TargetProviderSummary,
+        public readonly targetService?: TargetServiceSummary,
     ) { }
 }

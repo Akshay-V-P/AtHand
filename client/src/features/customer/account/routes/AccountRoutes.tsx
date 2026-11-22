@@ -3,6 +3,7 @@ import Profile from "../pages/Profile";
 import AccountLayout from "../layouts/AccountLayout";
 import ProtectedRoute from "@/features/auth/components/ProtectedRoute";
 import AddressPage from "../pages/AddressPage";
+import CustomerWalletPage from "../pages/CustomerWalletPage";
 
 const accountRoutes: RouteObject[] = [
     {
@@ -14,12 +15,16 @@ const accountRoutes: RouteObject[] = [
                 children: [
                     {
                         index: true,
-                        path:'/account/profile',
+                        path: '/account/profile',
                         element: <Profile />
                     },
                     {
                         path: '/account/address',
-                        element:<AddressPage/>
+                        element: <AddressPage />
+                    },
+                    {
+                        path: '/account/wallet',
+                        element: <CustomerWalletPage />
                     }
                 ]
             }
@@ -27,4 +32,4 @@ const accountRoutes: RouteObject[] = [
     }
 ]
 
-export default accountRoutes
+export default accountRoutes;

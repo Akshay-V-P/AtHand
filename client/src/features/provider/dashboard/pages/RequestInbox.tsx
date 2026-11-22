@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../../../services/axios';
 import type { RootState } from '../../../../store/store';
 import toast from 'react-hot-toast';
 import { providerServiceApi } from '../api/providerServiceApi';
@@ -13,6 +12,8 @@ export default function RequestInbox() {
     const [requests, setRequests] = useState<any[]>([]);
     const [myQuotes, setMyQuotes] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeFilter, setActiveFilter] = useState<'ALL' | 'DIRECT' | 'EMERGENCY' | 'FLEXIBLE' | 'IN_REVIEW'>('ALL');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -61,6 +62,23 @@ export default function RequestInbox() {
         }
     };
 
+    const filteredRequests = requests.filter((request) => {
+        const isQuoted = myQuotes.some(
+            (q) => String(q.requestId?._id || q.requestId?.id || q.requestId) === String(request.id)
+        );
+        if (activeFilter === 'DIRECT' && !request.providerId) return false;
+        if (activeFilter === 'EMERGENCY' && request.urgency !== 'EMERGENCY') return false;
+        if (activeFilter === 'FLEXIBLE' && request.urgency !== 'LOW' && request.urgency !== 'NORMAL') return false;
+        if (activeFilter === 'IN_REVIEW' && !isQuoted) return false;
+
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            const text = `${request.title || ''} ${request.description || ''} ${request.productBrand || ''} ${request.productModel || ''} ${request.address?.city || ''}`.toLowerCase();
+            if (!text.includes(q)) return false;
+        }
+        return true;
+    });
+
     return (
         <div className="max-w-7xl mx-auto p-8">
             {/* Header section */}
@@ -72,17 +90,34 @@ export default function RequestInbox() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
                             type="text"
-                            placeholder="Search devices or users..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search devices or titles..."
                             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
 
                     <div className="hidden md:flex bg-indigo-50/50 p-1 rounded-lg border border-indigo-100">
-                        <button className="px-4 py-1.5 text-sm font-medium text-indigo-700 bg-white rounded-md shadow-sm">Emergency</button>
-                        <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-white/50 rounded-md transition-colors">Within 2 hour</button>
-                        <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-white/50 rounded-md transition-colors">Today</button>
-                        <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-white/50 rounded-md transition-colors">Flexible</button>
-                        <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-white/50 rounded-md transition-colors">In Review</button>
+                        {[
+                            { id: 'ALL', label: 'All' },
+                            { id: 'DIRECT', label: 'Direct Requests' },
+                            { id: 'EMERGENCY', label: 'Emergency' },
+                            { id: 'FLEXIBLE', label: 'Flexible' },
+                            { id: 'IN_REVIEW', label: 'In Review' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setActiveFilter(tab.id as any)}
+                                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                                    activeFilter === tab.id
+                                        ? 'text-indigo-700 bg-white shadow-sm'
+                                        : 'text-gray-600 hover:bg-white/50'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -93,21 +128,24 @@ export default function RequestInbox() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {requests.map(request => (
+                    {filteredRequests.map(request => (
                         <div key={request.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
 
-                            <div className="flex justify-between items-start mb-3">
-                                <div className="flex items-center gap-3">
+                            <div className="flex justify-between items-start mb-3 gap-2">
+                                <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0">
                                         {/* Assuming icon based on device or category, using generic */}
                                         <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <h3 className="font-semibold text-sm text-gray-900 leading-tight line-clamp-1">{request.productBrand} {request.productModel}</h3>
                                         <p className="text-xs text-gray-500">Client: {request.userId?.slice(-4) || 'Unknown'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center flex-wrap justify-end gap-1 shrink-0">
+                                    {request.providerId && (
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">Direct</span>
+                                    )}
                                     {myQuotes.some(q => String(q.requestId?._id || q.requestId?.id || q.requestId) === String(request.id)) && (
                                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">In Review</span>
                                     )}
@@ -128,7 +166,9 @@ export default function RequestInbox() {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 className="text-xs font-bold text-indigo-800">Title / Expected</h4>
+                                    <h4 className="text-xs font-bold text-indigo-800">
+                                        {request.targetService?.name ? `Service: ${request.targetService.name}` : 'Title / Expected'}
+                                    </h4>
                                     <p className="text-xs text-indigo-600 line-clamp-2 leading-snug">{request.title}</p>
                                 </div>
                             </div>

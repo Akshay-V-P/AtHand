@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi } from '@/features/orders/api/orderApi';
 import type { Order, OrderStatus, WorkStage, IEstimateItem, IWorkProofPhoto } from '@/features/orders/dtos/OrderDTOs';
-import { uploadFileToS3, getPresignedDisplayUrl } from '../../../../services/imageService';
+import { uploadFileToS3, resolveMultipleDisplayUrls } from '../../../../services/imageService';
+import PresignedImage from '../../../../shared/components/PresignedImage';
 import {
     ArrowLeft,
     Wrench,
@@ -99,13 +100,8 @@ export default function ManageRepairOrder() {
                 const reqData = ord.requestId;
                 if (reqData && typeof reqData === 'object' && reqData.media && reqData.media.length > 0) {
                     try {
-                        const urls = await Promise.all(
-                            reqData.media.map(async (key: string) => {
-                                const presigned = await getPresignedDisplayUrl(key);
-                                return presigned.data?.data || '';
-                            })
-                        );
-                        setRequestMediaUrls(urls.filter(Boolean));
+                        const urls = await resolveMultipleDisplayUrls(reqData.media);
+                        setRequestMediaUrls(urls);
                     } catch (mediaError) {
                         console.error('Failed to fetch request image URLs', mediaError);
                     }
@@ -740,8 +736,14 @@ export default function ManageRepairOrder() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {workProofPhotos.map((photo, idx) => (
                                     <div key={idx} className="space-y-1 bg-gray-50 p-2 rounded-xl border border-gray-200">
-                                        <div className="aspect-video rounded-lg overflow-hidden bg-gray-200">
-                                            <img src={photo.url} alt={photo.caption} className="w-full h-full object-cover" />
+                                        <div
+                                            className="aspect-video rounded-lg overflow-hidden bg-gray-200 cursor-pointer group relative"
+                                            onClick={() => setActiveImagePreview(photo.url)}
+                                        >
+                                            <PresignedImage src={photo.url} alt={photo.caption} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                                <ZoomIn size={16} />
+                                            </div>
                                         </div>
                                         <input
                                             type="text"
@@ -813,9 +815,11 @@ export default function ManageRepairOrder() {
                     className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-pointer"
                     onClick={() => setActiveImagePreview(null)}
                 >
-                    <div className="relative max-w-4xl max-h-[90vh]">
-                        <img src={activeImagePreview} alt="Enlarged preview" className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl" />
-                        <p className="text-center text-white/80 text-xs mt-2">Click anywhere to close</p>
+                    <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                        <div className="rounded-2xl overflow-hidden shadow-2xl bg-black/40">
+                            <PresignedImage src={activeImagePreview} alt="Enlarged preview" className="max-w-full max-h-[85vh] object-contain rounded-2xl" />
+                        </div>
+                        <p className="text-center text-white/80 text-xs mt-2 cursor-pointer" onClick={() => setActiveImagePreview(null)}>Click anywhere to close</p>
                     </div>
                 </div>
             )}

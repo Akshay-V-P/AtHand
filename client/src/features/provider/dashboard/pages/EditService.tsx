@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { providerServiceApi } from '../api/providerServiceApi';
 import toast from 'react-hot-toast';
 import { useAppSelector } from '../../../../hooks/storeHook';
-import { uploadFileToS3, getPresignedDisplayUrl } from '../../../../services/imageService';
+import { uploadFileToS3, resolveDisplayUrl } from '../../../../services/imageService';
 import { useRef } from 'react';
 
 export default function EditService() {
@@ -67,7 +67,7 @@ export default function EditService() {
                             setExistingMediaKeys(s.media);
                             try {
                                 const displayUrls = await Promise.all(
-                                    s.media.map((key: string) => getPresignedDisplayUrl(key).then(res => res.data.data))
+                                    s.media.map((key: string) => resolveDisplayUrl(key))
                                 );
                                 setExistingMediaPreviews(displayUrls);
                             } catch (err) {

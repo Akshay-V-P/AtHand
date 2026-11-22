@@ -13,6 +13,7 @@ import { FetchProvidersUsecase } from "./application/usecases/FetchProvidersUsec
 import { GetAdminProviderServicesUsecase } from "./application/usecases/GetAdminProviderServicesUsecase";
 import { UnblockProviderServiceUsecase } from "./application/usecases/UnblockProviderServiceUsecase";
 import { UpdateProviderStatusUsecase } from "./application/usecases/UpdateProviderStatusUsecase";
+import { WalletRepositoryImpl } from "../wallet/infrastructure/database/repositories/WalletRepositoryImpl";
 import { GetDoucmentsController } from "./presentation/controllers/documentsControllers/GetDocumentsController";
 import { UpdateDocumentController } from "./presentation/controllers/documentsControllers/UpdateDocumentController";
 import { UpdateProviderStatusController } from "./presentation/controllers/documentsControllers/UpdateProviderStatusController";
@@ -30,12 +31,14 @@ const documentRepository = new ProviderDocumentRepository();
 const providerDraftRepository = new ProviderDraftRepository();
 const providerServiceRepository = new ProviderServiceRepository();
 const categoryRepository = new CategoryRepository();
+const walletRepository = new WalletRepositoryImpl();
 
 const fetchProvidersUsecase = new FetchProvidersUsecase(providerRepository);
 const getProviderUsecase = new GetProviderUsecase(providerRepository);
 const getDocumentsUsecase = new GetDocumentsUsecase(documentRepository);
 const updateDocumentUsecase = new UpdateDocumentUsecase(documentRepository, providerRepository, providerDraftRepository);
-const updateProviderStatusUsecase = new UpdateProviderStatusUsecase(providerRepository, documentRepository);
+const updateProviderStatusUsecase = new UpdateProviderStatusUsecase(providerRepository, documentRepository, walletRepository);
+
 const updateProviderUsecase = new UpdateProviderUsecase(providerRepository);
 
 const getAdminProviderServicesUsecase = new GetAdminProviderServicesUsecase(
