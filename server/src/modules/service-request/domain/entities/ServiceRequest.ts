@@ -51,5 +51,10 @@ export class ServiceRequest {
         public readonly providerServiceId?: string,
         public readonly targetProvider?: TargetProviderSummary,
         public readonly targetService?: TargetServiceSummary,
+        public readonly category?: {
+            id: string;
+            name: string;
+            commissionPercentage: number;
+        },
     ) { }
 }

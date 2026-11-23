@@ -80,6 +80,22 @@ export class CreateOrderUseCase {
             isAmountRevised: false,
             status: OrderStatus.ACCEPTED,
             workStage:WorkStage.IN_TRANSIT,
+            repairEstimate: {
+                items: [
+                    { title: 'Parts & Components', amount: quote.partsCost || 0, type: 'PARTS' },
+                    { title: 'Labor & Service', amount: quote.laborCost || 0, type: 'SERVICE' }
+                ],
+                laborCost: quote.laborCost || 0,
+                partsCost: quote.partsCost || 0,
+                otherCharges: 0,
+                totalAmount: quote.estimatedTotal,
+                estimatedRepairTime: quote.estimatedRepairTime,
+                warranty: quote.includeWarrenty ? '90-day parts and labor warranty' : undefined,
+                notes: quote.technicalNotes,
+                status: 'APPROVED',
+                submittedAt: new Date(),
+                decidedAt: new Date()
+            },
             appointment: {
                 scheduledDate,
                 timeSlot,

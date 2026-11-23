@@ -13,7 +13,7 @@ export class OrderRepository {
 
     async findById(id: string): Promise<IOrder | null> {
         const order = await OrderModel.findById(id)
-            .populate('requestId')
+            .populate({ path: 'requestId', populate: { path: 'categoryId', select: 'name commissionPercentage' } })
             .populate('providerId')
             .populate('customerId')
             .exec();
@@ -22,7 +22,7 @@ export class OrderRepository {
 
     async findByRequestId(requestId: string): Promise<IOrder | null> {
         const order = await OrderModel.findOne({ requestId })
-            .populate('requestId')
+            .populate({ path: 'requestId', populate: { path: 'categoryId', select: 'name commissionPercentage' } })
             .populate('providerId')
             .populate('customerId')
             .exec();
@@ -105,7 +105,7 @@ export class OrderRepository {
             { $set: updates },
             { new: true }
         )
-            .populate('requestId')
+            .populate({ path: 'requestId', populate: { path: 'categoryId', select: 'name commissionPercentage' } })
             .populate('providerId')
             .populate('customerId')
             .exec();

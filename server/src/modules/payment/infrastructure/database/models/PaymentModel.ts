@@ -14,6 +14,23 @@ const refundRecordSchema = new Schema(
     { _id: false }
 );
 
+const paymentBreakdownSchema = new Schema(
+    {
+        partsAmount: { type: Number, required: true, min: 0 },
+        labourAmount: { type: Number, required: true, min: 0 },
+        totalAmount: { type: Number, required: true, min: 0 },
+        categoryCommissionPercentage: { type: Number, required: true, min: 0, max: 100 },
+        partsCommissionPercentage: { type: Number, required: true, min: 0, max: 100 },
+        labourCommissionPercentage: { type: Number, required: true, min: 0, max: 100 },
+        partsCommissionAmount: { type: Number, required: true, min: 0 },
+        labourCommissionAmount: { type: Number, required: true, min: 0 },
+        totalCommissionAmount: { type: Number, required: true, min: 0 },
+        providerEarning: { type: Number, required: true, min: 0 },
+        platformEarning: { type: Number, required: true, min: 0 },
+    },
+    { _id: false }
+);
+
 const paymentSchema = new Schema<Payment>(
     {
         userId: {
@@ -76,6 +93,10 @@ const paymentSchema = new Schema<Payment>(
             type: Schema.Types.Mixed,
         },
         refunds: [refundRecordSchema],
+        breakdown: {
+            type: paymentBreakdownSchema,
+            required: false,
+        },
     },
     {
         timestamps: true,

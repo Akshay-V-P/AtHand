@@ -12,6 +12,7 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         const populated = await ServiceRequestModel.findById(created._id)
             .populate("providerId", "businessName location averageRating totalReviews")
             .populate("providerServiceId", "name startingPrice")
+            .populate("categoryId", "name commissionPercentage")
             .lean();
         return ServiceRequestMapper.toDomain(populated || created);
     }
@@ -21,6 +22,7 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         const document = await ServiceRequestModel.findById(id)
             .populate("providerId", "businessName location averageRating totalReviews")
             .populate("providerServiceId", "name startingPrice")
+            .populate("categoryId", "name commissionPercentage")
             .lean();
         if (!document) return null;
         return ServiceRequestMapper.toDomain(document);
@@ -34,6 +36,7 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
             ServiceRequestModel.find(query)
                 .populate("providerId", "businessName location averageRating totalReviews")
                 .populate("providerServiceId", "name startingPrice")
+                .populate("categoryId", "name commissionPercentage")
                 .sort({ createdAt: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit)
@@ -55,6 +58,7 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         )
             .populate("providerId", "businessName location averageRating totalReviews")
             .populate("providerServiceId", "name startingPrice")
+            .populate("categoryId", "name commissionPercentage")
             .lean();
         if (!document) return null;
         return ServiceRequestMapper.toDomain(document);

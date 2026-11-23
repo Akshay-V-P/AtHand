@@ -5,6 +5,7 @@ import { PaymentStatus } from "../../domain/enums/PaymentStatus";
 import { PaymentPurpose } from "../../domain/enums/PaymentPurpose";
 import { ProcessOrderPaymentUseCase } from "../../../order/application/usecases/ProcessOrderPaymentUseCase";
 import { CreateWalletTransactionUseCase } from "../../../wallet/application/usecases/CreateWalletTransactionUseCase";
+import { DistributeOrderPaymentUseCase } from "./DistributeOrderPaymentUseCase";
 import {
     WalletTransactionCategory,
     WalletTransactionReferenceType,
@@ -18,7 +19,8 @@ export class ProcessWebhookUseCase {
         private readonly webhookEventRepository: IWebhookEventRepository,
         private readonly razorpayGateway: IRazorpayGateway,
         private readonly processOrderPaymentUseCase: ProcessOrderPaymentUseCase,
-        private readonly createWalletTransactionUseCase: CreateWalletTransactionUseCase
+        private readonly createWalletTransactionUseCase: CreateWalletTransactionUseCase,
+        private readonly distributeOrderPaymentUseCase: DistributeOrderPaymentUseCase
     ) { }
 
     async execute(rawBody: string | Buffer, signature: string, payload: any): Promise<{ received: boolean; processed: boolean; reason?: string }> {
@@ -117,10 +119,16 @@ export class ProcessWebhookUseCase {
         
         try {
             if (payment.purpose === PaymentPurpose.ORDER_PAYMENT) {
+                const methodStr = `RAZORPAY_${paymentEntity?.method?.toUpperCase() || "ONLINE"}`;
+                await this.distributeOrderPaymentUseCase.execute({
+                    orderId: payment.referenceId,
+                    paymentId: payment.id,
+                    paymentMethod: methodStr,
+                });
                 await this.processOrderPaymentUseCase.execute({
                     orderId: payment.referenceId,
                     customerId: payment.userId,
-                    paymentMethod: `RAZORPAY_${paymentEntity?.method?.toUpperCase() || "ONLINE"}`,
+                    paymentMethod: methodStr,
                 });
             } else if (payment.purpose === PaymentPurpose.WALLET_TOPUP) {
                 await this.createWalletTransactionUseCase.execute({

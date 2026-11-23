@@ -96,6 +96,6 @@ const controllers = {
 
 export type WalletControllersType = typeof controllers;
 
-export { walletRepository, createWalletTransactionUseCase };
+export { walletRepository, walletTransactionRepository, createWalletTransactionUseCase };
 export const walletRoutes = createWalletRoutes(controllers, authMiddleware);
 

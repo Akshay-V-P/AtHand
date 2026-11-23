@@ -36,9 +36,24 @@ export class ServiceRequestMapper {
             }
             : undefined;
 
+        const isPopulatedCategory =
+            raw.categoryId && typeof raw.categoryId === "object" && "_id" in raw.categoryId;
+        const categoryId = isPopulatedCategory
+            ? raw.categoryId._id.toString()
+            : raw.categoryId
+                ? raw.categoryId.toString()
+                : "";
+        const category = isPopulatedCategory && raw.categoryId.name
+            ? {
+                id: categoryId,
+                name: raw.categoryId.name,
+                commissionPercentage: raw.categoryId.commissionPercentage,
+            }
+            : undefined;
+
         return new ServiceRequest(
             raw.userId.toString(),
-            raw.categoryId.toString(),
+            categoryId,
             raw.address,
             raw.title,
             raw.description,
@@ -56,7 +71,8 @@ export class ServiceRequestMapper {
             raw.serviceMode,
             providerServiceId,
             targetProvider,
-            targetService
+            targetService,
+            category
         );
     }
 

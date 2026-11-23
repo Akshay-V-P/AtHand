@@ -6,6 +6,12 @@ import { InitiatePaymentDTO, InitiatePaymentResult } from "../dtos/InitiatePayme
 import { OrderRepository } from "../../../order/infrastructure/database/repositories/OrderRepository";
 import { IWalletRepository } from "../../../wallet/domain/repositories/IWalletRepository";
 import { OrderStatus } from "../../../order/domain/enums/OrderStatus";
+import { ICategoryRepository } from "../../../category/domain/repositories/ICategoryRepository";
+import { IServiceRequestRepository } from "../../../service-request/domain/repositories/IServiceRequestRepository";
+import { IProviderRepository } from "../../../provider/domain/repositories/IProviderRepository";
+import { IQuoteRepository } from "../../../quote/domain/interfaces/IQuoteRepository";
+import { OrderCommissionResolver } from "../../domain/services/OrderCommissionResolver";
+import { PaymentBreakdown } from "../../domain/services/CommissionCalculator";
 import { BadRequestError } from "../../../../shared/errors/BadRequestError";
 import { NotFoundError } from "../../../../shared/errors/NotFoundError";
 import { UnauthorizedError } from "../../../../shared/errors/UnauthorizedError";
@@ -16,7 +22,11 @@ export class InitiatePaymentUseCase {
         private readonly paymentRepository: IPaymentRepository,
         private readonly razorpayGateway: IRazorpayGateway,
         private readonly orderRepository: OrderRepository,
-        private readonly walletRepository: IWalletRepository
+        private readonly walletRepository: IWalletRepository,
+        private readonly categoryRepository?: ICategoryRepository,
+        private readonly serviceRequestRepository?: IServiceRequestRepository,
+        private readonly providerRepository?: IProviderRepository,
+        private readonly quoteRepository?: IQuoteRepository
     ) { }
 
     async execute(userId: string, dto: InitiatePaymentDTO): Promise<InitiatePaymentResult> {
@@ -62,7 +72,21 @@ export class InitiatePaymentUseCase {
         }
 
         // Calculate payable amount exclusively from trusted backend data
-        const payableAmount = order.finalAmount || order.initialQuoteAmount;
+        let payableAmount = order.finalAmount || order.initialQuoteAmount;
+        let breakdown: PaymentBreakdown | undefined;
+
+        if (this.categoryRepository && this.serviceRequestRepository && this.providerRepository) {
+            const resolved = await OrderCommissionResolver.resolve(
+                order,
+                this.categoryRepository,
+                this.serviceRequestRepository,
+                this.providerRepository,
+                this.quoteRepository
+            );
+            breakdown = resolved.breakdown;
+            payableAmount = breakdown.totalAmount;
+        }
+
         if (!payableAmount || payableAmount <= 0 || isNaN(payableAmount)) {
             throw new BadRequestError("Invalid order amount for payment");
         }
@@ -84,6 +108,7 @@ export class InitiatePaymentUseCase {
                 orderNumber: order.orderNumber,
                 serviceMode: order.serviceMode,
             },
+            breakdown,
         });
 
         // Create Razorpay order

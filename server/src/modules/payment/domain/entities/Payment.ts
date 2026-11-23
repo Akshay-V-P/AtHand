@@ -1,5 +1,8 @@
 import { PaymentPurpose } from "../enums/PaymentPurpose";
 import { PaymentStatus } from "../enums/PaymentStatus";
+import { PaymentBreakdown } from "../services/CommissionCalculator";
+
+export { PaymentBreakdown };
 
 export interface IRefundRecord {
     refundId: string;
@@ -24,6 +27,7 @@ export interface Payment {
     failureReason?: string;
     metadata?: Record<string, any>;
     refunds?: IRefundRecord[];
+    breakdown?: PaymentBreakdown;
     createdAt?: Date;
     updatedAt?: Date;
 }

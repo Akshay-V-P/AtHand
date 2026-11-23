@@ -201,6 +201,14 @@ const createMockOrder = (overrides?: any) => ({
 });
 
 describe("Payment Module Test Suite", () => {
+    const mockDistributionUseCase = {
+        execute: async () => ({
+            ledger: {} as any,
+            providerEarnings: 1800,
+            commissionAmount: 200,
+            alreadyDistributed: false,
+        }),
+    } as any;
     test("1. Successful payment initiation with trusted amount calculation", async () => {
         const paymentRepo = new InMemoryPaymentRepository();
         const gateway = new MockRazorpayGateway();
@@ -298,7 +306,7 @@ describe("Payment Module Test Suite", () => {
             status: PaymentStatus.PENDING,
         });
 
-        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock);
+        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock, mockDistributionUseCase);
 
         await assert.rejects(
             async () => {
@@ -345,7 +353,7 @@ describe("Payment Module Test Suite", () => {
             captured: true,
         };
 
-        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock);
+        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock, mockDistributionUseCase);
 
         await assert.rejects(
             async () => {
@@ -388,7 +396,7 @@ describe("Payment Module Test Suite", () => {
             captured: true,
         };
 
-        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock);
+        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock, mockDistributionUseCase);
 
         await assert.rejects(
             async () => {
@@ -436,7 +444,7 @@ describe("Payment Module Test Suite", () => {
             status: PaymentStatus.PENDING,
         });
 
-        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock);
+        const usecase = new VerifyPaymentUseCase(paymentRepo, gateway, orderPaymentMock, walletMock, mockDistributionUseCase);
 
         // First verification
         const first = await usecase.execute("cust_user_789", {
@@ -504,7 +512,8 @@ describe("Payment Module Test Suite", () => {
             eventRepo,
             gateway,
             orderPaymentMock,
-            walletMock
+            walletMock,
+            mockDistributionUseCase
         );
 
         const res = await usecase.execute(rawPayload, validSig, JSON.parse(rawPayload));
@@ -566,7 +575,8 @@ describe("Payment Module Test Suite", () => {
             eventRepo,
             gateway,
             orderPaymentMock,
-            walletMock
+            walletMock,
+            mockDistributionUseCase
         );
 
         // First execution

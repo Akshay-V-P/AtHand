@@ -42,5 +42,6 @@ const serviceRequestControllers = {
     getNearbyServiceRequestsController
 };
 
+export { serviceRequestRepository };
 export type ServiceRequestControllerType = typeof serviceRequestControllers;
 export const serviceRequestRoutes = createServiceRequestRoutes(serviceRequestControllers);

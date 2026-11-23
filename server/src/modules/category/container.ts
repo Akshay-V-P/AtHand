@@ -16,4 +16,5 @@ const categoryControllers = {
 
 export type CategoryControllerType = typeof categoryControllers;
 
+export { categoryRepository };
 export const categoryRoutes = createCategoryRoutes(categoryControllers);

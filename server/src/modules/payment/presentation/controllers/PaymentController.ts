@@ -6,6 +6,9 @@ import { ProcessRefundUseCase } from "../../application/usecases/ProcessRefundUs
 import { GetPaymentByIdUseCase } from "../../application/usecases/GetPaymentByIdUseCase";
 import { GetPaymentsByOrderUseCase } from "../../application/usecases/GetPaymentsByOrderUseCase";
 import { ReportPaymentFailureUseCase } from "../../application/usecases/ReportPaymentFailureUseCase";
+import { PayOrderWithWalletUseCase } from "../../application/usecases/PayOrderWithWalletUseCase";
+import { GetFinancialSummaryUseCase } from "../../application/usecases/GetFinancialSummaryUseCase";
+import { GetCommissionLedgerUseCase } from "../../application/usecases/GetCommissionLedgerUseCase";
 import { ResponseHandler } from "../../../../shared/presentation/ResponseHandler";
 import { HttpStatus } from "../../../../shared/enums/HttpStatus";
 import { AppError } from "../../../../shared/errors/AppError";
@@ -19,7 +22,10 @@ export class PaymentController {
         private readonly processRefundUseCase: ProcessRefundUseCase,
         private readonly getPaymentByIdUseCase: GetPaymentByIdUseCase,
         private readonly getPaymentsByOrderUseCase: GetPaymentsByOrderUseCase,
-        private readonly reportPaymentFailureUseCase: ReportPaymentFailureUseCase
+        private readonly reportPaymentFailureUseCase: ReportPaymentFailureUseCase,
+        private readonly payOrderWithWalletUseCase: PayOrderWithWalletUseCase,
+        private readonly getFinancialSummaryUseCase: GetFinancialSummaryUseCase,
+        private readonly getCommissionLedgerUseCase: GetCommissionLedgerUseCase
     ) { }
 
     initiatePayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -58,6 +64,23 @@ export class PaymentController {
         }
     };
 
+    payWithWallet = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = req.user?.id;
+            if (!userId) throw new AppError("Unauthorized", HttpStatus.UNAUTHORIZED);
+
+            const { orderId } = req.body;
+            const result = await this.payOrderWithWalletUseCase.execute({
+                orderId,
+                userId,
+            });
+
+            ResponseHandler.success(res, HttpStatus.OK, "Payment successful via wallet", result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
     handleWebhook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const signature = req.headers["x-razorpay-signature"] as string;
@@ -66,14 +89,11 @@ export class PaymentController {
                 return;
             }
 
-            // Retrieve the exact raw body captured by express.json({ verify: ... }) or raw parser
             const rawBody: Buffer | string = (req as any).rawBody || JSON.stringify(req.body);
-
             const result = await this.processWebhookUseCase.execute(rawBody, signature, req.body);
             res.status(HttpStatus.OK).json({ status: "ok", ...result });
         } catch (error: any) {
             console.error("Webhook processing error:", error.message);
-            // Return 400 for signature verification failures, or 500 for internal errors so Razorpay can retry
             res.status(error.statusCode || HttpStatus.BAD_REQUEST).json({ error: error.message });
         }
     };
@@ -128,6 +148,59 @@ export class PaymentController {
 
             const payments = await this.getPaymentsByOrderUseCase.execute(userId, orderId, isAdmin);
             ResponseHandler.success(res, HttpStatus.OK, "Order payment attempts retrieved", payments);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getFinancialSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userRole = req.user?.role as any;
+            const isAdmin = Array.isArray(userRole) ? userRole.includes(UserRole.ADMIN) : userRole === UserRole.ADMIN;
+            if (!isAdmin) {
+                throw new AppError("Forbidden: Admin access required", HttpStatus.FORBIDDEN);
+            }
+
+            const { startDate, endDate } = req.query;
+            const sDate = startDate ? new Date(startDate as string) : undefined;
+            const eDate = endDate ? new Date(endDate as string) : undefined;
+
+            const summary = await this.getFinancialSummaryUseCase.execute(sDate, eDate);
+            ResponseHandler.success(res, HttpStatus.OK, "Platform financial summary retrieved", summary);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getCommissionLedger = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userRole = req.user?.role as any;
+            const isAdmin = Array.isArray(userRole) ? userRole.includes(UserRole.ADMIN) : userRole === UserRole.ADMIN;
+            if (!isAdmin) {
+                throw new AppError("Forbidden: Admin access required", HttpStatus.FORBIDDEN);
+            }
+
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const categoryId = req.query.categoryId as string | undefined;
+            const providerId = req.query.providerId as string | undefined;
+            const status = req.query.status as string | undefined;
+            const search = req.query.search as string | undefined;
+            const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+            const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+
+            const result = await this.getCommissionLedgerUseCase.execute({
+                page,
+                limit,
+                categoryId,
+                providerId,
+                status,
+                search,
+                startDate,
+                endDate,
+            });
+
+            ResponseHandler.success(res, HttpStatus.OK, "Commission ledger retrieved", result);
         } catch (error) {
             next(error);
         }

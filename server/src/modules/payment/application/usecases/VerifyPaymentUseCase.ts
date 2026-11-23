@@ -5,6 +5,7 @@ import { PaymentPurpose } from "../../domain/enums/PaymentPurpose";
 import { VerifyPaymentDTO, VerifyPaymentResult } from "../dtos/VerifyPaymentDTO";
 import { ProcessOrderPaymentUseCase } from "../../../order/application/usecases/ProcessOrderPaymentUseCase";
 import { CreateWalletTransactionUseCase } from "../../../wallet/application/usecases/CreateWalletTransactionUseCase";
+import { DistributeOrderPaymentUseCase } from "./DistributeOrderPaymentUseCase";
 import {
     WalletTransactionCategory,
     WalletTransactionReferenceType,
@@ -19,7 +20,8 @@ export class VerifyPaymentUseCase {
         private readonly paymentRepository: IPaymentRepository,
         private readonly razorpayGateway: IRazorpayGateway,
         private readonly processOrderPaymentUseCase: ProcessOrderPaymentUseCase,
-        private readonly createWalletTransactionUseCase: CreateWalletTransactionUseCase
+        private readonly createWalletTransactionUseCase: CreateWalletTransactionUseCase,
+        private readonly distributeOrderPaymentUseCase: DistributeOrderPaymentUseCase
     ) { }
 
     async execute(userId: string, dto: VerifyPaymentDTO): Promise<VerifyPaymentResult> {
@@ -129,10 +131,16 @@ export class VerifyPaymentUseCase {
 
         
         if (payment.purpose === PaymentPurpose.ORDER_PAYMENT) {
+            const paymentMethodStr = `RAZORPAY_${rzpPayment.method?.toUpperCase() || "ONLINE"}`;
+            await this.distributeOrderPaymentUseCase.execute({
+                orderId: payment.referenceId,
+                paymentId: payment.id,
+                paymentMethod: paymentMethodStr,
+            });
             await this.processOrderPaymentUseCase.execute({
                 orderId: payment.referenceId,
                 customerId: payment.userId,
-                paymentMethod: `RAZORPAY_${rzpPayment.method?.toUpperCase() || "ONLINE"}`,
+                paymentMethod: paymentMethodStr,
             });
         } else if (payment.purpose === PaymentPurpose.WALLET_TOPUP) {
             await this.createWalletTransactionUseCase.execute({

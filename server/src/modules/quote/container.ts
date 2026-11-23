@@ -31,4 +31,5 @@ const quoteController = new QuoteController(
     getQuotesByRequestIdUseCase
 );
 
+export { quoteRepository };
 export const quoteRoutes = createQuoteRoutes(quoteController);

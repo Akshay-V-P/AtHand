@@ -14,7 +14,14 @@ export const createPaymentRoutes = (
     // Protected routes requiring user authentication
     router.post("/initiate", authMiddleware.execute, controller.initiatePayment);
     router.post("/verify", authMiddleware.execute, controller.verifyPayment);
+    router.post("/wallet-pay", authMiddleware.execute, controller.payWithWallet);
     router.post("/failure", authMiddleware.execute, controller.reportFailure);
+
+    // Admin financial visibility routes
+    router.get("/admin/finances/summary", authMiddleware.execute, controller.getFinancialSummary);
+    router.get("/admin/finances/ledger", authMiddleware.execute, controller.getCommissionLedger);
+
+    // Order and payment query routes
     router.get("/order/:orderId", authMiddleware.execute, controller.getPaymentsByOrder);
     router.get("/:id", authMiddleware.execute, controller.getPaymentById);
     router.post("/:id/refund", authMiddleware.execute, controller.refundPayment);
