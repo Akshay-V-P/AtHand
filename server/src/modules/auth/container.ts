@@ -53,7 +53,7 @@ const walletRepository = new WalletRepositoryImpl()
 const passwordService = new PasswordService()
 const emailService = new EmailService()
 const otpService = new OtpService()
-const jwtService = new JwtService()
+export const jwtService = new JwtService()
 const cryptoService = new CryptoService()
 const authService = new GoogleAuthService()
 

@@ -14,6 +14,9 @@ import {
 import { IWalletRepository } from "../../domain/repositories/IWalletRepository";
 import { IWalletTransactionRepository } from "../../domain/repositories/IWalletTransactionRepository";
 import { CreateWalletTransactionDto } from "../dtos/CreateWalletTransactionDto";
+import { WalletCreditedEvent } from "../../../../shared/events/EventPayloads";
+import { EVENT_TYPES } from "../../../../shared/events/EventTypes";
+import { IEventBus } from "../../../../shared/events/IEventBus";
 
 export interface CreateWalletTransactionInput extends CreateWalletTransactionDto {
   userId: string;
@@ -23,7 +26,8 @@ export interface CreateWalletTransactionInput extends CreateWalletTransactionDto
 export class CreateWalletTransactionUseCase {
   constructor(
     private readonly walletRepository: IWalletRepository,
-    private readonly transactionRepository: IWalletTransactionRepository
+    private readonly transactionRepository: IWalletTransactionRepository,
+    private readonly eventBus:IEventBus,
   ) {}
 
   async execute(input: CreateWalletTransactionInput): Promise<WalletTransaction> {
@@ -90,10 +94,11 @@ export class CreateWalletTransactionUseCase {
     if (!updatedWallet) {
       throw new BadRequestError("Failed to update wallet balance");
     }
+    const status = input.status || WalletTransactionStatus.COMPLETED;
+    let transaction:WalletTransaction
 
     try {
-      const status = input.status || WalletTransactionStatus.COMPLETED;
-      const transaction = await this.transactionRepository.create({
+      transaction = await this.transactionRepository.create({
         walletId: wallet.id!,
         type: input.type,
         category: input.category,
@@ -104,12 +109,27 @@ export class CreateWalletTransactionUseCase {
         referenceId: input.referenceId,
         description: input.description.trim(),
       });
-
-      return transaction;
     } catch (error) {
       // Revert wallet balance to maintain financial integrity
       await this.walletRepository.update(wallet.id!, { balance: wallet.balance });
       throw error;
     }
+
+    if (transaction.type === WalletTransactionType.CREDIT && 
+      transaction.status === WalletTransactionStatus.COMPLETED
+    ) {
+      this.eventBus.publish<WalletCreditedEvent>(
+        EVENT_TYPES.WALLET_CREDITED,
+        {
+          userId: input.userId,
+          amount: transaction.amount,
+          transactionId: transaction.id!,
+          balanceAfter:transaction.balanceAfter
+        }
+      )
+    }
+
+
+    return transaction
   }
 }

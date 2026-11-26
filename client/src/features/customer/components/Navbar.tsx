@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/storeHook";
 import { apiService } from "@/features/provider/applyAsProvider/services/apiService";
 import { setProvider } from "@/features/provider/store/providerSlice";
+import { useNotifications } from "@/features/notification/hooks/useNotification";
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -20,6 +21,8 @@ const Navbar = () => {
             navigate(`/services`);
         }
     };
+
+    useNotifications()
 
     useEffect(() => {
         if (!user?.id) return;

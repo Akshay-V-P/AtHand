@@ -26,6 +26,12 @@ export const paymentApi = {
             data
         ),
 
+    payWithWallet: (orderId: string) =>
+        api.post<{ success: boolean; message: string; data: any }>(
+            "/payment/wallet-pay",
+            { orderId }
+        ),
+
     getPaymentById: (paymentId: string) =>
         api.get<{ success: boolean; message: string; data: any }>(`/payment/${paymentId}`),
 

@@ -57,6 +57,24 @@ export default function RequestReviewQuote() {
         setEstimatedTotal((lC + pC).toFixed(2));
     }, [laborCost, partsCost]);
 
+    const partsVal = parseFloat(partsCost) || 0;
+    const labourVal = parseFloat(laborCost) || 0;
+    const totalVal = partsVal + labourVal;
+
+    const categoryCommissionPercentage = typeof requestData?.category?.commissionPercentage === 'number'
+        ? requestData.category.commissionPercentage
+        : (typeof requestData?.categoryId?.commissionPercentage === 'number'
+            ? requestData.categoryId.commissionPercentage
+            : 12);
+
+    const partsCommissionPercentage = categoryCommissionPercentage / 2;
+    const labourCommissionPercentage = categoryCommissionPercentage;
+
+    const partsCommissionAmount = Math.round((partsVal * (partsCommissionPercentage / 100)) * 100) / 100;
+    const labourCommissionAmount = Math.round((labourVal * (labourCommissionPercentage / 100)) * 100) / 100;
+    const totalCommissionAmount = Math.round((partsCommissionAmount + labourCommissionAmount) * 100) / 100;
+    const expectedProviderEarnings = Math.round((totalVal - totalCommissionAmount) * 100) / 100;
+
     const fetchRequestDetails = async () => {
         try {
             setLoading(true);
@@ -328,6 +346,68 @@ export default function RequestReviewQuote() {
                                 <label htmlFor="warranty" className="text-xs text-gray-600 leading-tight">
                                     Include 90-day parts and labor warranty with this quote.
                                 </label>
+                            </div>
+
+                            {/* Commission & Earnings Breakdown */}
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Commission & Payout Breakdown</span>
+                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                                        Cat: {categoryCommissionPercentage}%
+                                    </span>
+                                </div>
+
+                                <div className="space-y-1.5 text-xs text-slate-600">
+                                    <div className="flex justify-between">
+                                        <span>Parts Amount:</span>
+                                        <span className="font-semibold text-slate-900">₹{partsVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Labour Amount:</span>
+                                        <span className="font-semibold text-slate-900">₹{labourVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div className="flex justify-between font-bold text-slate-900 pt-1 border-t border-slate-200">
+                                        <span>Total Estimate:</span>
+                                        <span>₹{totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-dashed border-slate-200">
+                                    <div className="flex justify-between text-[11px] text-slate-500">
+                                        <span>Category Commission:</span>
+                                        <span>{categoryCommissionPercentage}%</span>
+                                    </div>
+                                    <div className="flex justify-between text-[11px] text-slate-500">
+                                        <span>Parts Commission Rate:</span>
+                                        <span>{partsCommissionPercentage}% (50% of category)</span>
+                                    </div>
+                                    <div className="flex justify-between text-[11px] text-slate-500">
+                                        <span>Labour Commission Rate:</span>
+                                        <span>{labourCommissionPercentage}% (100% of category)</span>
+                                    </div>
+                                    <div className="flex justify-between text-slate-700">
+                                        <span>Parts Commission:</span>
+                                        <span className="text-rose-600 font-medium">-₹{partsCommissionAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div className="flex justify-between text-slate-700">
+                                        <span>Labour Commission:</span>
+                                        <span className="text-rose-600 font-medium">-₹{labourCommissionAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div className="flex justify-between font-semibold text-rose-700 pt-1 border-t border-slate-200">
+                                        <span>Total AtHand Commission:</span>
+                                        <span>-₹{totalCommissionAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                </div>
+
+                                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 flex justify-between items-center text-emerald-900">
+                                    <div>
+                                        <span className="text-xs font-bold block">Expected Provider Earnings</span>
+                                        <span className="text-[10px] text-emerald-700">Net payout to provider wallet</span>
+                                    </div>
+                                    <span className="text-base font-extrabold text-emerald-700">
+                                        ₹{expectedProviderEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </span>
+                                </div>
                             </div>
 
                             <button

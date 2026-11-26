@@ -26,6 +26,7 @@ import { CreateWalletTransactionController } from "./presentation/controllers/Cr
 import { GetWalletTransactionByIdController } from "./presentation/controllers/GetWalletTransactionById.controller";
 import { GetWalletTransactionsController } from "./presentation/controllers/GetWalletTransactions.controller";
 import { createWalletRoutes } from "./presentation/routes/WalletRoutes";
+import { eventBus } from "../../shared/events";
 
 const walletRepository = new WalletRepositoryImpl();
 const walletTransactionRepository = new WalletTransactionRepositoryImpl();
@@ -42,7 +43,8 @@ const getProviderWalletUseCase = new GetProviderWalletUseCase(walletRepository, 
 
 const createWalletTransactionUseCase = new CreateWalletTransactionUseCase(
   walletRepository,
-  walletTransactionRepository
+  walletTransactionRepository,
+  eventBus
 );
 const getWalletTransactionByIdUseCase = new GetWalletTransactionByIdUseCase(
   walletRepository,

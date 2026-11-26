@@ -44,6 +44,7 @@ export default function ManageRepairOrder() {
     const [estimateItems, setEstimateItems] = useState<IEstimateItem[]>([
         { title: '', amount: 0, type: 'PARTS' }
     ]);
+    const [partsCost, setPartsCost] = useState<number>(0);
     const [laborCost, setLaborCost] = useState<number>(0);
     const [warranty, setWarranty] = useState<string>('30-day service warranty');
     const [repairNotes, setRepairNotes] = useState<string>('');
@@ -75,6 +76,9 @@ export default function ManageRepairOrder() {
                 // Populate Estimate
                 if (ord.repairEstimate?.items && ord.repairEstimate.items.length > 0) {
                     setEstimateItems(ord.repairEstimate.items);
+                }
+                if (ord.repairEstimate?.partsCost !== undefined) {
+                    setPartsCost(ord.repairEstimate.partsCost);
                 }
                 if (ord.repairEstimate?.laborCost !== undefined) {
                     setLaborCost(ord.repairEstimate.laborCost);
@@ -149,26 +153,30 @@ export default function ManageRepairOrder() {
     // Handle Estimate submission
     const handleSaveEstimate = async () => {
         if (!id) return;
+        const directParts = Number(partsCost || 0);
         const validItems = estimateItems.filter(item => item.title.trim().length > 0 && item.amount > 0);
-        if (validItems.length === 0 && Number(laborCost || 0) <= 0) {
-            toast.error('Please provide at least one item or labor charge with a valid price');
+        const itemsParts = validItems.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+        const finalPartsTotal = directParts > 0 ? directParts : itemsParts;
+        const finalLaborTotal = Number(laborCost || 0);
+
+        if (finalPartsTotal <= 0 && finalLaborTotal <= 0) {
+            toast.error('Please provide at least a parts charge or labor charge with a valid price');
             return;
         }
 
-        // If no items but labor is specified, add a default service item
         const itemsToSubmit = validItems.length > 0 ? validItems : [
-            { title: 'Diagnostic & Service Fee', amount: Number(laborCost || 0), type: 'SERVICE' }
+            ...(finalPartsTotal > 0 ? [{ title: 'Repair Parts & Components', amount: finalPartsTotal, type: 'PARTS' }] : []),
+            ...(finalLaborTotal > 0 ? [{ title: 'Service & Diagnostic Labor', amount: finalLaborTotal, type: 'SERVICE' }] : []),
         ];
 
-        const partsTotal = itemsToSubmit.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
-        const totalAmount = partsTotal + Number(laborCost || 0);
+        const totalAmount = finalPartsTotal + finalLaborTotal;
 
         try {
             setIsSubmittingEstimate(true);
             const res = await orderApi.submitRepairEstimate(id, {
                 items: itemsToSubmit,
-                partsCost: partsTotal,
-                laborCost: Number(laborCost || 0),
+                partsCost: finalPartsTotal,
+                laborCost: finalLaborTotal,
                 totalAmount,
                 warranty,
                 notes: repairNotes,
@@ -320,8 +328,20 @@ export default function ManageRepairOrder() {
     if (!order) return null;
 
     const requestData = typeof order.requestId === 'object' ? order.requestId : null;
-    const partsTotal = estimateItems.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+    const itemsPartsTotal = estimateItems.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+    const partsTotal = Number(partsCost) > 0 ? Number(partsCost) : itemsPartsTotal;
     const calculatedTotal = partsTotal + (Number(laborCost) || 0);
+
+    const categoryCommission = typeof (requestData as any)?.categoryId?.commissionPercentage === 'number'
+        ? (requestData as any).categoryId.commissionPercentage
+        : 12;
+    const partsCommissionRate = categoryCommission / 2;
+    const labourCommissionRate = categoryCommission;
+
+    const partsCommissionAmt = Math.round((partsTotal * (partsCommissionRate / 100)) * 100) / 100;
+    const labourCommissionAmt = Math.round(((Number(laborCost) || 0) * (labourCommissionRate / 100)) * 100) / 100;
+    const totalCommissionAmt = Math.round((partsCommissionAmt + labourCommissionAmt) * 100) / 100;
+    const expectedEarnings = Math.round((calculatedTotal - totalCommissionAmt) * 100) / 100;
 
     return (
         <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -624,18 +644,40 @@ export default function ManageRepairOrder() {
                         </div>
                     </div>
 
-                    {/* Labor Cost & Summary */}
+                    {/* Primary Amount Inputs: Total Parts & Labor */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1">Labor / Service Charge (₹)</label>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Total Parts Amount (₹)</label>
                             <input
                                 type="number"
-                                value={laborCost}
-                                onChange={(e) => setLaborCost(Number(e.target.value))}
+                                step="0.01"
+                                value={partsCost || ''}
+                                onChange={(e) => setPartsCost(Number(e.target.value))}
+                                placeholder="0.00"
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-100 font-semibold"
                             />
+                            <span className="text-[10px] text-gray-400 mt-0.5 block">
+                                Total parts charge (enter directly without listing every small spare part)
+                            </span>
                         </div>
 
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Labour / Service Charge (₹)</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={laborCost || ''}
+                                onChange={(e) => setLaborCost(Number(e.target.value))}
+                                placeholder="0.00"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-100 font-semibold"
+                            />
+                            <span className="text-[10px] text-gray-400 mt-0.5 block">
+                                Labour, repair, and diagnostic charges
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                         <div>
                             <label className="block text-xs font-semibold text-gray-700 mb-1">Warranty Term</label>
                             <input
@@ -646,17 +688,79 @@ export default function ManageRepairOrder() {
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Technician Notes for Customer (Optional)</label>
+                            <input
+                                type="text"
+                                value={repairNotes}
+                                onChange={(e) => setRepairNotes(e.target.value)}
+                                placeholder="E.g. Genuine OEM parts, 1 hour service turn-around time"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-100"
+                            />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Technician Notes for Customer (Optional)</label>
-                        <input
-                            type="text"
-                            value={repairNotes}
-                            onChange={(e) => setRepairNotes(e.target.value)}
-                            placeholder="E.g. Genuine OEM parts, 1 hour service turn-around time"
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-100"
-                        />
+                    {/* Commission & Payout Breakdown */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Commission & Payout Breakdown</span>
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                Category: {categoryCommission}%
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                                <span className="text-slate-500 block text-[11px]">Parts Amount</span>
+                                <span className="font-bold text-slate-900 text-sm">₹{partsTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                                <span className="text-slate-500 block text-[11px]">Labour Amount</span>
+                                <span className="font-bold text-slate-900 text-sm">₹{(Number(laborCost) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="bg-white p-2.5 rounded-lg border border-slate-200">
+                                <span className="text-slate-500 block text-[11px]">Total Estimate</span>
+                                <span className="font-bold text-indigo-700 text-sm">₹{calculatedTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-dashed border-slate-200">
+                            <div className="flex justify-between text-[11px] text-slate-500">
+                                <span>Category Commission Rate:</span>
+                                <span>{categoryCommission}%</span>
+                            </div>
+                            <div className="flex justify-between text-[11px] text-slate-500">
+                                <span>Parts Commission Rate:</span>
+                                <span>{partsCommissionRate}% (50% of category)</span>
+                            </div>
+                            <div className="flex justify-between text-[11px] text-slate-500">
+                                <span>Labour Commission Rate:</span>
+                                <span>{labourCommissionRate}% (100% of category)</span>
+                            </div>
+                            <div className="flex justify-between text-slate-700">
+                                <span>Parts Commission:</span>
+                                <span className="text-rose-600 font-medium">-₹{partsCommissionAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="flex justify-between text-slate-700">
+                                <span>Labour Commission:</span>
+                                <span className="text-rose-600 font-medium">-₹{labourCommissionAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="flex justify-between font-semibold text-rose-700 pt-1 border-t border-slate-200">
+                                <span>Total AtHand Commission:</span>
+                                <span>-₹{totalCommissionAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex justify-between items-center text-emerald-900">
+                            <div>
+                                <span className="text-xs font-bold block">Expected Provider Earnings</span>
+                                <span className="text-[10px] text-emerald-700">Will be credited to your provider wallet upon customer payment</span>
+                            </div>
+                            <span className="text-lg font-extrabold text-emerald-700">
+                                ₹{expectedEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Calculated Total Bar */}

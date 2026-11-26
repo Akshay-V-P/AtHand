@@ -1,17 +1,29 @@
 import React, { useEffect, useRef } from 'react'
-import { useAppDispatch } from '../../hooks/storeHook'
+import { useAppDispatch, useAppSelector } from '../../hooks/storeHook'
 import { authService } from './services/authService'
 import { setIsLoading } from './store/authSlice'
 import { adminloginSuccess, adminSetIsLoading } from '../admin/store/adminSlice'
 import { useLocation } from 'react-router-dom'
 import { initializeAuthenticatedUser } from './utils/initializeUser'
+import { socket } from '@/shared/services/socket/socket'
 
 const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
     const dispatch = useAppDispatch()
     const location = useLocation()
+    const user = useAppSelector((state) => state.auth.user);
 
     // Capture the initial path on mount to prevent re-running on route changes
     const initialPath = useRef(location.pathname)
+
+
+    useEffect(() => {
+        if (user) {
+            socket.connect();
+            console.log("Connecting user socket...");
+        } else {
+            socket.disconnect();
+        }
+    }, [user]);
 
     useEffect(() => {
         const initializeAuth = async () => {

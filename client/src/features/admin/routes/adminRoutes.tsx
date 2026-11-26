@@ -11,6 +11,7 @@ import ProviderVerificationDocuments from "../pages/ProviderVerificationDocument
 import ProviderPerformanceMetrics from "../pages/ProviderPerformanceMetrics";
 import ServiceCategories from "../pages/ServiceCategories";
 import UserManagement from "@/features/admin/pages/UserManagement";
+import AdminTransactionsPage from "../pages/AdminTransactionsPage";
 
 const adminRoutes: RouteObject[] = [
     {
@@ -55,6 +56,10 @@ const adminRoutes: RouteObject[] = [
                     {
                         path: "/admin/service-categories/category",
                         element:<ServiceCategories/>
+                    },
+                    {
+                        path: "/admin/transactions",
+                        element: <AdminTransactionsPage />
                     }
                 ],
             },

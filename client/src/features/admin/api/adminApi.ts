@@ -56,5 +56,20 @@ export const adminApi = {
     blockUser: (id: string) =>
         api.patch(`/admin/user/${id}/block`),
     unblockUser: (id: string) =>
-        api.patch(`/admin/user/${id}/unblock`)
+        api.patch(`/admin/user/${id}/unblock`),
+
+    getFinancialSummary: (params?: { startDate?: string; endDate?: string }) =>
+        api.get<{ success: boolean; message: string; data: any }>("/payment/admin/finances/summary", { params }),
+
+    getCommissionLedger: (params?: {
+        page?: number;
+        limit?: number;
+        categoryId?: string;
+        providerId?: string;
+        status?: string;
+        search?: string;
+        startDate?: string;
+        endDate?: string;
+    }) =>
+        api.get<{ success: boolean; message: string; data: any }>("/payment/admin/finances/ledger", { params })
 }

@@ -30,8 +30,11 @@ import {
     CreditCard,
     DollarSign,
     CheckCircle2,
-    RotateCcw
+    RotateCcw,
+    Wallet
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCustomerWallet, walletQueryKeys } from '@/features/wallet/hooks/useWallet';
 import toast from 'react-hot-toast';
 import { resolveMultipleDisplayUrls } from '@/services/imageService';
 import PresignedImage from '@/shared/components/PresignedImage';
@@ -170,8 +173,10 @@ const ServiceRequestDetailPage = () => {
     const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
 
     // Payment States
+    const queryClient = useQueryClient();
+    const { data: customerWallet } = useCustomerWallet();
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'UPI' | 'CASH'>('ONLINE');
+    const [paymentMethod, setPaymentMethod] = useState<'ONLINE' | 'UPI' | 'CASH' | 'WALLET'>('ONLINE');
     const [isPaying, setIsPaying] = useState(false);
     const [paymentFailure, setPaymentFailure] = useState<{
         hasFailed: boolean;
@@ -343,10 +348,39 @@ const ServiceRequestDetailPage = () => {
     };
 
     // Process Payment
-    const handleProcessPayment = async (overrideMethod?: 'ONLINE' | 'UPI' | 'CASH') => {
+    const handleProcessPayment = async (overrideMethod?: 'ONLINE' | 'UPI' | 'CASH' | 'WALLET') => {
         if (!order?.id && !order?._id) return;
         const orderId = order.id || order._id!;
         const activeMethod = overrideMethod || paymentMethod;
+
+        // Handle Customer Wallet Payment
+        if (activeMethod === 'WALLET') {
+            try {
+                setIsPaying(true);
+                toast.loading('Processing payment via AtHand Wallet...', { id: 'wallet-pay' });
+                const res = await paymentApi.payWithWallet(orderId);
+                toast.dismiss('wallet-pay');
+                if (res.data.success) {
+                    toast.success('Paid successfully using your AtHand Wallet!');
+                    setPaymentFailure(null);
+                    setIsPaymentModalOpen(false);
+                    queryClient.invalidateQueries({ queryKey: walletQueryKeys.customer() });
+                    await loadDetails();
+                }
+            } catch (error: any) {
+                toast.dismiss('wallet-pay');
+                const errMsg = error.response?.data?.message || 'Failed to process payment from wallet';
+                toast.error(errMsg);
+                setPaymentFailure({
+                    hasFailed: true,
+                    reason: errMsg,
+                    failedAt: new Date(),
+                });
+            } finally {
+                setIsPaying(false);
+            }
+            return;
+        }
 
         // Handle Cash on Delivery
         if (activeMethod === 'CASH') {
@@ -1810,7 +1844,7 @@ const ServiceRequestDetailPage = () => {
 
                     <div className="space-y-2">
                         <label className="block text-xs font-bold text-gray-700">Select Payment Method</label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <button
                                 type="button"
                                 onClick={() => setPaymentMethod('ONLINE')}
@@ -1837,6 +1871,18 @@ const ServiceRequestDetailPage = () => {
                             </button>
                             <button
                                 type="button"
+                                onClick={() => setPaymentMethod('WALLET')}
+                                className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                                    paymentMethod === 'WALLET'
+                                        ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold shadow-2xs'
+                                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                                }`}
+                            >
+                                <Wallet size={18} className="mx-auto mb-1" />
+                                <span className="text-xs">AtHand Wallet</span>
+                            </button>
+                            <button
+                                type="button"
                                 onClick={() => setPaymentMethod('CASH')}
                                 className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
                                     paymentMethod === 'CASH'
@@ -1848,6 +1894,39 @@ const ServiceRequestDetailPage = () => {
                                 <span className="text-xs">Cash on Delivery</span>
                             </button>
                         </div>
+
+                        {paymentMethod === 'WALLET' && (
+                            <div className={`p-3.5 rounded-xl border text-xs transition-all ${
+                                (customerWallet?.balance ?? 0) >= totalBillAmount
+                                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                                    : 'bg-amber-50/90 border-amber-200 text-amber-900'
+                            }`}>
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-semibold flex items-center gap-1.5">
+                                        <Wallet size={15} className="text-blue-600" /> Available Wallet Balance
+                                    </span>
+                                    <span className="font-bold text-sm">₹{(customerWallet?.balance ?? 0).toFixed(2)}</span>
+                                </div>
+                                {(customerWallet?.balance ?? 0) < totalBillAmount ? (
+                                    <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between">
+                                        <span className="text-rose-700 font-medium">
+                                            Shortfall: <strong>₹{(totalBillAmount - (customerWallet?.balance ?? 0)).toFixed(2)}</strong>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/account/wallet')}
+                                            className="font-bold text-blue-700 hover:underline cursor-pointer"
+                                        >
+                                            Top up wallet &rarr;
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <p className="text-[11px] text-emerald-700 mt-1">
+                                        ₹{totalBillAmount.toFixed(2)} will be debited from your wallet balance instantly.
+                                    </p>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-3 mt-3">
@@ -1859,7 +1938,7 @@ const ServiceRequestDetailPage = () => {
                         </button>
                         <button
                             onClick={() => handleProcessPayment()}
-                            disabled={isPaying}
+                            disabled={isPaying || (paymentMethod === 'WALLET' && (customerWallet?.balance ?? 0) < totalBillAmount)}
                             className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-white bg-black hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer text-sm shadow-xs"
                         >
                             {isPaying ? (
@@ -1869,7 +1948,11 @@ const ServiceRequestDetailPage = () => {
                             ) : (
                                 <CheckCircle size={16} />
                             )}
-                            {paymentFailure?.hasFailed ? 'Retry Payment' : `Pay ₹${totalBillAmount.toLocaleString()}`}
+                            {paymentMethod === 'WALLET' && (customerWallet?.balance ?? 0) < totalBillAmount
+                                ? 'Insufficient Balance'
+                                : paymentFailure?.hasFailed
+                                ? 'Retry Payment'
+                                : `Pay ₹${totalBillAmount.toLocaleString()}`}
                         </button>
                     </div>
                 </div>
