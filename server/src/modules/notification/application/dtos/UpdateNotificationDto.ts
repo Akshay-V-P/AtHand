@@ -1,4 +1,7 @@
 export interface UpdateNotificationDto {
-  // TODO: Add optional update fields.
+  title?: string;
+  message?: string;
+  data?: Record<string, unknown>;
+  isRead?: boolean;
+  readAt?: Date;
 }
-

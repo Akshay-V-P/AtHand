@@ -124,12 +124,13 @@ const AddressPage = () => {
   };
 
   return (
-    <div className="flex-1 w-full max-h-screen pt-4">
-      <div className="flex justify-between items-center mb-8 px-2">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Saved Addresses</h1>
+    <div className="flex-1 w-full pt-1 md:pt-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Saved Addresses</h1>
         <button
+          type="button"
           onClick={openAddModal}
-          className="flex items-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-800 hover:shadow-md transition-all active:scale-95 cursor-pointer"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold rounded-xl hover:bg-gray-800 hover:shadow-md transition-all active:scale-95 cursor-pointer"
         >
           <Plus size={18} />
           Add New Address
@@ -137,11 +138,11 @@ const AddressPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center p-20">
+        <div className="flex items-center justify-center py-16">
           <span className="text-gray-400 font-medium animate-pulse">Loading addresses...</span>
         </div>
       ) : addresses.length === 0 ? (
-        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-16 flex flex-col items-center justify-center text-center mt-4">
+        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-8 sm:p-16 flex flex-col items-center justify-center text-center mt-4">
           <div className="bg-white p-4 rounded-full shadow-sm mb-4">
             <MapPin size={32} className="text-gray-300" />
           </div>
@@ -149,19 +150,19 @@ const AddressPage = () => {
           <p className="text-gray-500 text-sm max-w-sm">You haven't saved any addresses yet. Add one now to make booking faster.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 max-h-[75dvh] overflow-y-auto hide-scrollbar px-2 pb-10">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 md:max-h-[75dvh] md:overflow-y-auto hide-scrollbar pb-6">
           {addresses.map((addr) => (
             <div
               key={addr.id}
-              className={`group relative border ${addr.isPrimary ? 'border-blue-400 ring-1 ring-blue-50/50 bg-blue-50/10' : 'border-gray-100 bg-white'} rounded-[1.5rem] p-7 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full overflow-hidden`}
+              className={`group relative border ${addr.isPrimary ? 'border-blue-400 ring-1 ring-blue-50/50 bg-blue-50/10' : 'border-gray-100 bg-white'} rounded-2xl sm:rounded-[1.5rem] p-5 sm:p-7 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full overflow-hidden`}
             >
               {addr.isPrimary && (
-                <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold tracking-wider uppercase px-4 py-1.5 rounded-bl-[1rem] shadow-sm">
+                <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold tracking-wider uppercase px-3.5 py-1 rounded-bl-xl shadow-sm">
                   Primary Default
                 </div>
               )}
 
-              <div className="flex justify-between items-start mb-5 pb-5 border-b border-gray-100">
+              <div className={`flex justify-between items-start mb-4 pb-4 border-b border-gray-100 ${addr.isPrimary ? 'mt-3' : ''}`}>
                 <div className="flex items-center gap-3">
                   <div className={`p-2.5 rounded-xl ${addr.label.toLowerCase() === 'home' ? 'bg-black text-white' : addr.label.toLowerCase() === 'work' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}`}>
                     {addr.label.toLowerCase() === 'home' ? <Home size={20} /> : addr.label.toLowerCase() === 'work' ? <Briefcase size={20} /> : <MapPin size={20} />}
@@ -231,7 +232,7 @@ const AddressPage = () => {
             </div>
 
             <InputField inputLabel="Area / Street" placeholder="Enter area" {...register('area')} label={errors.area?.message} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <InputField inputLabel="City" placeholder="Enter city" {...register('city')} label={errors.city?.message} />
               <InputField inputLabel="State" placeholder="Enter state" {...register('state')} label={errors.state?.message} />
             </div>

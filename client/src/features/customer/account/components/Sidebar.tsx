@@ -7,6 +7,7 @@ import { accountServices } from '../services/accountServices';
 import { Modal } from '@/shared/components/Modal';
 import { clearProvider } from "@/features/provider/store/providerSlice";
 import { clearProviderApplication } from "@/features/provider/applyAsProvider/store/providerApplicationSlice";
+import { ClipboardList, Heart, History, LogOut, MapPin, User, Wallet } from 'lucide-react';
 
 const Sidebar = () => {
   const dispatch = useAppDispatch();
@@ -25,22 +26,37 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-full md:w-64 lg:w-72 shrink-0 md:max-h-[50dvh]">
-      <div className="border border-gray-100 rounded-[2rem] p-4 shadow-sm bg-white flex flex-col h-full md:min-h-[500px]">
+    <aside className="w-full md:w-64 lg:w-72 shrink-0 md:sticky md:top-24">
+      <div className="md:border md:border-gray-100 md:rounded-[2rem] md:p-4 md:shadow-sm bg-white flex flex-col md:min-h-[480px]">
 
-        {/* Main Nav Items */}
-        <div className="flex md:flex-col gap-3 overflow-x-scroll hide-scrollbar">
-          <SidebarItem label="Profile" navPath='/account/profile' />
-          <SidebarItem label="My Requests" navPath='/account/my-requests' />
-          <SidebarItem label="Service History" navPath='/account/service-history' />
-          <SidebarItem label="Address" navPath='/account/address' />
-          <SidebarItem label="Favorites" navPath='/account/favorites' />
-          <SidebarItem label="Wallet" navPath='/account/wallet' />
+        {/* Main Nav Items: horizontal scrollable pills on mobile, vertical sidebar on md+ */}
+        <div className="flex md:flex-col items-center md:items-stretch gap-2 md:gap-2.5 overflow-x-auto hide-scrollbar py-1 md:py-0">
+          <SidebarItem label="Profile" navPath='/account/profile' icon={<User className="w-4 h-4 shrink-0" />} />
+          <SidebarItem label="My Requests" navPath='/account/my-requests' icon={<ClipboardList className="w-4 h-4 shrink-0" />} />
+          <SidebarItem label="Service History" navPath='/account/service-history' icon={<History className="w-4 h-4 shrink-0" />} />
+          <SidebarItem label="Address" navPath='/account/address' icon={<MapPin className="w-4 h-4 shrink-0" />} />
+          <SidebarItem label="Favorites" navPath='/account/favorites' icon={<Heart className="w-4 h-4 shrink-0" />} />
+          <SidebarItem label="Wallet" navPath='/account/wallet' icon={<Wallet className="w-4 h-4 shrink-0" />} />
+
+          {/* Mobile inline logout pill */}
+          <div className="md:hidden shrink-0">
+            <SidebarItem
+              label="Log out"
+              isLogout={true}
+              icon={<LogOut className="w-4 h-4 shrink-0" />}
+              onClick={() => setIsModalOpen(true)}
+            />
+          </div>
         </div>
 
-        {/* Logout (Pushed to bottom) */}
-        <div className="mt-auto pt-16">
-          <SidebarItem label="Log out" isLogout={true} onClick={() => setIsModalOpen(true)} />
+        {/* Desktop Logout (Pushed to bottom) */}
+        <div className="hidden md:block mt-auto pt-8">
+          <SidebarItem
+            label="Log out"
+            isLogout={true}
+            icon={<LogOut className="w-4 h-4 shrink-0" />}
+            onClick={() => setIsModalOpen(true)}
+          />
         </div>
 
       </div>
@@ -51,12 +67,14 @@ const Sidebar = () => {
 
         <div className="flex flex-col sm:flex-row gap-3 justify-end">
           <button
+            type="button"
             onClick={() => setIsModalOpen(false)}
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
           >
             No
           </button>
           <button
+            type="button"
             onClick={() => {
               logoutHandler();
               setIsModalOpen(false);

@@ -1,12 +1,9 @@
-// components/Footer.jsx
-import React from 'react';
-
 export default function Footer() {
   return (
-    <footer className="bg-[#262626] text-white rounded-[2.5rem] px-8 md:px-16 py-16 mx-8 mt-16 mb-8">
-      <div className="flex flex-col md:flex-row justify-between items-start mb-16 gap-6">
-        <h2 className="text-4xl font-bold max-w-sm leading-tight">Simple way to hire with confidence</h2>
-        <div className="text-lg font-medium flex items-center gap-2">
+    <footer className="bg-[#262626] text-white rounded-3xl md:rounded-[2.5rem] px-6 sm:px-10 md:px-16 py-10 md:py-16 mx-3 sm:mx-6 md:mx-8 mt-10 md:mt-16 mb-4 md:mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start mb-10 md:mb-16 gap-4 md:gap-6">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold max-w-sm leading-tight">Simple way to hire with confidence</h2>
+        <div className="text-base md:text-lg font-medium flex items-center gap-2">
           Made with <span className="text-red-500 text-xl">❤️</span>
         </div>
       </div>

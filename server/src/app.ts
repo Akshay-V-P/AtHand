@@ -19,6 +19,7 @@ import { orderRoutes } from "./modules/order/container"
 import logger from "./shared/middleware/RequestLogger"
 import { walletRoutes } from "./modules/wallet/container"
 import { paymentRoutes } from "./modules/payment/container"
+import { notificationRoutes } from "./modules/notification/container"
 
 const app = express()
 
@@ -56,6 +57,7 @@ app.use('/api/quote', quoteRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/wallet', walletRoutes)
 app.use('/api/payment', paymentRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 app.use(errorHandler)
 
